@@ -19,10 +19,10 @@ export default function HomePage({ setCurrentPage }: HomePageProps) {
       {/* ==================== HERO SECTION ==================== */}
       <section className="glass p-8 md:p-12 rounded-3xl mb-12 flex flex-col md:flex-row items-center gap-8">
         <div className="flex-1">
-          <h1 className="text-5xl md:text-6xl font-bold text-white mb-2 leading-tight" style={{ fontFamily: 'ZCOOL XiaoWei, serif' }}>
+          <h1 className="text-5xl md:text-6xl font-bold text-white mb-2 leading-tight font-zcool">
             VULE ITS
           </h1>
-          <p className="text-2xl md:text-3xl text-white/90 mb-6" style={{ fontFamily: 'ZCOOL XiaoWei, serif' }}>
+          <p className="text-2xl md:text-3xl text-white/90 mb-6 font-zcool">
             Bring Your Success
           </p>
           <p className="text-white/80 text-lg mb-6">

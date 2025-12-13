@@ -33,10 +33,10 @@ export default function Navigation({ currentPage, setCurrentPage }: NavigationPr
               />
             </div>
             <div className="hidden sm:block">
-              <h2 className="text-white font-semibold text-lg leading-tight" style={{ fontFamily: 'ZCOOL XiaoWei, serif' }}>
+              <h2 className="text-white font-semibold text-lg leading-tight font-zcool">
                 VULE ITS
               </h2>
-              <p className="text-white/70 text-xs" style={{ fontFamily: 'ZCOOL XiaoWei, serif' }}>
+              <p className="text-white/70 text-xs font-zcool">
                 Bring Your Success
               </p>
             </div>
