@@ -1,0 +1,29 @@
+'use client';
+
+interface FooterProps {
+  setCurrentPage: (page: string) => void;
+}
+
+export default function Footer({ setCurrentPage }: FooterProps) {
+  return (
+    <footer className="relative z-10 mt-12">
+      <div className="container mx-auto px-4">
+        <div className="glass p-6 rounded-2xl mb-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex gap-6 flex-wrap justify-center md:justify-start">
+              <a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('about'); }} className="text-white hover:text-white/80 transition-colors">About Us</a>
+              <a href="#" className="text-white hover:text-white/80 transition-colors">Privacy Policy</a>
+              <a href="#" className="text-white hover:text-white/80 transition-colors">Terms of Service</a>
+              <a href="#" className="text-white hover:text-white/80 transition-colors">Sitemap</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('contact'); }} className="text-white hover:text-white/80 transition-colors">Contact</a>
+            </div>
+            <div className="text-white text-sm text-center md:text-right">
+              <p>&copy; 2025 Glossy Touch. All rights reserved.</p>
+              <p className="text-white/70">Crafted with modern web technologies</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}
