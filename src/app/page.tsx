@@ -6,6 +6,10 @@ import HomePage from '@/components/pages/HomePage';
 import AboutPage from '@/components/pages/AboutPage';
 import ServicesPage from '@/components/pages/ServicesPage';
 import ContactPage from '@/components/pages/ContactPage';
+import ProductsPage from '@/components/pages/ProductsPage';
+import NewsPage from '@/components/pages/NewsPage';
+import PrivacyPolicyPage from '@/components/pages/PrivacyPolicyPage';
+import TermsOfServicePage from '@/components/pages/TermsOfServicePage';
 import Footer from '@/components/Footer';
 
 export default function Home() {
@@ -41,7 +45,11 @@ export default function Home() {
         {currentPage === 'home' && <HomePage setCurrentPage={setCurrentPage} />}
         {currentPage === 'about' && <AboutPage />}
         {currentPage === 'services' && <ServicesPage />}
+        {currentPage === 'products' && <ProductsPage />}
+        {currentPage === 'news' && <NewsPage />}
         {currentPage === 'contact' && <ContactPage />}
+        {currentPage === 'privacy' && <PrivacyPolicyPage />}
+        {currentPage === 'terms' && <TermsOfServicePage />}
       </main>
 
       <Footer setCurrentPage={setCurrentPage} />

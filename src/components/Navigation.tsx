@@ -9,6 +9,8 @@ export default function Navigation({ currentPage, setCurrentPage }: NavigationPr
   const navItems = [
     { id: 'home', label: 'Home' },
     { id: 'about', label: 'About' },
+    { id: 'products', label: 'Products' },
+    { id: 'news', label: 'News' },
     { id: 'services', label: 'Services' },
     { id: 'contact', label: 'Contact' },
   ];
@@ -34,10 +36,10 @@ export default function Navigation({ currentPage, setCurrentPage }: NavigationPr
                 <circle cx="40" cy="40" r="1" opacity="0.6"/>
               </svg>
             </div>
-            <span className="text-white font-semibold text-lg">Glossy Touch</span>
+            <span className="text-white font-semibold text-lg hidden sm:inline">VULE ITS</span>
           </div>
 
-          <div className="flex gap-6">
+          <div className="flex gap-4 md:gap-6 items-center">
             {navItems.map((item) => (
               <a
                 key={item.id}
@@ -46,7 +48,7 @@ export default function Navigation({ currentPage, setCurrentPage }: NavigationPr
                   e.preventDefault();
                   setCurrentPage(item.id);
                 }}
-                className={`text-white font-medium transition-all duration-300 pb-2 ${
+                className={`text-white font-medium transition-all duration-300 pb-2 text-sm md:text-base ${
                   currentPage === item.id
                     ? 'border-b-2 border-white'
                     : 'hover:border-b-2 hover:border-white/50'
@@ -55,6 +57,7 @@ export default function Navigation({ currentPage, setCurrentPage }: NavigationPr
                 {item.label}
               </a>
             ))}
+            <button className="cta-button text-sm px-3 py-2">Admin</button>
           </div>
         </nav>
       </div>

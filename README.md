@@ -1,12 +1,95 @@
-# VULE ITS Website
+# VULE ITS Website - IEEE 830 SRS Implementation
 
-- Next.js (TypeScript)
-- TailwindCSS
-- Prisma ORM
-- MySQL
+A modern, responsive website portal built with Next.js, React, and Tailwind CSS following IEEE 830 Software Requirements Specification. Features glass morphism design with comprehensive CMS functionality.
 
-## Quick Start
+## 📋 Project Overview
 
-1. Update .env with your MySQL credentials.
-2. Run2. Run: npx prisma migrate dev --name init
-3. Run: npm run dev
+**VULE ITS Website** is a full-featured web portal with:
+- **Public Portal**: Homepage, Products, News, About, Services, Contact, Legal Pages
+- **Admin CMS**: Content management for products, news, media, banners, users
+- **Glass Morphism UI**: Modern frosted glass design pattern
+- **Role-Based Access Control**: SuperAdmin, Admin, Editor roles
+- **SEO Optimized**: Meta tags, structured data support
+
+## 🏗️ Project Structure
+
+```
+src/
+├── app/
+│   ├── page.tsx                 # Main portal with page routing
+│   ├── globals.css              # Global styles & animations
+│   └── admin/
+│       ├── login/page.tsx       # Admin login
+│       └── dashboard/page.tsx   # Admin dashboard
+├── components/
+│   ├── Navigation.tsx           # Navigation bar
+│   ├── Footer.tsx               # Footer
+│   └── pages/
+│       ├── HomePage.tsx
+│       ├── AboutPage.tsx
+│       ├── ProductsPage.tsx
+│       ├── NewsPage.tsx
+│       ├── ServicesPage.tsx
+│       ├── ContactPage.tsx
+│       ├── PrivacyPolicyPage.tsx
+│       └── TermsOfServicePage.tsx
+prisma/
+└── schema.prisma               # Database models
+```
+
+## 📄 Public Portal Pages
+
+- **Home**: Hero, features, navigation
+- **Products**: Listing with search & filters
+- **News**: Articles with tag filtering
+- **About**: Company info, team, stats
+- **Services**: 6 service offerings
+- **Contact**: Form with validation
+- **Legal**: Privacy Policy, Terms of Service
+
+## 🔐 Admin Dashboard
+
+Modules for managing:
+- Products (CRUD)
+- News (CRUD)
+- Users (RBAC)
+- Media uploads
+- Banner sliders
+- Contact submissions
+
+## 🎨 Glass Morphism Design
+
+- Frosted glass effects
+- Backdrop blur
+- Smooth transitions
+- Responsive layout
+- Modern animations
+
+## 📊 Database (Prisma)
+
+Models: User, Role, Product, News, BannerSlider, Media, Contact, AboutSection, PrivacyPolicy, TermsOfService, SiteSetting
+
+## 🚀 Quick Start
+
+```bash
+# Install
+npm install
+
+# Setup .env
+DATABASE_URL="mysql://user:password@localhost:3306/vuleits"
+
+# Migrate
+npx prisma migrate dev --name init
+
+# Run
+npm run dev
+```
+
+## 📝 Tech Stack
+
+- Next.js 14+, React 18+, TypeScript
+- Tailwind CSS 3+
+- Prisma ORM, MySQL
+- Glass Morphism UI
+
+## Version: 1.0 | Status: In Development | Updated: Dec 13, 2025
