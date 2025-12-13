@@ -26,15 +26,16 @@ export default function ProductsPage() {
 
   return (
     <div className="container mx-auto px-4">
-      {/* Hero Section */}
+      {/* ==================== HERO SECTION ==================== */}
       <section className="glass p-8 md:p-12 rounded-3xl mb-8">
         <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Our Products</h1>
         <p className="text-white/80 text-lg">Discover our innovative solutions designed for your success</p>
       </section>
 
-      {/* Search and Filter */}
+      {/* ==================== SEARCH & FILTER AREA ==================== */}
       <section className="glass p-6 rounded-2xl mb-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Search Input */}
           <div>
             <label className="text-white font-medium block mb-2">Search Products</label>
             <input
@@ -45,6 +46,8 @@ export default function ProductsPage() {
               className="w-full px-4 py-2 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-white/50"
             />
           </div>
+
+          {/* Status Filter */}
           <div>
             <label className="text-white font-medium block mb-2">Status</label>
             <select
@@ -59,16 +62,21 @@ export default function ProductsPage() {
         </div>
       </section>
 
-      {/* Products Grid */}
+      {/* ==================== PRODUCTS GRID SECTION ==================== */}
       <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
         {filteredProducts.length > 0 ? (
           filteredProducts.map((product) => (
             <div key={product.id} className="glass p-6 rounded-2xl hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105">
+              {/* Product Image */}
               <div className="h-40 bg-white/10 rounded-lg mb-4 flex items-center justify-center">
                 <div className="text-4xl">📦</div>
               </div>
+
+              {/* Product Info */}
               <h3 className="text-white font-semibold text-xl mb-2">{product.title}</h3>
               <p className="text-white/70 mb-3">{product.description}</p>
+
+              {/* Product Footer */}
               <div className="flex items-center justify-between">
                 <span className={`px-3 py-1 rounded-full text-sm font-medium ${product.status === 'Active' ? 'bg-green-500/30 text-green-200' : 'bg-red-500/30 text-red-200'}`}>
                   {product.status}

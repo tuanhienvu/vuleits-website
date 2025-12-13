@@ -24,7 +24,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0c0c0c] via-[#1a1a2e] to-[#a0616a] p-4">
-      {/* Header */}
+      {/* ==================== HEADER SECTION ==================== */}
       <div className="glass p-6 rounded-2xl mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white">Admin Dashboard</h1>
@@ -35,10 +35,11 @@ export default function AdminDashboard() {
         </button>
       </div>
 
-      {/* Stats */}
+      {/* ==================== STATS CARDS SECTION ==================== */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {stats.map((stat, index) => (
           <div key={index} className="glass p-6 rounded-2xl">
+            {/* Stat Display */}
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-white/70 text-sm">{stat.label}</p>
@@ -50,7 +51,7 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      {/* Navigation Tabs */}
+      {/* ==================== TAB NAVIGATION SECTION ==================== */}
       <div className="glass p-2 rounded-2xl mb-8 overflow-x-auto">
         <div className="flex gap-2">
           {tabs.map((tab) => (
@@ -69,8 +70,9 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Content Areas */}
+      {/* ==================== TAB CONTENT SECTION ==================== */}
       <div className="glass p-8 rounded-2xl">
+        {/* Overview Tab Content */}
         {activeTab === 'overview' && (
           <div>
             <h2 className="text-2xl font-bold text-white mb-6">Overview</h2>
@@ -85,6 +87,7 @@ export default function AdminDashboard() {
           </div>
         )}
 
+        {/* Products Tab Content */}
         {activeTab === 'products' && (
           <div>
             <div className="flex justify-between items-center mb-6">
@@ -108,6 +111,7 @@ export default function AdminDashboard() {
           </div>
         )}
 
+        {/* News Tab Content */}
         {activeTab === 'news' && (
           <div>
             <div className="flex justify-between items-center mb-6">
@@ -131,6 +135,7 @@ export default function AdminDashboard() {
           </div>
         )}
 
+        {/* Users Tab Content */}
         {activeTab === 'users' && (
           <div>
             <div className="flex justify-between items-center mb-6">
@@ -154,6 +159,7 @@ export default function AdminDashboard() {
           </div>
         )}
 
+        {/* Media Tab Content */}
         {activeTab === 'media' && (
           <div>
             <div className="flex justify-between items-center mb-6">
@@ -171,6 +177,7 @@ export default function AdminDashboard() {
           </div>
         )}
 
+        {/* Banners Tab Content */}
         {activeTab === 'banners' && (
           <div>
             <div className="flex justify-between items-center mb-6">
@@ -194,6 +201,7 @@ export default function AdminDashboard() {
           </div>
         )}
 
+        {/* Contacts Tab Content */}
         {activeTab === 'contacts' && (
           <div>
             <h2 className="text-2xl font-bold text-white mb-6">Contact Messages</h2>

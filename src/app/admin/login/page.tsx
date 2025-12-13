@@ -23,7 +23,7 @@ export default function AdminLogin() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0c0c0c] via-[#1a1a2e] to-[#a0616a] flex items-center justify-center px-4">
-      {/* Background Shapes */}
+      {/* ==================== BACKGROUND SHAPES AREA ==================== */}
       <div className="fixed top-0 left-0 w-full h-full -z-10 overflow-hidden pointer-events-none">
         {[1, 2, 3, 4, 5, 6].map((i) => (
           <div
@@ -45,7 +45,9 @@ export default function AdminLogin() {
         ))}
       </div>
 
+      {/* ==================== LOGIN CARD SECTION ==================== */}
       <div className="glass p-8 md:p-12 rounded-3xl w-full max-w-md relative z-10">
+        {/* ==================== LOGO & BRANDING AREA ==================== */}
         <div className="text-center mb-8">
           <div className="w-20 h-20 relative mx-auto mb-4">
             <Image
@@ -60,13 +62,16 @@ export default function AdminLogin() {
           <p className="text-white/70">Content Management System</p>
         </div>
 
+        {/* ==================== LOGIN FORM AREA ==================== */}
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Error Message Display */}
           {error && (
             <div className="bg-red-500/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg">
               {error}
             </div>
           )}
 
+          {/* Email Input Field */}
           <div>
             <label htmlFor="email" className="text-white font-medium block mb-2">Email Address</label>
             <input
@@ -79,6 +84,7 @@ export default function AdminLogin() {
             />
           </div>
 
+          {/* Password Input Field */}
           <div>
             <label htmlFor="password" className="text-white font-medium block mb-2">Password</label>
             <input
@@ -91,6 +97,7 @@ export default function AdminLogin() {
             />
           </div>
 
+          {/* Submit Button */}
           <button
             type="submit"
             className="w-full cta-button py-3 font-semibold text-center mt-6"
@@ -99,6 +106,7 @@ export default function AdminLogin() {
           </button>
         </form>
 
+        {/* ==================== DEMO INFO AREA ==================== */}
         <p className="text-white/60 text-sm text-center mt-6">
           Demo: Use any email and password (min 6 chars)
         </p>

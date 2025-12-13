@@ -42,21 +42,26 @@ export default function ServicesPage() {
 
   return (
     <div className="container mx-auto px-4">
-      {/* Hero */}
+      {/* ==================== HERO SECTION ==================== */}
       <section className="glass p-8 md:p-12 rounded-3xl mb-12 text-center">
         <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Our Services</h1>
         <p className="text-white/80 text-lg">Comprehensive design and development solutions tailored to your needs</p>
       </section>
 
-      {/* Services Grid */}
+      {/* ==================== SERVICES GRID SECTION ==================== */}
       <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
         {services.map((service, index) => (
           <div key={index} className="glass p-6 rounded-2xl hover:shadow-xl transition-all duration-300">
+            {/* Service Icon & Title */}
             <div className="flex items-center gap-3 mb-4">
               <div className="text-4xl">{service.icon}</div>
               <h3 className="text-white font-semibold text-xl">{service.title}</h3>
             </div>
+
+            {/* Service Description */}
             <p className="text-white/80 mb-4">{service.description}</p>
+
+            {/* Service Features List */}
             <ul className="space-y-2">
               {service.features.map((feature, idx) => (
                 <li key={idx} className="text-white/70 flex items-center gap-2">

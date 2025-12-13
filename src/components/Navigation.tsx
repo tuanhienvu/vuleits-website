@@ -21,6 +21,7 @@ export default function Navigation({ currentPage, setCurrentPage }: NavigationPr
     <header className="sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <nav className="glass flex items-center justify-between p-4 my-4 rounded-2xl">
+          {/* ==================== LOGO & BRANDING AREA ==================== */}
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => setCurrentPage('home')}>
             <div className="w-12 h-12 relative">
               <Image
@@ -34,7 +35,9 @@ export default function Navigation({ currentPage, setCurrentPage }: NavigationPr
             <span className="text-white font-semibold text-lg hidden sm:inline">VULE ITS</span>
           </div>
 
+          {/* ==================== NAVIGATION MENU AREA ==================== */}
           <div className="flex gap-4 md:gap-6 items-center">
+            {/* Navigation Links */}
             {navItems.map((item) => (
               <a
                 key={item.id}
@@ -52,6 +55,8 @@ export default function Navigation({ currentPage, setCurrentPage }: NavigationPr
                 {item.label}
               </a>
             ))}
+
+            {/* Admin Login Button */}
             <button className="cta-button text-sm px-3 py-2">Admin</button>
           </div>
         </nav>
