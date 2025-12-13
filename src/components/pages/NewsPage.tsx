@@ -44,28 +44,31 @@ export default function NewsPage() {
       </section>
 
       {/* ==================== SEARCH & TAG FILTER AREA ==================== */}
-      <section className="glass p-6 rounded-2xl mb-8">
+      <section className="glass p-6 rounded-2xl mb-8" aria-labelledby="news-search-heading">
         {/* Search Input */}
         <div className="mb-4">
-          <label className="text-white font-medium block mb-2">Search Articles</label>
+          <label id="news-search-heading" htmlFor="news-search" className="text-white font-medium block mb-2">Search Articles</label>
           <input
+            id="news-search"
+            aria-label="Search articles by title"
             type="text"
             placeholder="Search by title..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full px-4 py-2 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-white/50"
+            className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-white/50"
           />
         </div>
         
         {/* Tag Filter Buttons */}
         <div>
           <label className="text-white font-medium block mb-3">Filter by Tags</label>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2" role="list" aria-label="Tag filters">
             {allTags.map(tag => (
               <button
                 key={tag}
                 onClick={() => toggleTag(tag)}
-                className={`px-4 py-2 rounded-full transition-all duration-300 ${
+                aria-pressed={selectedTags.includes(tag)}
+                className={`px-4 py-3 min-h-[44px] rounded-full transition-all duration-300 ${
                   selectedTags.includes(tag)
                     ? 'bg-purple-500 text-white'
                     : 'bg-white/20 text-white/80 hover:bg-white/30'
@@ -79,20 +82,20 @@ export default function NewsPage() {
       </section>
 
       {/* ==================== ARTICLES LIST SECTION ==================== */}
-      <section className="space-y-6 mb-12">
+      <section className="space-y-6 mb-12" aria-label="Articles list">
         {filteredArticles.length > 0 ? (
           filteredArticles.map((article) => (
-            <div key={article.id} className="glass p-6 rounded-2xl hover:shadow-xl transition-all duration-300 cursor-pointer hover:bg-white/15">
+            <div key={article.id} role="listitem" className="glass p-6 rounded-2xl hover:shadow-xl transition-all duration-300 cursor-pointer hover:bg-white/15">
               {/* Article Card Layout */}
               <div className="flex flex-col md:flex-row gap-6">
                 {/* Article Icon */}
-                <div className="md:w-48 h-48 bg-white/10 rounded-lg flex-shrink-0 flex items-center justify-center">
-                  <div className="text-4xl">📰</div>
+                <div className="md:w-48 md:h-48 w-32 h-32 bg-white/10 rounded-lg flex-shrink-0 flex items-center justify-center">
+                  <div className="text-3xl md:text-4xl">📰</div>
                 </div>
 
                 {/* Article Content */}
                 <div className="flex-1">
-                  <h3 className="text-white font-semibold text-2xl mb-2">{article.title}</h3>
+                  <h3 className="text-white font-semibold text-xl md:text-2xl mb-2">{article.title}</h3>
                   <p className="text-white/70 mb-3">{article.description}</p>
 
                   {/* Tag Display */}
