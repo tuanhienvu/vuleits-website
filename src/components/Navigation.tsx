@@ -22,7 +22,7 @@ export default function Navigation({ currentPage, setCurrentPage }: NavigationPr
       <div className="container mx-auto px-4">
         <nav className="glass flex items-center justify-between p-4 my-4 rounded-2xl">
           {/* ==================== LOGO & BRANDING AREA ==================== */}
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => setCurrentPage('home')}>
+          <div className="flex items-center gap-4 cursor-pointer" onClick={() => setCurrentPage('home')}>
             <div className="w-12 h-12 relative">
               <Image
                 src="/Logos.png"
@@ -32,7 +32,14 @@ export default function Navigation({ currentPage, setCurrentPage }: NavigationPr
                 priority
               />
             </div>
-            <span className="text-white font-semibold text-lg hidden sm:inline">VULE ITS</span>
+            <div className="hidden sm:block">
+              <h2 className="text-white font-semibold text-lg leading-tight" style={{ fontFamily: 'ZCOOL XiaoWei, serif' }}>
+                VULE ITS
+              </h2>
+              <p className="text-white/70 text-xs" style={{ fontFamily: 'ZCOOL XiaoWei, serif' }}>
+                Bring Your Success
+              </p>
+            </div>
           </div>
 
           {/* ==================== NAVIGATION MENU AREA ==================== */}
