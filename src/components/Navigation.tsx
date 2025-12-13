@@ -23,7 +23,7 @@ export default function Navigation({ currentPage, setCurrentPage }: NavigationPr
   return (
     <header className="sticky top-0 z-50">
       <div className="container mx-auto px-4">
-        <nav className="glass flex items-center justify-between p-4 my-4 rounded-2xl relative">
+        <nav role="navigation" className="glass flex items-center justify-between p-4 my-4 rounded-2xl relative">
           {/* ==================== LOGO & BRANDING AREA ==================== */}
           <div className="flex items-center gap-4 cursor-pointer" onClick={() => { setCurrentPage('home'); setMobileOpen(false); }}>
             <div className="w-12 h-12 relative">
@@ -67,6 +67,7 @@ export default function Navigation({ currentPage, setCurrentPage }: NavigationPr
                   e.preventDefault();
                   setCurrentPage(item.id);
                 }}
+                aria-current={currentPage === item.id ? 'page' : undefined}
                 className={`text-white font-medium transition-all duration-300 pb-2 text-sm md:text-base ${
                   currentPage === item.id
                     ? 'border-b-2 border-white'

@@ -39,9 +39,11 @@ export default function Home() {
         ))}
       </div>
 
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:bg-white/10 focus:text-white focus:px-3 focus:py-2 rounded">Skip to content</a>
+
       <Navigation currentPage={currentPage} setCurrentPage={setCurrentPage} />
 
-      <main className="relative z-10">
+      <main id="main-content" className="relative z-10">
         {currentPage === 'home' && <HomePage setCurrentPage={setCurrentPage} />}
         {currentPage === 'about' && <AboutPage />}
         {currentPage === 'services' && <ServicesPage />}
