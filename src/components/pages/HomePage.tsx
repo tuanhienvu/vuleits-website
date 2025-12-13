@@ -16,12 +16,15 @@ export default function HomePage({ setCurrentPage }: HomePageProps) {
 
   return (
     <div className="container mx-auto px-4">
-      {/* Hero Section */}
+      {/* ==================== HERO SECTION ==================== */}
       <section className="glass p-8 md:p-12 rounded-3xl mb-12 flex flex-col md:flex-row items-center gap-8">
         <div className="flex-1">
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight">
-            Welcome to the Future
+          <h1 className="text-5xl md:text-6xl font-bold text-white mb-2 leading-tight font-zcool">
+            VULE ITS
           </h1>
+          <p className="text-2xl md:text-3xl text-white/90 mb-6 font-zcool">
+            Bring Your Success
+          </p>
           <p className="text-white/80 text-lg mb-6">
             Experience cutting-edge glass morphism design that brings depth and elegance to modern web interfaces. Clean, translucent, and beautifully interactive.
           </p>
@@ -32,12 +35,14 @@ export default function HomePage({ setCurrentPage }: HomePageProps) {
             Learn More
           </button>
         </div>
+        
+        {/* Hero Image Area */}
         <div className="flex-1 h-64 bg-white/10 rounded-2xl flex items-center justify-center">
           <div className="text-6xl">🎨</div>
         </div>
       </section>
 
-      {/* Features Section */}
+      {/* ==================== FEATURES GRID SECTION ==================== */}
       <section className="mb-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((feature, index) => (

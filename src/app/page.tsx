@@ -1,15 +1,64 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
 import HomePage from '@/components/pages/HomePage';
 import AboutPage from '@/components/pages/AboutPage';
 import ServicesPage from '@/components/pages/ServicesPage';
 import ContactPage from '@/components/pages/ContactPage';
+import ProductsPage from '@/components/pages/ProductsPage';
+import NewsPage from '@/components/pages/NewsPage';
+import PrivacyPolicyPage from '@/components/pages/PrivacyPolicyPage';
+import TermsOfServicePage from '@/components/pages/TermsOfServicePage';
 import Footer from '@/components/Footer';
 
 export default function Home() {
   const [currentPage, setCurrentPage] = useState('home');
+
+  useEffect(() => {
+    const meta = (name: string) => document.querySelector(`meta[name="${name}"]`);
+    const setMeta = (name: string, content: string) => {
+      let el = meta(name) as HTMLMetaElement | null;
+      if (!el) {
+        el = document.createElement('meta');
+        el.name = name;
+        document.head.appendChild(el);
+      }
+      el.content = content;
+    };
+
+    const setOG = (property: string, content: string) => {
+      let el = document.querySelector(`meta[property="${property}"]`) as HTMLMetaElement | null;
+      if (!el) {
+        el = document.createElement('meta');
+        el.setAttribute('property', property);
+        document.head.appendChild(el);
+      }
+      el.content = content;
+    };
+
+    const pageMeta: Record<string, { title: string; description: string }> = {
+      home: { title: 'VULE ITS - Bring Your Success', description: 'Bring Your Success' },
+      about: { title: 'About - VULE ITS', description: 'About VULE ITS and our mission' },
+      services: { title: 'Services - VULE ITS', description: 'Our services to help you succeed' },
+      products: { title: 'Products - VULE ITS', description: 'Explore our products' },
+      news: { title: 'News - VULE ITS', description: 'Latest news and updates' },
+      contact: { title: 'Contact - VULE ITS', description: 'Get in touch with VULE ITS' },
+      privacy: { title: 'Privacy - VULE ITS', description: 'Privacy policy and practices' },
+      terms: { title: 'Terms - VULE ITS', description: 'Terms and conditions' },
+    };
+
+    const data = pageMeta[currentPage] || pageMeta.home;
+    document.title = data.title;
+    setMeta('description', data.description);
+    setMeta('og:site_name', 'VULE ITS');
+    setOG('og:title', data.title);
+    setOG('og:description', data.description);
+    setOG('og:type', 'website');
+    setMeta('twitter:card', 'summary_large_image');
+    setMeta('twitter:title', data.title);
+    setMeta('twitter:description', data.description);
+  }, [currentPage]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0c0c0c] via-[#1a1a2e] to-[#a0616a]">
@@ -35,13 +84,19 @@ export default function Home() {
         ))}
       </div>
 
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:bg-white/10 focus:text-white focus:px-3 focus:py-2 rounded">Skip to content</a>
+
       <Navigation currentPage={currentPage} setCurrentPage={setCurrentPage} />
 
-      <main className="relative z-10">
+      <main id="main-content" className="relative z-10">
         {currentPage === 'home' && <HomePage setCurrentPage={setCurrentPage} />}
         {currentPage === 'about' && <AboutPage />}
         {currentPage === 'services' && <ServicesPage />}
+        {currentPage === 'products' && <ProductsPage />}
+        {currentPage === 'news' && <NewsPage />}
         {currentPage === 'contact' && <ContactPage />}
+        {currentPage === 'privacy' && <PrivacyPolicyPage />}
+        {currentPage === 'terms' && <TermsOfServicePage />}
       </main>
 
       <Footer setCurrentPage={setCurrentPage} />

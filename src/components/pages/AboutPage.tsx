@@ -19,7 +19,7 @@ export default function AboutPage() {
 
   return (
     <div className="container mx-auto px-4">
-      {/* About Content */}
+      {/* ==================== ABOUT CONTENT SECTION ==================== */}
       <section className="mb-12">
         <div className="glass p-8 md:p-12 rounded-3xl mb-8">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">About Our Vision</h2>
@@ -36,7 +36,7 @@ export default function AboutPage() {
           </div>
         </div>
 
-        {/* Stats */}
+        {/* ==================== STATISTICS CARDS AREA ==================== */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
           {stats.map((stat, index) => (
             <div key={index} className="glass p-6 rounded-2xl text-center">
@@ -47,7 +47,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Team Section */}
+      {/* ==================== TEAM SECTION ==================== */}
       <section>
         <h2 className="text-3xl md:text-4xl font-bold text-white mb-8">Meet Our Team</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -57,6 +57,8 @@ export default function AboutPage() {
               <h3 className="text-white font-semibold text-xl mb-1">{member.name}</h3>
               <p className="text-purple-200 text-sm mb-3">{member.role}</p>
               <p className="text-white/70 text-sm mb-4">{member.bio}</p>
+              
+              {/* Team Member Social Links */}
               <div className="flex gap-3 justify-center text-xl">
                 <a href="#" className="hover:scale-125 transition-transform">📧</a>
                 <a href="#" className="hover:scale-125 transition-transform">💼</a>
