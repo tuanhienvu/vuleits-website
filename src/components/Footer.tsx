@@ -13,9 +13,9 @@ export default function Footer({ setCurrentPage }: FooterProps) {
             
             {/* ==================== FOOTER LINKS AREA ==================== */}
             <div className="flex gap-6 flex-wrap justify-center md:justify-start text-sm">
-              <a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('about'); }} className="text-white hover:text-white/80 transition-colors">About Us</a>
-              <a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('privacy'); }} className="text-white hover:text-white/80 transition-colors">Privacy Policy</a>
-              <a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('terms'); }} className="text-white hover:text-white/80 transition-colors">Terms of Service</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('about'); }} className="text-white hover:text-white/80 transition-colors">About</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('privacy'); }} className="text-white hover:text-white/80 transition-colors">Privacy</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('terms'); }} className="text-white hover:text-white/80 transition-colors">Terms</a>
               <a href="#" className="text-white hover:text-white/80 transition-colors">Sitemap</a>
               <a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('contact'); }} className="text-white hover:text-white/80 transition-colors">Contact</a>
             </div>
