@@ -19,9 +19,12 @@ export default function HomePage({ setCurrentPage }: HomePageProps) {
       {/* ==================== HERO SECTION ==================== */}
       <section className="glass p-8 md:p-12 rounded-3xl mb-12 flex flex-col md:flex-row items-center gap-8">
         <div className="flex-1">
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight">
-            Welcome to the Future
+          <h1 className="text-5xl md:text-6xl font-bold text-white mb-2 leading-tight" style={{ fontFamily: 'ZCOOL XiaoWei, serif' }}>
+            VULE ITS
           </h1>
+          <p className="text-2xl md:text-3xl text-white/90 mb-6" style={{ fontFamily: 'ZCOOL XiaoWei, serif' }}>
+            Bring Your Success
+          </p>
           <p className="text-white/80 text-lg mb-6">
             Experience cutting-edge glass morphism design that brings depth and elegance to modern web interfaces. Clean, translucent, and beautifully interactive.
           </p>
