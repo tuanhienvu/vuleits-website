@@ -1,0 +1,209 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  roleId       Int
+  username     String   @unique
+  email        String   @unique
+  passwordHash String
+  firstName    String?
+  lastName     String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  role         Role     @relation(fields: [roleId], references: [id])
+  posts        Post[]
+  media        Media[]
+  privacyPolicies PrivacyPolicy[] @relation("CreatedPrivacyPolicies")
+  termsOfServices TermsOfService[] @relation("CreatedTermsOfServices")
+}
+
+model Role {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
+  permissions String?
+  users       User[]
+}
+
+model Post {
+  id             Int       @id @default(autoincrement())
+  title          String
+  slug           String    @unique
+  content        String
+  excerpt        String?
+  status         String
+  authorId       Int
+  categoryId     Int
+  thumbnailId    Int?
+  seoTitle       String?
+  seoDescription String?
+  publishedAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  author         User      @relation(fields: [authorId], references: [id])
+  category       Category  @relation(fields: [categoryId], references: [id])
+  thumbnail      Media?    @relation(fields: [thumbnailId], references: [id])
+  tags           Tag[]     @relation("PostTags", through: PostTag)
+}
+
+model Category {
+  id          Int     @id @default(autoincrement())
+  name        String
+  slug        String  @unique
+  description String?
+  posts       Post[]
+}
+
+model Tag {
+  id    Int    @id @default(autoincrement())
+  name  String
+  slug  String @unique
+  posts Post[] @relation("PostTags", through: PostTag)
+}
+
+model PostTag {
+  postId Int
+  tagId  Int
+  post   Post @relation(fields: [postId], references: [id])
+  tag    Tag  @relation(fields: [tagId], references: [id])
+  @@id([postId, tagId])
+}
+
+model Product {
+  id          Int              @id @default(autoincrement())
+  name        String
+  slug        String           @unique
+  description String
+  features    String?
+  thumbnailId Int?
+  status      String
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  thumbnail   Media?           @relation(fields: [thumbnailId], references: [id])
+  versions    ProductVersion[]
+}
+
+model ProductVersion {
+  id            Int      @id @default(autoincrement())
+  productId     Int
+  versionNumber String
+  releaseDate   DateTime?
+  details       String?
+  product       Product  @relation(fields: [productId], references: [id])
+}
+
+model Media {
+  id               Int      @id @default(autoincrement())
+  fileName         String
+  fileType         String
+  filePath         String
+  altText          String?
+  uploadedByUserId Int?
+  createdAt        DateTime @default(now())
+
+  uploadedBy       User?    @relation(fields: [uploadedByUserId], references: [id])
+  posts            Post[]   @relation("PostThumbnail")
+  products         Product[]
+  bannerItems      BannerItem[]
+  aboutSections    AboutSection[]
+}
+
+model Contact {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  phone     String?
+  subject   String?
+  message   String
+  isHandled Boolean  @default(false)
+  receivedAt DateTime @default(now())
+}
+
+model SiteSetting {
+  id      Int     @id @default(autoincrement())
+  key     String  @unique
+  value   String
+  isPublic Boolean @default(true)
+}
+
+model BannerSlider {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  position    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  items       BannerItem[]
+}
+
+model BannerItem {
+  id               Int      @id @default(autoincrement())
+  sliderId         Int
+  imageId          Int
+  title            String?
+  description      String?
+  link             String?
+  order            Int
+  displayDuration  Int?
+  transitionType   String?
+  transitionDuration Int?
+  altText          String?
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+
+  slider           BannerSlider @relation(fields: [sliderId], references: [id])
+  image            Media       @relation(fields: [imageId], references: [id])
+}
+
+model AboutSection {
+  id          Int      @id @default(autoincrement())
+  title       String
+  content     String
+  order       Int
+  imageId     Int?
+  type        String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  image       Media?   @relation(fields: [imageId], references: [id])
+}
+
+model PrivacyPolicy {
+  id              Int      @id @default(autoincrement())
+  version         String
+  content         String
+  slug            String   @unique
+  metaTitle       String?
+  metaDescription String?
+  isActive        Boolean  @default(true)
+  publishedAt     DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  createdById     Int?
+  createdBy       User?    @relation("CreatedPrivacyPolicies", fields: [createdById], references: [id])
+}
+
+model TermsOfService {
+  id              Int      @id @default(autoincrement())
+  version         String
+  content         String
+  slug            String   @unique
+  metaTitle       String?
+  metaDescription String?
+  isActive        Boolean  @default(true)
+  publishedAt     DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  createdById     Int?
+  createdBy       User?    @relation("CreatedTermsOfServices", fields: [createdById], references: [id])
+}
