@@ -28,10 +28,10 @@ export default function Navigation({ currentPage, setCurrentPage }: NavigationPr
           <div className="flex items-center gap-4 cursor-pointer" onClick={() => { setCurrentPage('home'); setMobileOpen(false); }}>
             <div className="w-12 h-12 relative">
               <Image
-                src="/Logos.png"
+                src="/Logo.jpg"
                 alt="VULE ITS Logo"
                 fill
-                className="object-contain"
+                className="object-contain rounded-full"
                 priority
               />
             </div>
