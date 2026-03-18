@@ -9,7 +9,7 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        zcool: ['"ZCOOL XiaoWei"', 'serif'],
+        zcool: ['var(--font-zcool-xiaowei)', 'serif'],
       },
       animation: {
         float: 'float 6s ease-in-out infinite',

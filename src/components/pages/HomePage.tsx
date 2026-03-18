@@ -1,11 +1,13 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+
 interface HomePageProps {
   setCurrentPage: (page: string) => void;
 }
 
 export default function HomePage({ setCurrentPage }: HomePageProps) {
-  const features = [
+  const fallbackFeatures = [
     { icon: '✨', title: 'Modern Design', description: 'Beautiful glass morphism effects with backdrop blur and translucent elements that create depth and visual hierarchy.' },
     { icon: '⚡', title: 'Fast Performance', description: 'Optimized animations and effects that maintain smooth 60fps performance across all modern browsers and devices.' },
     { icon: '📱', title: 'Responsive', description: 'Fully responsive design that adapts beautifully to any screen size, from mobile phones to desktop displays.' },
@@ -13,6 +15,27 @@ export default function HomePage({ setCurrentPage }: HomePageProps) {
     { icon: '🔒', title: 'Secure & Safe', description: 'Built with modern security standards and best practices to ensure your data and user privacy are protected.' },
     { icon: '🚀', title: 'Easy Integration', description: 'Simple to implement and customize for any project with clean, well-documented code and flexible components.' },
   ];
+
+  const [features, setFeatures] = useState(fallbackFeatures);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/home/features');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelled && Array.isArray(data) && data.length > 0) {
+          setFeatures(data);
+        }
+      } catch {
+        // keep fallback
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div className="container mx-auto px-4">

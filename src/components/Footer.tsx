@@ -22,8 +22,8 @@ export default function Footer({ setCurrentPage }: FooterProps) {
 
             {/* ==================== COPYRIGHT & INFO AREA ==================== */}
             <div className="text-white text-sm text-center md:text-right">
-              <p>&copy; 2025 VULE ITS. All rights reserved.</p>
-              <p className="text-white/70">Powered by modern web technologies</p>
+              <p className="font-zcool">&copy; 2025 VULE ITS. All rights reserved.</p>
+              {/* <p className="text-white/70">Powered by modern web technologies</p> */}
             </div>
           </div>
         </div>

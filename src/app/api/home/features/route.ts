@@ -1,0 +1,13 @@
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+
+export async function GET() {
+  const list = await prisma.homeFeature.findMany({
+    where: { isActive: true },
+    orderBy: [{ order: 'asc' }, { id: 'asc' }],
+    select: { id: true, icon: true, title: true, description: true },
+  });
+
+  return NextResponse.json(list);
+}
+
