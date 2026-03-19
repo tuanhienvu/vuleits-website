@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { useLocale } from '@/components/providers/LocaleProvider';
+import LocaleSwitcher from '@/components/LocaleSwitcher';
 
 interface NavigationProps {
   currentPage: string;
@@ -13,15 +15,16 @@ export default function Navigation({ currentPage, setCurrentPage }: NavigationPr
   // ==================== STATE MANAGEMENT ==================== 
   const [mobileOpen, setMobileOpen] = useState(false);
   const router = useRouter();
+  const { t } = useLocale();
 
   // ==================== NAVIGATION ITEMS CONFIG ====================
   const navItems = [
-    { id: 'home', label: 'Home' },
-    { id: 'about', label: 'About' },
-    { id: 'products', label: 'Products' },
-    { id: 'news', label: 'News' },
-    { id: 'services', label: 'Services' },
-    { id: 'contact', label: 'Contact' },
+    { id: 'home', label: t('nav.home') },
+    { id: 'about', label: t('nav.about') },
+    { id: 'products', label: t('nav.products') },
+    { id: 'news', label: t('nav.news') },
+    { id: 'services', label: t('nav.services') },
+    { id: 'contact', label: t('nav.contact') },
   ];
 
   // ==================== MAIN RENDER ==================== 
@@ -46,7 +49,7 @@ export default function Navigation({ currentPage, setCurrentPage }: NavigationPr
                 VULE ITS
               </h2>
               <p className="text-white/70 text-sm font-zcool tracking-wide">
-                Bring Your Success
+                {t('nav.tagline')}
               </p>
             </div>
           </div>
@@ -56,7 +59,7 @@ export default function Navigation({ currentPage, setCurrentPage }: NavigationPr
           <div className="sm:hidden">
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              aria-label="Toggle menu"
+              aria-label={t('nav.toggleMenu')}
               className="p-2 rounded-md bg-white/10 text-white"
             >
               {mobileOpen ? '✕' : '☰'}
@@ -85,12 +88,14 @@ export default function Navigation({ currentPage, setCurrentPage }: NavigationPr
               </a>
             ))}
 
+            <LocaleSwitcher className="bg-white/10 border border-white/30 text-white px-2 py-1.5 rounded-lg text-sm" />
+
             {/* ========== ADMIN LOGIN BUTTON ========== */}
             <button 
               onClick={() => router.push('/admin/login')}
               className="cta-button text-sm px-3 py-2"
             >
-              Admin
+              {t('nav.admin')}
             </button>
           </div>
 
@@ -115,6 +120,7 @@ export default function Navigation({ currentPage, setCurrentPage }: NavigationPr
                     {item.label}
                   </a>
                 ))}
+                <LocaleSwitcher className="w-full bg-white/10 border border-white/30 text-white px-3 py-2 rounded-lg text-sm" />
                 {/* ========== MOBILE ADMIN BUTTON ========== */}
                 <div className="pt-2 border-t border-white/5">
                   <button 
@@ -124,7 +130,7 @@ export default function Navigation({ currentPage, setCurrentPage }: NavigationPr
                     }} 
                     className="w-full cta-button py-2"
                   >
-                    Admin
+                    {t('nav.admin')}
                   </button>
                 </div>
               </div>

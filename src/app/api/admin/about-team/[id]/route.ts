@@ -13,7 +13,7 @@ type AboutTeamRow = {
 };
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await authorize(req, 'about.manage');
+  const auth = await authorize(req, 'aboutTeam.read');
   if (auth.error) return auth.error;
 
   const { id: idParam } = await params;
@@ -40,7 +40,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await authorize(req, 'about.manage');
+  const auth = await authorize(req, 'aboutTeam.update');
   if (auth.error) return auth.error;
 
   const { id: idParam } = await params;
@@ -122,7 +122,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await authorize(req, 'about.manage');
+  const auth = await authorize(req, 'aboutTeam.delete');
   if (auth.error) return auth.error;
 
   const { id: idParam } = await params;

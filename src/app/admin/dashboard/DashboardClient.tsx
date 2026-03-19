@@ -26,8 +26,8 @@ export default function DashboardClient() {
   // ==================== STATE MANAGEMENT [SEARCH: STATE, TAB] ====================
   const [activeTab, setActiveTab] = useState('overview');
 
-  type AdminRole = { id: string; name: string };
-  type AdminUser = { id: number; email: string; role: string; isProtected: boolean };
+  type AdminRole = { id: number; name: string };
+  type AdminUser = { id: number; email: string; roleId: number; isActive: boolean; isProtected: boolean };
   type HomeFeature = {
     id: number;
     icon: string;
@@ -85,55 +85,161 @@ export default function DashboardClient() {
     { id: 'contacts', label: 'Contacts', icon: '💬' },
   ];
 
-  // ==================== AUTHZ SAMPLE DATA [SEARCH: USERS, ROLES, PERMISSIONS] ====================
-  const initialRoles: AdminRole[] = [
-    { id: 'SYSADMIN', name: 'SYSADMIN' },
-    { id: 'ADMIN', name: 'ADMIN' },
-    { id: 'EDITOR', name: 'EDITOR' },
+  // ==================== USERS + PERMISSIONS (DB-backed) ====================
+  const [roles, setRoles] = useState<AdminRole[]>([]);
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [rolesLoading, setRolesLoading] = useState(false);
+
+  type FeatureId =
+    | 'overview'
+    | 'services'
+    | 'products'
+    | 'news'
+    | 'media'
+    | 'banners'
+    | 'homeFeatures'
+    | 'contacts'
+    | 'aboutTeam'
+    | 'aboutStats'
+    | 'users'
+    | 'permissions';
+
+  type CrudPermission = { create: boolean; read: boolean; update: boolean; delete: boolean };
+
+  const features: Array<{ id: FeatureId; label: string; icon: string }> = [
+    { id: 'overview', label: 'Overview', icon: '📊' },
+    // Product Group
+    { id: 'services', label: 'Services', icon: '🧩' },
+    { id: 'products', label: 'Products', icon: '📦' },
+    // Contents
+    { id: 'news', label: 'News', icon: '📰' },
+    { id: 'media', label: 'Media', icon: '🖼️' },
+    { id: 'banners', label: 'Banners', icon: '🎬' },
+    // Settings
+    { id: 'homeFeatures', label: 'Home Features', icon: '🏠' },
+    { id: 'contacts', label: 'Contacts', icon: '💬' },
+    { id: 'aboutTeam', label: 'About Team', icon: '👤' },
+    { id: 'aboutStats', label: 'About Stats', icon: '📈' },
+    // Permission
+    { id: 'users', label: 'Users', icon: '👥' },
+    { id: 'permissions', label: 'Permissions', icon: '🔐' },
   ];
 
-  const initialPermissions = [
-    'users.create',
-    'users.read',
-    'users.update',
-    'users.delete',
-    'site.manage',
-    'full_control',
-  ];
+  const emptyCrud = (): CrudPermission => ({ create: false, read: false, update: false, delete: false });
+  const makeEmptyMatrix = (): Record<FeatureId, CrudPermission> =>
+    Object.fromEntries(features.map((f) => [f.id, emptyCrud()])) as Record<FeatureId, CrudPermission>;
 
-  const [roles] = useState<AdminRole[]>(initialRoles);
-  const [permissions] = useState<string[]>(initialPermissions);
+  const [selectedPermissionUserId, setSelectedPermissionUserId] = useState<number | null>(null);
+  const [permissionMatrix, setPermissionMatrix] = useState<Record<FeatureId, CrudPermission>>(makeEmptyMatrix);
+  const [permissionsLoading, setPermissionsLoading] = useState(false);
+  const [permissionsSaving, setPermissionsSaving] = useState(false);
+  const [permissionsError, setPermissionsError] = useState<string | null>(null);
 
-  const [users, setUsers] = useState<AdminUser[]>(() => {
+  const selectedPermissionUser = useMemo(
+    () => (selectedPermissionUserId != null ? users.find((u) => u.id === selectedPermissionUserId) || null : null),
+    [selectedPermissionUserId, users],
+  );
+
+  async function loadRoles() {
+    setRolesLoading(true);
     try {
-      if (typeof window !== 'undefined') {
-        const s = localStorage.getItem('admin_users');
-        if (s) return JSON.parse(s) as AdminUser[];
+      const res = await fetch('/api/admin/roles', { credentials: 'include' });
+      if (!res.ok) {
+        if (res.status === 401 || res.status === 403) window.location.href = '/admin/login';
+        return;
       }
-    } catch (err) {}
-    return [
-      {
-        id: 1,
-        email: 'vuleitsolution@gmail.com',
-        role: 'SYSADMIN',
-        isProtected: true,
-      },
-    ];
-  });
+      const data = await res.json();
+      setRoles(Array.isArray(data) ? data : []);
+    } catch {
+      // ignore
+    } finally {
+      setRolesLoading(false);
+    }
+  }
 
-  const [userPermissions, setUserPermissions] = useState<Record<string, string[]>>(() => {
+  async function loadUsers() {
+    setUsersLoading(true);
     try {
-      if (typeof window !== 'undefined') {
-        const s = localStorage.getItem('admin_user_permissions');
-        if (s) return JSON.parse(s) as Record<string, string[]>;
+      const res = await fetch('/api/admin/users', { credentials: 'include' });
+      if (!res.ok) {
+        if (res.status === 401 || res.status === 403) window.location.href = '/admin/login';
+        return;
       }
-    } catch (err) {}
-    return {
-      'vuleitsolution@gmail.com': [...initialPermissions],
-    };
-  });
+      const data = await res.json();
+      setUsers(Array.isArray(data) ? data : []);
+    } catch {
+      // ignore
+    } finally {
+      setUsersLoading(false);
+    }
+  }
 
-  const [selectedUserEmail, setSelectedUserEmail] = useState<string | null>(users[0]?.email || null);
+  async function loadPermissionMatrix(userId: number) {
+    setPermissionsLoading(true);
+    setPermissionsError(null);
+    try {
+      const res = await fetch(`/api/admin/permissions/${userId}`, { credentials: 'include' });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        if (res.status === 401 || res.status === 403) window.location.href = '/admin/login';
+        throw new Error(data?.error || 'Failed to load permissions');
+      }
+      const data = await res.json();
+      // API returns feature CRUD matrix
+      if (data?.features) setPermissionMatrix(data.features as Record<FeatureId, CrudPermission>);
+    } catch (e: any) {
+      setPermissionsError(e?.message || 'Failed to load permissions');
+    } finally {
+      setPermissionsLoading(false);
+    }
+  }
+
+  async function savePermissionMatrix(userId: number) {
+    setPermissionsSaving(true);
+    setPermissionsError(null);
+    try {
+      const res = await fetch(`/api/admin/permissions/${userId}`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ features: permissionMatrix }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.error || 'Failed to save permissions');
+      }
+      await loadPermissionMatrix(userId);
+    } catch (e: any) {
+      setPermissionsError(e?.message || 'Failed to save permissions');
+    } finally {
+      setPermissionsSaving(false);
+    }
+  }
+
+  // Load users/roles when opening management tabs
+  useEffect(() => {
+    if (activeTab === 'users' || activeTab === 'permissions') {
+      void loadRoles();
+      void loadUsers();
+    }
+  }, [activeTab]);
+
+  // Preselect user in Permission tab from URL (?userId=...)
+  useEffect(() => {
+    if (activeTab !== 'permissions') return;
+    const idParam = searchParams.get('userId');
+    if (!idParam) return;
+    const id = Number(idParam);
+    if (Number.isFinite(id)) setSelectedPermissionUserId(id);
+  }, [activeTab, searchParams]);
+
+  // When selection changes in Permission tab, fetch their matrix
+  useEffect(() => {
+    if (activeTab !== 'permissions') return;
+    if (selectedPermissionUserId == null) return;
+    void loadPermissionMatrix(selectedPermissionUserId);
+  }, [activeTab, selectedPermissionUserId]);
 
   // ==================== HOME FEATURES STATE [SEARCH: HOME FEATURES, CRUD] ====================
   const [homeFeatures, setHomeFeatures] = useState<HomeFeature[]>([]);
@@ -569,34 +675,6 @@ export default function DashboardClient() {
     } catch (e: any) {
       setHfError(e?.message || 'Delete failed');
     }
-  }
-
-  useEffect(() => {
-    try {
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('admin_users', JSON.stringify(users));
-        localStorage.setItem('admin_user_permissions', JSON.stringify(userPermissions));
-      }
-    } catch (err) {}
-  }, [users, userPermissions]);
-
-  function updateUserRole(email: string, newRole: string) {
-    setUsers((prev) => prev.map((u) => (u.email === email ? { ...u, role: newRole } : u)));
-  }
-
-  function toggleUserPermission(email: string, permission: string) {
-    setUserPermissions((prev) => {
-      const copy = { ...prev };
-      const list = new Set(copy[email] || []);
-      if (list.has(permission)) list.delete(permission);
-      else list.add(permission);
-      copy[email] = Array.from(list);
-      return copy;
-    });
-  }
-
-  function deleteUser(email: string) {
-    setUsers((prev) => prev.filter((u) => u.email !== email || u.isProtected));
   }
 
   // Get active tab from URL using useMemo
@@ -1240,9 +1318,34 @@ export default function DashboardClient() {
               <h2 className="text-2xl font-bold text-white">User Management</h2>
               <button
                 onClick={() => {
-                  const nextId = users.length ? Math.max(...users.map((u) => u.id)) + 1 : 1;
-                  const newUser = { id: nextId, email: `user${nextId}@example.com`, role: 'EDITOR', isProtected: false };
-                  setUsers((s) => [...s, newUser]);
+                  (async () => {
+                    const email = window.prompt('New user email:');
+                    if (!email) return;
+                    const password = window.prompt('New user password:');
+                    if (!password) return;
+
+                    if (!roles.length) await loadRoles();
+                    const roleName = window.prompt(`Role name (${roles.map((r) => r.name).join(', ')}):`) || '';
+                    const role = roles.find((r) => r.name.toUpperCase() === roleName.toUpperCase());
+                    const roleId = role?.id;
+                    if (!roleId) {
+                      alert('Invalid role.');
+                      return;
+                    }
+
+                    const res = await fetch('/api/admin/users', {
+                      method: 'POST',
+                      credentials: 'include',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ email, password, roleId }),
+                    });
+                    if (!res.ok) {
+                      const data = await res.json().catch(() => ({}));
+                      alert(data?.error || 'Failed to create user');
+                      return;
+                    }
+                    await loadUsers();
+                  })();
                 }}
                 className="cta-button px-6 py-2"
               >
@@ -1250,75 +1353,246 @@ export default function DashboardClient() {
               </button>
             </div>
 
-            <div className="space-y-3 mb-6">
-              {users.map((user) => (
-                <div
-                  key={user.email}
-                  className="bg-white/15 border border-white/20 p-4 rounded-lg flex flex-col md:flex-row md:justify-between md:items-center gap-3 shadow-md"
-                >
-                  <div>
-                    <p className="text-white font-semibold text-base">{user.email}</p>
-                    <p className="text-white/80 text-sm mt-1">Role: {user.role}</p>
-                  </div>
-                  <div className="flex gap-2 items-center">
-                    <select
-                      value={user.role}
-                      onChange={(e) => updateUserRole(user.email, e.target.value)}
-                      className="bg-white/20 border border-white/30 text-white px-3 py-2 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50 cursor-pointer"
+            {usersLoading || rolesLoading ? (
+              <div className="text-white/80">Loading...</div>
+            ) : (
+              <div className="space-y-3">
+                {users.map((user) => {
+                  const roleName = roles.find((r) => r.id === user.roleId)?.name || String(user.roleId);
+                  return (
+                    <div
+                      key={user.id}
+                      className="bg-white/15 border border-white/20 p-4 rounded-lg flex flex-col md:flex-row md:justify-between md:items-center gap-3 shadow-md"
                     >
-                      {roles.map((r) => (
-                        <option key={r.id} value={r.name} className="bg-gray-800 text-white">
-                          {r.name}
-                        </option>
-                      ))}
-                    </select>
-                    <button
-                      onClick={() => setSelectedUserEmail(user.email)}
-                      className="bg-white/25 border border-white/30 text-white px-4 py-2 rounded-lg hover:bg-white/35 hover:border-white/40 transition-all font-medium shadow-sm"
-                    >
-                      Permissions
-                    </button>
-                    <button
-                      onClick={() => deleteUser(user.email)}
-                      disabled={user.isProtected}
-                      className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                        user.isProtected
-                          ? 'bg-gray-700/40 border border-gray-600/30 text-gray-300 cursor-not-allowed'
-                          : 'bg-red-500/30 border border-red-400/40 text-red-100 hover:bg-red-500/40 hover:border-red-400/50 shadow-sm'
-                      }`}
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              ))}
+                      <div>
+                        <p className="text-white font-semibold text-base">{user.email}</p>
+                        <p className="text-white/80 text-sm mt-1">Role: {roleName}</p>
+                      </div>
+
+                      <div className="flex gap-2 items-center flex-wrap justify-end">
+                        <label className="flex items-center gap-2 text-white/70 text-sm">
+                          <span>Active</span>
+                          <input
+                            type="checkbox"
+                            checked={user.isActive}
+                            onChange={async (e) => {
+                              const res = await fetch(`/api/admin/users/${user.id}`, {
+                                method: 'PUT',
+                                credentials: 'include',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ isActive: e.target.checked }),
+                              });
+                              if (res.ok) await loadUsers();
+                            }}
+                            className="w-4 h-4"
+                          />
+                        </label>
+
+                        <select
+                          value={user.roleId}
+                          onChange={async (e) => {
+                            const roleId = Number(e.target.value);
+                            const res = await fetch(`/api/admin/users/${user.id}`, {
+                              method: 'PUT',
+                              credentials: 'include',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ roleId }),
+                            });
+                            if (res.ok) await loadUsers();
+                          }}
+                          className="bg-white/20 border border-white/30 text-white px-3 py-2 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50 cursor-pointer"
+                        >
+                          {roles.map((r) => (
+                            <option key={r.id} value={r.id} className="bg-gray-800 text-white">
+                              {r.name}
+                            </option>
+                          ))}
+                        </select>
+
+                        <button
+                          onClick={() => {
+                            window.location.href = `/admin/dashboard?tab=permissions&userId=${user.id}`;
+                          }}
+                          className="bg-white/25 border border-white/30 text-white px-4 py-2 rounded-lg hover:bg-white/35 hover:border-white/40 transition-all font-medium shadow-sm"
+                        >
+                          Permissions
+                        </button>
+
+                        <button
+                          onClick={async () => {
+                            const res = await fetch(`/api/admin/users/${user.id}`, {
+                              method: 'DELETE',
+                              credentials: 'include',
+                            });
+                            if (res.ok) await loadUsers();
+                          }}
+                          disabled={user.isProtected}
+                          className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                            user.isProtected
+                              ? 'bg-gray-700/40 border border-gray-600/30 text-gray-300 cursor-not-allowed'
+                              : 'bg-red-500/30 border border-red-400/40 text-red-100 hover:bg-red-500/40 hover:border-red-400/50 shadow-sm'
+                          }`}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ========== PERMISSIONS TAB CONTENT [SEARCH: PERMISSION FEATURES] ========== */}
+        {activeTab === 'permissions' && (
+          <div>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-white">Permission Features</h2>
+              <div className="text-white/60 text-sm">Click a user row to edit their CRUD permissions.</div>
             </div>
 
-            {/* Permissions Matrix */}
-            {selectedUserEmail && (
-              <div className="pt-6 border-t border-white/20 mt-6">
-                <h3 className="text-xl font-semibold text-white mb-4">Permissions for {selectedUserEmail}</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  {permissions.map((p) => {
-                    const checked = (userPermissions[selectedUserEmail] || []).includes(p);
+            <div className="flex flex-col lg:flex-row gap-6">
+              <div className="w-full lg:w-80">
+                <div className="space-y-2">
+                  {users.map((user) => {
+                    const isSelected = user.id === selectedPermissionUserId;
+                    const roleName = roles.find((r) => r.id === user.roleId)?.name || String(user.roleId);
                     return (
-                      <label
-                        key={p}
-                        className="flex items-center gap-3 bg-white/15 border border-white/20 p-3 rounded-lg cursor-pointer hover:bg-white/20 transition-all shadow-sm"
+                      <button
+                        key={user.id}
+                        onClick={() => setSelectedPermissionUserId(user.id)}
+                        className={`w-full text-left p-4 rounded-lg border transition-all shadow-sm ${
+                          isSelected ? 'bg-white/20 border-white/30 text-white' : 'bg-white/10 border-white/15 text-white/80 hover:bg-white/15'
+                        }`}
                       >
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          onChange={() => toggleUserPermission(selectedUserEmail, p)}
-                          className="w-4 h-4 text-purple-600 bg-white/20 border-white/30 rounded focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-transparent cursor-pointer"
-                        />
-                        <span className="text-white font-medium text-sm">{p}</span>
-                      </label>
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="font-semibold">{user.email}</p>
+                            <p className="text-sm text-white/70 mt-1">Role: {roleName}</p>
+                          </div>
+                          {user.isProtected && (
+                            <span className="text-xs px-2 py-1 rounded-full bg-gray-700/40 border border-gray-600/30 text-gray-200">
+                              Protected
+                            </span>
+                          )}
+                        </div>
+                      </button>
                     );
                   })}
                 </div>
               </div>
-            )}
+
+              <div className="flex-1">
+                {!selectedPermissionUserId ? (
+                  <div className="bg-white/10 border border-white/15 rounded-xl p-6 text-white/70">
+                    Select a user to edit permissions.
+                  </div>
+                ) : (
+                  <div className="bg-white/10 border border-white/15 rounded-xl p-4">
+                    {permissionsError && (
+                      <div className="mb-4 bg-red-500/20 border border-red-400/30 text-red-100 p-3 rounded-lg text-sm">
+                        {permissionsError}
+                      </div>
+                    )}
+
+                    <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-4">
+                      <div>
+                        <div className="text-white font-semibold">
+                          Editing: {selectedPermissionUser?.email || 'User'}
+                        </div>
+                        <div className="text-white/60 text-sm mt-1">
+                          SYSADMIN cannot be changed (protected).
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            if (selectedPermissionUserId != null) loadPermissionMatrix(selectedPermissionUserId);
+                          }}
+                          className="bg-white/20 text-white px-4 py-2 rounded hover:bg-white/30"
+                          disabled={permissionsLoading || permissionsSaving}
+                        >
+                          Refresh
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (selectedPermissionUserId != null) savePermissionMatrix(selectedPermissionUserId);
+                          }}
+                          className="cta-button px-6 py-2"
+                          disabled={
+                            permissionsLoading ||
+                            permissionsSaving ||
+                            selectedPermissionUser?.isProtected === true
+                          }
+                        >
+                          {permissionsSaving ? 'Saving...' : 'Save'}
+                        </button>
+                      </div>
+                    </div>
+
+                    {permissionsLoading ? (
+                      <div className="text-white/80">Loading permissions...</div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full min-w-[720px] border-separate border-spacing-0">
+                          <thead>
+                            <tr className="text-left">
+                              <th className="py-3 px-3 text-white/70 text-sm font-semibold border-b border-white/15">Feature</th>
+                              <th className="py-3 px-3 text-white/70 text-sm font-semibold border-b border-white/15">Create</th>
+                              <th className="py-3 px-3 text-white/70 text-sm font-semibold border-b border-white/15">Read</th>
+                              <th className="py-3 px-3 text-white/70 text-sm font-semibold border-b border-white/15">Update</th>
+                              <th className="py-3 px-3 text-white/70 text-sm font-semibold border-b border-white/15">Delete</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {features.map((f) => (
+                              <tr key={f.id} className="hover:bg-white/5">
+                                <td className="py-3 px-3 border-b border-white/10">
+                                  <div className="flex items-center gap-3">
+                                    <span className="text-xl shrink-0">{f.icon}</span>
+                                    <span className="text-white font-medium">{f.label}</span>
+                                  </div>
+                                </td>
+                                {(['create', 'read', 'update', 'delete'] as const).map((action) => {
+                                  const checked = Boolean(permissionMatrix?.[f.id]?.[action]);
+                                  const disabled = selectedPermissionUser?.isProtected === true;
+                                  return (
+                                    <td key={action} className="py-3 px-3 border-b border-white/10">
+                                      <label
+                                        className={`inline-flex items-center gap-2 ${
+                                          disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'
+                                        }`}
+                                      >
+                                        <input
+                                          type="checkbox"
+                                          checked={checked}
+                                          disabled={disabled || permissionsSaving}
+                                          onChange={(e) => {
+                                            const value = e.target.checked;
+                                            setPermissionMatrix((prev) => ({
+                                              ...prev,
+                                              [f.id]: { ...prev[f.id], [action]: value },
+                                            }));
+                                          }}
+                                          className="w-4 h-4"
+                                        />
+                                        <span className="text-white/70 text-sm">{action.toUpperCase().slice(0, 1)}</span>
+                                      </label>
+                                    </td>
+                                  );
+                                })}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
 

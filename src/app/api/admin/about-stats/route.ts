@@ -5,7 +5,7 @@ import { authorize } from '@/lib/adminAuth';
 type AboutStatRow = { id: number; number: string; label: string; order: number; isActive: number | boolean };
 
 export async function GET(req: Request) {
-  const auth = await authorize(req, 'about.manage');
+  const auth = await authorize(req, 'aboutStats.read');
   if (auth.error) return auth.error;
 
   const rows = await prisma.$queryRaw<AboutStatRow[]>`
@@ -26,7 +26,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const auth = await authorize(req, 'about.manage');
+  const auth = await authorize(req, 'aboutStats.create');
   if (auth.error) return auth.error;
 
   const body = await req.json();

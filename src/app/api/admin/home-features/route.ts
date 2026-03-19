@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { authorize } from '@/lib/adminAuth';
 
 export async function GET(req: Request) {
-  const auth = await authorize(req, 'homeFeatures.manage');
+  const auth = await authorize(req, 'homeFeatures.read');
   if (auth.error) return auth.error;
 
   const list = await prisma.homeFeature.findMany({
@@ -14,7 +14,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const auth = await authorize(req, 'homeFeatures.manage');
+  const auth = await authorize(req, 'homeFeatures.create');
   if (auth.error) return auth.error;
 
   const body = await req.json();

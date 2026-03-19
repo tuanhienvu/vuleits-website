@@ -9,70 +9,176 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Seeding authorization data...');
 
-  // Define some basic permissions
-  const permissionNames = [
-    'users.create',
-    'users.read',
-    'users.update',
-    'users.delete',
-    'site.manage',
-    'homeFeatures.manage',
-    'about.manage',
-    'services.manage',
-    'full_control',
+  const uiFeatures = [
+    'overview',
+    'services',
+    'products',
+    'news',
+    'media',
+    'banners',
+    'homeFeatures',
+    'contacts',
+    'aboutTeam',
+    'aboutStats',
+    'users',
+    'permissions',
   ];
 
-  const permissions = [];
+  // Map sidebar feature ids -> permission name prefixes in DB
+  const featureToPermissionPrefix = {
+    overview: 'site',
+    services: 'services',
+    products: 'products',
+    news: 'news',
+    media: 'media',
+    banners: 'banners',
+    homeFeatures: 'homeFeatures',
+    contacts: 'contacts',
+    aboutTeam: 'aboutTeam',
+    aboutStats: 'aboutStats',
+    users: 'users',
+    permissions: 'permissions',
+  };
+
+  const actions = ['create', 'read', 'update', 'delete'];
+
+  // CRUD permissions per feature, e.g. "services.read", "services.update", ...
+  const permissionNames = [];
+  for (const feature of Object.values(featureToPermissionPrefix)) {
+    for (const action of actions) permissionNames.push(`${feature}.${action}`);
+  }
+
+  const permissionNameToId = new Map();
   for (const name of permissionNames) {
     const p = await prisma.permission.upsert({
       where: { name },
       update: {},
       create: { name, description: `${name} permission` },
     });
-    permissions.push(p);
+    permissionNameToId.set(name, p.id);
   }
 
-  // Ensure SYSADMIN role exists
-  const role = await prisma.role.upsert({
-    where: { name: 'SYSADMIN' },
-    update: {},
-    create: { name: 'SYSADMIN', permissions: JSON.stringify(['full_control']) },
-  });
-
-  // Attach all permissions to SYSADMIN via RolePermission
-  for (const p of permissions) {
-    await prisma.rolePermission.upsert({
-      where: { roleId_permissionId: { roleId: role.id, permissionId: p.id } },
+  const roles = ['SYSADMIN', 'ADMIN', 'MANAGER', 'EDITOR', 'WRITER'];
+  const roleNameToId = new Map();
+  for (const r of roles) {
+    const role = await prisma.role.upsert({
+      where: { name: r },
       update: {},
-      create: { roleId: role.id, permissionId: p.id },
+      create: { name: r, permissions: null },
+    });
+    roleNameToId.set(r, role.id);
+  }
+
+  // Keep RolePermission minimal for non-sysadmin users so the Permission UI can fully enable/disable
+  // by creating/deleting UserPermission rows.
+  for (const r of roles) {
+    const roleId = roleNameToId.get(r);
+    await prisma.rolePermission.deleteMany({ where: { roleId } });
+  }
+
+  // SYSADMIN: full CRUD for all permissions via role permissions.
+  const sysRoleId = roleNameToId.get('SYSADMIN');
+  for (const permissionId of permissionNameToId.values()) {
+    await prisma.rolePermission.create({
+      data: { roleId: sysRoleId, permissionId },
     });
   }
 
-  // Create sample sysAdmin user (protected) with hashed password
+  // Seed users (testing)
   const bcrypt = require('bcryptjs');
-  const sysAdminEmail = 'vuleitsolution@gmail.com';
   const sysAdminPassword = 'VULEITS@2025#';
-  const hash = await bcrypt.hash(sysAdminPassword, 10);
+  const usersToSeed = [
+    { email: 'vuleitsolution@gmail.com', role: 'SYSADMIN', isProtected: true },
+    { email: 'admin1@example.com', role: 'ADMIN', isProtected: false },
+    { email: 'manager1@example.com', role: 'MANAGER', isProtected: false },
+    { email: 'editor1@example.com', role: 'EDITOR', isProtected: false },
+    { email: 'writer1@example.com', role: 'WRITER', isProtected: false },
+  ];
 
-  const user = await prisma.user.upsert({
-    where: { email: sysAdminEmail },
-    update: { roleId: role.id, isProtected: true, password: hash },
-    create: {
-      email: sysAdminEmail,
-      password: hash,
-      roleId: role.id,
-      isActive: true,
-      isProtected: true,
-    },
-  });
+  // Defaults used to create UserPermission rows (Permission UI toggles these).
+  // These match the "Role Permission Matrix (CRUD)" logic you requested, but stored per-user.
+  const roleCrudDefaults = {
+    SYSADMIN: Object.fromEntries(uiFeatures.map((f) => [f, { create: true, read: true, update: true, delete: true }])),
+    ADMIN: Object.fromEntries(uiFeatures.map((f) => [f, { create: true, read: true, update: true, delete: true }])),
+    MANAGER: (() => {
+      const base = Object.fromEntries(uiFeatures.map((f) => [f, { create: false, read: false, update: false, delete: false }])); // start empty
+      for (const f of ['overview', 'services', 'products', 'news', 'media', 'banners', 'homeFeatures', 'contacts', 'aboutTeam', 'aboutStats']) {
+        base[f] = { create: true, read: true, update: true, delete: false };
+      }
+      base.users = { create: false, read: true, update: true, delete: false };
+      base.permissions = { create: false, read: true, update: true, delete: false };
+      return base;
+    })(),
+    EDITOR: (() => {
+      const base = Object.fromEntries(uiFeatures.map((f) => [f, { create: false, read: false, update: false, delete: false }])); // start empty
+      for (const f of ['overview', 'news', 'media', 'banners', 'homeFeatures', 'contacts', 'aboutTeam', 'aboutStats']) {
+        base[f] = { create: true, read: true, update: true, delete: false };
+      }
+      base.services = { create: false, read: true, update: false, delete: false };
+      base.products = { create: false, read: true, update: false, delete: false };
+      base.users = { create: false, read: true, update: false, delete: false };
+      base.permissions = { create: false, read: true, update: true, delete: false };
+      return base;
+    })(),
+    WRITER: (() => {
+      const base = Object.fromEntries(uiFeatures.map((f) => [f, { create: false, read: false, update: false, delete: false }])); // start empty
+      base.overview = { create: false, read: true, update: false, delete: false };
+      base.news = { create: true, read: true, update: false, delete: false };
+      base.media = { create: true, read: true, update: false, delete: false };
+      base.banners = { create: false, read: true, update: false, delete: false };
+      base.services = { create: false, read: true, update: false, delete: false };
+      base.products = { create: false, read: true, update: false, delete: false };
+      base.homeFeatures = { create: false, read: true, update: false, delete: false };
+      base.contacts = { create: false, read: true, update: false, delete: false };
+      base.aboutTeam = { create: false, read: true, update: false, delete: false };
+      base.aboutStats = { create: false, read: true, update: false, delete: false };
+      base.users = { create: false, read: true, update: false, delete: false };
+      base.permissions = { create: false, read: false, update: false, delete: false };
+      return base;
+    })(),
+  };
 
-  // Assign explicit user permissions for sysAdmin (redundant but explicit)
-  for (const p of permissions) {
-    await prisma.userPermission.upsert({
-      where: { userId_permissionId: { userId: user.id, permissionId: p.id } },
-      update: {},
-      create: { userId: user.id, permissionId: p.id },
+  for (const u of usersToSeed) {
+    const roleId = roleNameToId.get(u.role);
+    if (!roleId) continue;
+
+    const hash = await bcrypt.hash(sysAdminPassword, 10);
+
+    const created = await prisma.user.upsert({
+      where: { email: u.email },
+      update: {
+        roleId,
+        isProtected: u.isProtected,
+        password: hash,
+        isActive: true,
+      },
+      create: {
+        email: u.email,
+        password: hash,
+        roleId,
+        isActive: true,
+        isProtected: u.isProtected,
+      },
     });
+
+    // Reset user permissions to match the role defaults
+    await prisma.userPermission.deleteMany({ where: { userId: created.id } });
+
+    const defaults = roleCrudDefaults[u.role];
+    for (const feature of uiFeatures) {
+      const prefix = featureToPermissionPrefix[feature];
+      const crud = defaults[feature] || { create: false, read: false, update: false, delete: false };
+      for (const action of actions) {
+        const permissionName = `${prefix}.${action}`;
+        const permissionId = permissionNameToId.get(permissionName);
+        if (!permissionId) continue;
+        if (crud[action]) {
+          await prisma.userPermission.create({
+            data: { userId: created.id, permissionId },
+          });
+        }
+      }
+    }
   }
 
   // Seed Home Page features from HomePage.tsx fallback list (only if empty)

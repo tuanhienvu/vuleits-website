@@ -5,7 +5,7 @@ import { authorize } from '@/lib/adminAuth';
 type AboutStatRow = { id: number; number: string; label: string; order: number; isActive: number | boolean };
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await authorize(req, 'about.manage');
+  const auth = await authorize(req, 'aboutStats.read');
   if (auth.error) return auth.error;
 
   const { id: idParam } = await params;
@@ -24,7 +24,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await authorize(req, 'about.manage');
+  const auth = await authorize(req, 'aboutStats.update');
   if (auth.error) return auth.error;
 
   const { id: idParam } = await params;
@@ -79,7 +79,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await authorize(req, 'about.manage');
+  const auth = await authorize(req, 'aboutStats.delete');
   if (auth.error) return auth.error;
 
   const { id: idParam } = await params;

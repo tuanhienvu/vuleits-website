@@ -13,7 +13,7 @@ type AboutTeamRow = {
 };
 
 export async function GET(req: Request) {
-  const auth = await authorize(req, 'about.manage');
+  const auth = await authorize(req, 'aboutTeam.read');
   if (auth.error) return auth.error;
 
   const rows = await prisma.$queryRaw<AboutTeamRow[]>`
@@ -36,7 +36,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const auth = await authorize(req, 'about.manage');
+  const auth = await authorize(req, 'aboutTeam.create');
   if (auth.error) return auth.error;
 
   const body = await req.json();

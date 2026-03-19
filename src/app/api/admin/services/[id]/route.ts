@@ -35,7 +35,7 @@ function normalizeFeatures(input: unknown): string | null {
 }
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await authorize(req, 'services.manage');
+  const auth = await authorize(req, 'services.read');
   if (auth.error) return auth.error;
 
   const { id: idParam } = await params;
@@ -62,7 +62,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await authorize(req, 'services.manage');
+  const auth = await authorize(req, 'services.update');
   if (auth.error) return auth.error;
 
   const { id: idParam } = await params;
@@ -143,7 +143,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await authorize(req, 'services.manage');
+  const auth = await authorize(req, 'services.delete');
   if (auth.error) return auth.error;
 
   const { id: idParam } = await params;

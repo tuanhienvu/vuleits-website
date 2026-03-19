@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useLocale } from '@/components/providers/LocaleProvider';
+import LocaleSwitcher from '@/components/LocaleSwitcher';
 
 interface AdminHeaderProps {
   onMenuClick: () => void;
@@ -10,6 +12,7 @@ interface AdminHeaderProps {
 export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
   const router = useRouter();
   const [userEmail, setUserEmail] = useState<string>('');
+  const { t } = useLocale();
 
   useEffect(() => {
     // Fetch current user info
@@ -51,20 +54,21 @@ export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
           <button
             onClick={onMenuClick}
             className="lg:hidden p-2 rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-colors"
-            aria-label="Toggle menu"
+            aria-label={t('nav.toggleMenu')}
           >
             <span className="text-2xl">☰</span>
           </button>
           <div>
-            <h1 className="text-xl lg:text-2xl font-bold text-white font-zcool">Admin Dashboard</h1>
+            <h1 className="text-xl lg:text-2xl font-bold text-white font-zcool">{t('admin.dashboardTitle')}</h1>
             <p className="text-white/60 text-sm hidden sm:block font-zcool">
-              Welcome back! Manage your <span className="font-zcool">VULE ITS</span> content.
+              {t('admin.dashboardWelcome')}
             </p>
           </div>
         </div>
 
         {/* Right: User Info & Logout */}
         <div className="flex items-center gap-4">
+          <LocaleSwitcher className="hidden sm:block bg-white/10 border border-white/30 text-white px-2 py-1.5 rounded-lg text-sm" />
           {/* User Email */}
           {userEmail && (
             <div className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10">
@@ -77,7 +81,7 @@ export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
             onClick={handleLogout}
             className="px-4 py-2 bg-red-500/30 hover:bg-red-500/50 text-red-200 rounded-lg transition-colors font-medium text-sm"
           >
-            Logout
+            {t('admin.logout')}
           </button>
         </div>
       </div>

@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { authorize } from '@/lib/adminAuth';
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await authorize(req, 'homeFeatures.manage');
+  const auth = await authorize(req, 'homeFeatures.read');
   if (auth.error) return auth.error;
 
   const { id: idParam } = await params;
@@ -17,7 +17,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await authorize(req, 'homeFeatures.manage');
+  const auth = await authorize(req, 'homeFeatures.update');
   if (auth.error) return auth.error;
 
   const { id: idParam } = await params;
@@ -49,7 +49,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await authorize(req, 'homeFeatures.manage');
+  const auth = await authorize(req, 'homeFeatures.delete');
   if (auth.error) return auth.error;
 
   const { id: idParam } = await params;
