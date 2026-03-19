@@ -1,7 +1,9 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+
 export default function ServicesPage() {
-  const services = [
+  const fallbackServices = [
     {
       icon: '🎨',
       title: 'UI/UX Design',
@@ -39,6 +41,29 @@ export default function ServicesPage() {
       features: ['Security Auditing', 'Penetration Testing', 'Data Protection', 'Compliance Management'],
     },
   ];
+
+  const [services, setServices] = useState<
+    Array<{ icon: string; title: string; description: string; features: string[] }>
+  >(fallbackServices);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/services');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelled && Array.isArray(data) && data.length > 0) {
+          setServices(data);
+        }
+      } catch {
+        // keep fallback
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div className="container mx-auto px-4">

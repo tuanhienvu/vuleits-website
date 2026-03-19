@@ -1,23 +1,57 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
 import Image from 'next/image';
 
+// ==================== ADMIN LOGIN PAGE [SEARCH: AUTH, LOGIN, ADMIN] ====================
 export default function AdminLogin() {
+  // ==================== STATE MANAGEMENT [SEARCH: STATE, FORM] ====================
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  // Redirect to dashboard if already authenticated (check for auth cookie via API)
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const res = await fetch('/api/admin/users', { credentials: 'include' });
+        if (res.ok) {
+          window.location.href = '/admin/dashboard';
+        }
+      } catch (err) {
+        // not authenticated, continue
+      }
+    };
+    checkAuth();
+  }, []);
+
+  // ==================== AUTHENTICATION HANDLER [SEARCH: AUTH, HANDLER, SUBMIT] ====================
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
-    // Mock authentication - in production, call your API
-    if (email && password.length >= 6) {
-      localStorage.setItem('auth_token', 'mock_token_' + Date.now());
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+        credentials: 'include', // Enable cookie sending
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data?.error || 'Login failed');
+        setLoading(false);
+        return;
+      }
+
+      // Cookie is set by server; redirect to dashboard
       window.location.href = '/admin/dashboard';
-    } else {
-      setError('Invalid email or password');
+    } catch (err) {
+      setError('Server error');
+      setLoading(false);
     }
   };
 
@@ -47,7 +81,7 @@ export default function AdminLogin() {
 
       {/* ==================== LOGIN CARD SECTION ==================== */}
       <div className="glass p-8 md:p-12 rounded-3xl w-full max-w-md relative z-10">
-        {/* ==================== LOGO & BRANDING AREA ==================== */}
+        {/* ==================== LOGO & BRANDING AREA [SEARCH: LOGO, BRANDING, TITLE] ==================== */}
         <div className="text-center mb-8">
           <div className="w-20 h-20 relative mx-auto mb-4">
             <Image
@@ -58,20 +92,20 @@ export default function AdminLogin() {
               priority
             />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">VULE ITS Admin</h1>
-          <p className="text-white/70">Content Management System</p>
+          <h1 className="text-3xl font-bold text-white mb-2 font-zcool">VULE ITS Admin</h1>
+          <p className="text-white/70 font-zcool">Content Management System</p>
         </div>
 
-        {/* ==================== LOGIN FORM AREA ==================== */}
+        {/* ==================== LOGIN FORM AREA [SEARCH: FORM, INPUT, FIELDS] ==================== */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Error Message Display */}
+          {/* ========== ERROR MESSAGE DISPLAY ========== */}
           {error && (
             <div className="bg-red-500/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg">
               {error}
             </div>
           )}
 
-          {/* Email Input Field */}
+          {/* ========== EMAIL INPUT FIELD ========== */}
           <div>
             <label htmlFor="email" className="text-white font-medium block mb-2">Email Address</label>
             <input
@@ -81,10 +115,11 @@ export default function AdminLogin() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="admin@vuleits.com"
               className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-white/50"
+              disabled={loading}
             />
           </div>
 
-          {/* Password Input Field */}
+          {/* ========== PASSWORD INPUT FIELD ========== */}
           <div>
             <label htmlFor="password" className="text-white font-medium block mb-2">Password</label>
             <input
@@ -94,21 +129,23 @@ export default function AdminLogin() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-white/50"
+              disabled={loading}
             />
           </div>
 
-          {/* Submit Button */}
+          {/* ========== SUBMIT BUTTON ========== */}
           <button
             type="submit"
-            className="w-full cta-button py-3 font-semibold text-center mt-6"
+            disabled={loading}
+            className="w-full cta-button py-3 font-semibold text-center mt-6 disabled:opacity-50"
           >
-            Sign In
+            {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
 
-        {/* ==================== DEMO INFO AREA ==================== */}
+        {/* ==================== DEMO INFO AREA [SEARCH: DEMO, INFO, HELP] ==================== */}
         <p className="text-white/60 text-sm text-center mt-6">
-          Demo: Use any email and password (min 6 chars)
+          Demo: vuleitsolution@gmail.com / VULEITS@2025#
         </p>
       </div>
     </div>

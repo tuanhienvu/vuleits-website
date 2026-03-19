@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&display=swap');
 @import "tailwindcss";
 
 @keyframes float {
@@ -36,6 +35,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-zcool-xiaowei: var(--font-zcool-xiaowei);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -57,5 +57,16 @@ html {
 
 * {
   box-sizing: border-box;
+}
+
+/* Admin Dashboard Select Dropdown Styling */
+select {
+  color-scheme: dark;
+}
+
+select option {
+  background-color: #1a1a2e;
+  color: #ffffff;
+  padding: 8px;
 }
 

@@ -1,14 +1,16 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+
 export default function AboutPage() {
-  const stats = [
+  const fallbackStats = [
     { number: '150+', label: 'Projects Completed' },
     { number: '50+', label: 'Happy Clients' },
     { number: '3', label: 'Years Experience' },
     { number: '24/7', label: 'Support Available' },
   ];
 
-  const team = [
+  const fallbackTeam = [
     { name: 'John Anderson', role: 'CEO & Founder', emoji: '👨‍💼', bio: 'Visionary leader with 15+ years in digital innovation, driving our mission to create exceptional user experiences.' },
     { name: 'Sarah Chen', role: 'Creative Director', emoji: '👩‍🎨', bio: 'Award-winning designer specializing in modern UI/UX, bringing artistic vision to every project.' },
     { name: 'Michael Torres', role: 'Lead Developer', emoji: '👨‍💻', bio: 'Full-stack expert passionate about clean code and innovative web technologies.' },
@@ -16,6 +18,33 @@ export default function AboutPage() {
     { name: 'David Kim', role: 'UX Designer', emoji: '👨‍🎨', bio: 'User experience expert focused on creating intuitive and accessible digital products.' },
     { name: 'Lisa Martinez', role: 'Project Manager', emoji: '👩‍💼', bio: 'Certified PMP with a track record of delivering complex projects on time and budget.' },
   ];
+
+  const [stats, setStats] = useState<Array<{ number: string; label: string }>>(fallbackStats);
+  const [team, setTeam] = useState<Array<{ name: string; role: string; emoji: string; bio: string }>>(fallbackTeam);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const [statsRes, teamRes] = await Promise.all([fetch('/api/about/stats'), fetch('/api/about/team')]);
+        if (!cancelled) {
+          if (statsRes.ok) {
+            const s = await statsRes.json();
+            if (Array.isArray(s) && s.length > 0) setStats(s);
+          }
+          if (teamRes.ok) {
+            const t = await teamRes.json();
+            if (Array.isArray(t) && t.length > 0) setTeam(t);
+          }
+        }
+      } catch {
+        // keep fallback
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div className="container mx-auto px-4">
@@ -38,7 +67,7 @@ export default function AboutPage() {
 
         {/* ==================== STATISTICS CARDS AREA ==================== */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
-          {stats.map((stat, index) => (
+          {stats.map((stat, index: number) => (
             <div key={index} className="glass p-6 rounded-2xl text-center">
               <div className="text-3xl md:text-4xl font-bold text-white mb-2">{stat.number}</div>
               <div className="text-white/70">{stat.label}</div>
@@ -51,7 +80,7 @@ export default function AboutPage() {
       <section>
         <h2 className="text-3xl md:text-4xl font-bold text-white mb-8">Meet Our Team</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {team.map((member, index) => (
+          {team.map((member, index: number) => (
             <div key={index} className="glass p-6 rounded-2xl text-center hover:shadow-xl transition-all duration-300">
               <div className="text-5xl mb-4">{member.emoji}</div>
               <h3 className="text-white font-semibold text-xl mb-1">{member.name}</h3>
