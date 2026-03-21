@@ -1,7 +1,11 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+
+function catchMessage(e: unknown, fallback: string): string {
+  return e instanceof Error ? e.message : fallback;
+}
 
 // Small client-side auth redirect component
 function AuthRedirect() {
@@ -13,7 +17,7 @@ function AuthRedirect() {
           window.location.href = '/admin/login';
         }
       });
-    } catch (err) {
+    } catch {
       // ignore
     }
   }, []);
@@ -68,21 +72,6 @@ export default function DashboardClient() {
     { label: 'Total News', value: '42', icon: '📰' },
     { label: 'Total Users', value: '8', icon: '👥' },
     { label: 'Contact Messages', value: '15', icon: '💬' },
-  ];
-
-  // ==================== TAB CONFIGURATION [SEARCH: TABS, MENU, NAV] ====================
-  const tabs = [
-    { id: 'overview', label: 'Overview', icon: '📊' },
-    { id: 'homeFeatures', label: 'Home Features', icon: '🏠' },
-    { id: 'aboutStats', label: 'About Stats', icon: '📈' },
-    { id: 'aboutTeam', label: 'About Team', icon: '👤' },
-    { id: 'services', label: 'Services', icon: '🧩' },
-    { id: 'products', label: 'Products', icon: '📦' },
-    { id: 'news', label: 'News', icon: '📰' },
-    { id: 'users', label: 'Users', icon: '👥' },
-    { id: 'media', label: 'Media', icon: '🖼️' },
-    { id: 'banners', label: 'Banners', icon: '🎬' },
-    { id: 'contacts', label: 'Contacts', icon: '💬' },
   ];
 
   // ==================== USERS + PERMISSIONS (DB-backed) ====================
@@ -175,7 +164,7 @@ export default function DashboardClient() {
     }
   }
 
-  async function loadPermissionMatrix(userId: number) {
+  const loadPermissionMatrix = useCallback(async (userId: number) => {
     setPermissionsLoading(true);
     setPermissionsError(null);
     try {
@@ -183,17 +172,16 @@ export default function DashboardClient() {
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         if (res.status === 401 || res.status === 403) window.location.href = '/admin/login';
-        throw new Error(data?.error || 'Failed to load permissions');
+        throw new Error((data as { error?: string })?.error || 'Failed to load permissions');
       }
       const data = await res.json();
-      // API returns feature CRUD matrix
       if (data?.features) setPermissionMatrix(data.features as Record<FeatureId, CrudPermission>);
-    } catch (e: any) {
-      setPermissionsError(e?.message || 'Failed to load permissions');
+    } catch (e: unknown) {
+      setPermissionsError(catchMessage(e, 'Failed to load permissions'));
     } finally {
       setPermissionsLoading(false);
     }
-  }
+  }, []);
 
   async function savePermissionMatrix(userId: number) {
     setPermissionsSaving(true);
@@ -210,8 +198,8 @@ export default function DashboardClient() {
         throw new Error(data?.error || 'Failed to save permissions');
       }
       await loadPermissionMatrix(userId);
-    } catch (e: any) {
-      setPermissionsError(e?.message || 'Failed to save permissions');
+    } catch (e: unknown) {
+      setPermissionsError(catchMessage(e, 'Failed to save permissions'));
     } finally {
       setPermissionsSaving(false);
     }
@@ -239,7 +227,7 @@ export default function DashboardClient() {
     if (activeTab !== 'permissions') return;
     if (selectedPermissionUserId == null) return;
     void loadPermissionMatrix(selectedPermissionUserId);
-  }, [activeTab, selectedPermissionUserId]);
+  }, [activeTab, selectedPermissionUserId, loadPermissionMatrix]);
 
   // ==================== HOME FEATURES STATE [SEARCH: HOME FEATURES, CRUD] ====================
   const [homeFeatures, setHomeFeatures] = useState<HomeFeature[]>([]);
@@ -282,8 +270,8 @@ export default function DashboardClient() {
       }
       const data = await res.json();
       setAboutStats(Array.isArray(data) ? (data as AboutStat[]) : []);
-    } catch (e: any) {
-      setAsError(e?.message || 'Failed to load about stats');
+    } catch (e: unknown) {
+      setAsError(catchMessage(e, 'Failed to load about stats'));
     } finally {
       setAsLoading(false);
     }
@@ -326,8 +314,8 @@ export default function DashboardClient() {
       }
       setAsModalOpen(false);
       await loadAboutStats();
-    } catch (e: any) {
-      setAsError(e?.message || 'Save failed');
+    } catch (e: unknown) {
+      setAsError(catchMessage(e, 'Save failed'));
     } finally {
       setAsSaving(false);
     }
@@ -345,8 +333,8 @@ export default function DashboardClient() {
         throw new Error(data?.error || 'Delete failed');
       }
       await loadAboutStats();
-    } catch (e: any) {
-      setAsError(e?.message || 'Delete failed');
+    } catch (e: unknown) {
+      setAsError(catchMessage(e, 'Delete failed'));
     }
   }
 
@@ -378,8 +366,8 @@ export default function DashboardClient() {
       }
       const data = await res.json();
       setAboutTeam(Array.isArray(data) ? (data as AboutTeamMember[]) : []);
-    } catch (e: any) {
-      setAtError(e?.message || 'Failed to load about team');
+    } catch (e: unknown) {
+      setAtError(catchMessage(e, 'Failed to load about team'));
     } finally {
       setAtLoading(false);
     }
@@ -431,8 +419,8 @@ export default function DashboardClient() {
       }
       setAtModalOpen(false);
       await loadAboutTeam();
-    } catch (e: any) {
-      setAtError(e?.message || 'Save failed');
+    } catch (e: unknown) {
+      setAtError(catchMessage(e, 'Save failed'));
     } finally {
       setAtSaving(false);
     }
@@ -450,8 +438,8 @@ export default function DashboardClient() {
         throw new Error(data?.error || 'Delete failed');
       }
       await loadAboutTeam();
-    } catch (e: any) {
-      setAtError(e?.message || 'Delete failed');
+    } catch (e: unknown) {
+      setAtError(catchMessage(e, 'Delete failed'));
     }
   }
 
@@ -494,8 +482,8 @@ export default function DashboardClient() {
       }
       const data = await res.json();
       setServices(Array.isArray(data) ? (data as ServiceItem[]) : []);
-    } catch (e: any) {
-      setSvError(e?.message || 'Failed to load services');
+    } catch (e: unknown) {
+      setSvError(catchMessage(e, 'Failed to load services'));
     } finally {
       setSvLoading(false);
     }
@@ -547,8 +535,8 @@ export default function DashboardClient() {
       }
       setSvModalOpen(false);
       await loadServices();
-    } catch (e: any) {
-      setSvError(e?.message || 'Save failed');
+    } catch (e: unknown) {
+      setSvError(catchMessage(e, 'Save failed'));
     } finally {
       setSvSaving(false);
     }
@@ -566,8 +554,8 @@ export default function DashboardClient() {
         throw new Error(data?.error || 'Delete failed');
       }
       await loadServices();
-    } catch (e: any) {
-      setSvError(e?.message || 'Delete failed');
+    } catch (e: unknown) {
+      setSvError(catchMessage(e, 'Delete failed'));
     }
   }
 
@@ -583,8 +571,8 @@ export default function DashboardClient() {
       }
       const data = await res.json();
       setHomeFeatures(Array.isArray(data) ? (data as HomeFeature[]) : []);
-    } catch (e: any) {
-      setHfError(e?.message || 'Failed to load home features');
+    } catch (e: unknown) {
+      setHfError(catchMessage(e, 'Failed to load home features'));
     } finally {
       setHfLoading(false);
     }
@@ -652,8 +640,8 @@ export default function DashboardClient() {
 
       setHfModalOpen(false);
       await loadHomeFeatures();
-    } catch (e: any) {
-      setHfError(e?.message || 'Save failed');
+    } catch (e: unknown) {
+      setHfError(catchMessage(e, 'Save failed'));
     } finally {
       setHfSaving(false);
     }
@@ -672,8 +660,8 @@ export default function DashboardClient() {
         throw new Error(data?.error || 'Delete failed');
       }
       await loadHomeFeatures();
-    } catch (e: any) {
-      setHfError(e?.message || 'Delete failed');
+    } catch (e: unknown) {
+      setHfError(catchMessage(e, 'Delete failed'));
     }
   }
 

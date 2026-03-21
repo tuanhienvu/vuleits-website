@@ -35,7 +35,15 @@ export async function POST(request: Request) {
     });
 
     return response;
-  } catch (err) {
+  } catch (e: unknown) {
+    const name = e && typeof e === 'object' && 'name' in e ? String((e as { name: string }).name) : '';
+    if (name === 'PrismaClientInitializationError') {
+      return NextResponse.json(
+        { error: 'Database unavailable. Check MySQL is running and DATABASE_URL in .env.' },
+        { status: 503 },
+      );
+    }
+    console.error(e);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

@@ -49,9 +49,16 @@ function buildPermissionName(prefix: string, action: CrudAction): string {
   return `${prefix}.${action}`;
 }
 
-function makeEmptyMatrix(): Record<UiFeatureId, { create: boolean; read: boolean; update: boolean; delete: boolean }> {
-  const out: any = {};
-  for (const f of uiFeatures) out[f] = { create: false, read: false, update: false, delete: false };
+type CrudMatrix = Record<
+  UiFeatureId,
+  { create: boolean; read: boolean; update: boolean; delete: boolean }
+>;
+
+function makeEmptyMatrix(): CrudMatrix {
+  const out = {} as CrudMatrix;
+  for (const f of uiFeatures) {
+    out[f] = { create: false, read: false, update: false, delete: false };
+  }
   return out;
 }
 

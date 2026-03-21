@@ -108,7 +108,11 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const saved = typeof window !== 'undefined' ? window.localStorage.getItem(STORAGE_KEY) : null;
-    if (saved === 'en-US' || saved === 'vi-VN') setLocaleState(saved);
+    if (saved === 'en-US' || saved === 'vi-VN') {
+      // Persisted locale is only available after mount; avoids SSR/localStorage mismatch.
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate from localStorage after first paint
+      setLocaleState(saved);
+    }
   }, []);
 
   useEffect(() => {

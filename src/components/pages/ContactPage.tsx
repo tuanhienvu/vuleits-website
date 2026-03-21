@@ -27,7 +27,7 @@ export default function ContactPage() {
       {/* ==================== HERO SECTION ==================== */}
       <section className="glass p-8 md:p-12 rounded-3xl mb-12 text-center">
         <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Get In Touch</h1>
-        <p className="text-white/80 text-lg">Have questions? We'd love to hear from you. Send us a message!</p>
+        <p className="text-white/80 text-lg">Have questions? We&apos;d love to hear from you. Send us a message!</p>
       </section>
 
       {/* ==================== CONTACT AREA ==================== */}

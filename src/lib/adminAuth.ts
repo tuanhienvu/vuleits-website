@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from './prisma';
-import { verifyJWT, JWTPayload } from './jwt';
+import { verifyJWT } from './jwt';
 
 // Extract JWT from cookies and authorize with permission checks.
 export async function authorize(request: Request, requiredPermission?: string) {

@@ -25,7 +25,7 @@ export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
             setUserEmail(data.user.email || '');
           }
         }
-      } catch (err) {
+      } catch {
         // Ignore errors
       }
     };
@@ -41,7 +41,7 @@ export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
       if (res.ok) {
         router.push('/admin/login');
       }
-    } catch (err) {
+    } catch {
       router.push('/admin/login');
     }
   };

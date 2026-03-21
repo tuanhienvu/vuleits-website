@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import type { Prisma } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 import { authorize } from '@/lib/adminAuth';
@@ -20,10 +21,14 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
   const { id: idParam } = await params;
   const id = Number(idParam);
-  const body = await req.json();
-  const data: any = {};
+  const body = (await req.json()) as {
+    password?: string;
+    roleId?: number;
+    isActive?: boolean;
+  };
+  const data: Prisma.UserUncheckedUpdateInput = {};
   if (body.password) data.password = await bcrypt.hash(body.password, 10);
-  if (body.roleId) data.roleId = body.roleId;
+  if (body.roleId != null) data.roleId = body.roleId;
   if (typeof body.isActive === 'boolean') data.isActive = body.isActive;
 
   const user = await prisma.user.update({ where: { id }, data });

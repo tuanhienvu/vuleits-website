@@ -19,7 +19,7 @@ export default function AdminLogin() {
         if (res.ok) {
           window.location.href = '/admin/dashboard';
         }
-      } catch (err) {
+      } catch {
         // not authenticated, continue
       }
     };
@@ -49,7 +49,7 @@ export default function AdminLogin() {
 
       // Cookie is set by server; redirect to dashboard
       window.location.href = '/admin/dashboard';
-    } catch (err) {
+    } catch {
       setError('Server error');
       setLoading(false);
     }
