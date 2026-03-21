@@ -8,6 +8,6 @@ export async function GET() {
     select: { id: true, icon: true, title: true, description: true },
   });
 
-  return NextResponse.json(list);
+  return NextResponse.json(Array.isArray(list) ? list : []);
 }
 

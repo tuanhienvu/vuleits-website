@@ -1,6 +1,29 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { safeArray } from '@/lib/safe-array';
+
+type StatRow = { number: string; label: string };
+type TeamRow = { name: string; role: string; emoji: string; bio: string };
+
+function normalizeStats(raw: unknown): StatRow[] {
+  return safeArray<unknown>(raw).map((item) => {
+    const s = item as Record<string, unknown>;
+    return { number: String(s.number ?? ''), label: String(s.label ?? '') };
+  });
+}
+
+function normalizeTeam(raw: unknown): TeamRow[] {
+  return safeArray<unknown>(raw).map((item) => {
+    const m = item as Record<string, unknown>;
+    return {
+      name: String(m.name ?? ''),
+      role: String(m.role ?? ''),
+      emoji: String(m.emoji ?? ''),
+      bio: String(m.bio ?? ''),
+    };
+  });
+}
 
 export default function AboutPage() {
   const fallbackStats = [
@@ -19,8 +42,8 @@ export default function AboutPage() {
     { name: 'Lisa Martinez', role: 'Project Manager', emoji: '👩‍💼', bio: 'Certified PMP with a track record of delivering complex projects on time and budget.' },
   ];
 
-  const [stats, setStats] = useState<Array<{ number: string; label: string }>>(fallbackStats);
-  const [team, setTeam] = useState<Array<{ name: string; role: string; emoji: string; bio: string }>>(fallbackTeam);
+  const [stats, setStats] = useState<StatRow[]>(fallbackStats);
+  const [team, setTeam] = useState<TeamRow[]>(fallbackTeam);
 
   useEffect(() => {
     let cancelled = false;
@@ -30,11 +53,13 @@ export default function AboutPage() {
         if (!cancelled) {
           if (statsRes.ok) {
             const s = await statsRes.json();
-            if (Array.isArray(s) && s.length > 0) setStats(s);
+            const ns = normalizeStats(s);
+            if (ns.length > 0) setStats(ns);
           }
           if (teamRes.ok) {
             const t = await teamRes.json();
-            if (Array.isArray(t) && t.length > 0) setTeam(t);
+            const nt = normalizeTeam(t);
+            if (nt.length > 0) setTeam(nt);
           }
         }
       } catch {

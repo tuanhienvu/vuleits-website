@@ -22,8 +22,10 @@ export async function GET() {
     ORDER BY \`order\` ASC, id ASC
   `;
 
+  const list = Array.isArray(rows) ? rows : [];
+
   return NextResponse.json(
-    rows.map((s) => ({
+    list.map((s) => ({
       id: Number(s.id),
       icon: s.icon,
       title: s.title,

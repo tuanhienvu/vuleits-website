@@ -124,7 +124,10 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
     () => ({
       locale,
       setLocale: (next) => setLocaleState(next),
-      t: (key) => messagesByLocale[locale][key] ?? messagesByLocale['en-US'][key] ?? key,
+      t: (key) => {
+        const table = messagesByLocale[locale] ?? messagesByLocale['en-US'];
+        return table[key] ?? messagesByLocale['en-US'][key] ?? key;
+      },
     }),
     [locale],
   );

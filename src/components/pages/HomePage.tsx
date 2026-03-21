@@ -1,13 +1,27 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { safeArray } from '@/lib/safe-array';
 
 interface HomePageProps {
   setCurrentPage: (page: string) => void;
 }
 
+type HomeFeature = { icon: string; title: string; description: string };
+
+function normalizeHomeFeatures(raw: unknown): HomeFeature[] {
+  return safeArray<unknown>(raw).map((item) => {
+    const f = item as Record<string, unknown>;
+    return {
+      icon: String(f.icon ?? ''),
+      title: String(f.title ?? ''),
+      description: String(f.description ?? ''),
+    };
+  });
+}
+
 export default function HomePage({ setCurrentPage }: HomePageProps) {
-  const fallbackFeatures = [
+  const fallbackFeatures: HomeFeature[] = [
     { icon: '✨', title: 'Modern Design', description: 'Beautiful glass morphism effects with backdrop blur and translucent elements that create depth and visual hierarchy.' },
     { icon: '⚡', title: 'Fast Performance', description: 'Optimized animations and effects that maintain smooth 60fps performance across all modern browsers and devices.' },
     { icon: '📱', title: 'Responsive', description: 'Fully responsive design that adapts beautifully to any screen size, from mobile phones to desktop displays.' },
@@ -16,7 +30,7 @@ export default function HomePage({ setCurrentPage }: HomePageProps) {
     { icon: '🚀', title: 'Easy Integration', description: 'Simple to implement and customize for any project with clean, well-documented code and flexible components.' },
   ];
 
-  const [features, setFeatures] = useState(fallbackFeatures);
+  const [features, setFeatures] = useState<HomeFeature[]>(fallbackFeatures);
 
   useEffect(() => {
     let cancelled = false;
@@ -25,8 +39,9 @@ export default function HomePage({ setCurrentPage }: HomePageProps) {
         const res = await fetch('/api/home/features');
         if (!res.ok) return;
         const data = await res.json();
-        if (!cancelled && Array.isArray(data) && data.length > 0) {
-          setFeatures(data);
+        const normalized = normalizeHomeFeatures(data);
+        if (!cancelled && normalized.length > 0) {
+          setFeatures(normalized);
         }
       } catch {
         // keep fallback
