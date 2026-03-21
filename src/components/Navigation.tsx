@@ -39,6 +39,7 @@ export default function Navigation({ currentPage, setCurrentPage }: NavigationPr
                 src="/Logo.jpg"
                 alt="VULE ITS Logo"
                 fill
+                sizes="48px"
                 className="object-contain rounded-full"
                 priority
               />

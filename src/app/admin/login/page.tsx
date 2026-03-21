@@ -88,6 +88,7 @@ export default function AdminLogin() {
               src="/Logos.png"
               alt="VULE ITS Logo"
               fill
+              sizes="80px"
               className="object-contain"
               priority
             />

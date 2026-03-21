@@ -82,6 +82,7 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
                   src="/Logo.jpg"
                   alt="VULE ITS Logo"
                   fill
+                  sizes="40px"
                   className="object-contain rounded-full"
                   priority
                 />
@@ -178,6 +179,7 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
                   src="/Logo.jpg"
                   alt="VULE ITS Logo"
                   fill
+                  sizes="40px"
                   className="object-contain rounded-full"
                   priority
                 />
