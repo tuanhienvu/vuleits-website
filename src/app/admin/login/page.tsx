@@ -2,20 +2,26 @@
 
 import { useState, FormEvent, useEffect } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
+import { useToast } from '@/components/providers/ToastProvider';
+import { useLocale } from '@/components/providers/LocaleProvider';
+import { useCompanyBranding } from '@/hooks/useCompanyBranding';
 
 // ==================== ADMIN LOGIN PAGE [SEARCH: AUTH, LOGIN, ADMIN] ====================
 export default function AdminLogin() {
   // ==================== STATE MANAGEMENT [SEARCH: STATE, FORM] ====================
+  const toast = useToast();
+  const { t } = useLocale();
+  const { companyName } = useCompanyBranding();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   // Redirect to dashboard if already authenticated (check for auth cookie via API)
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await fetch('/api/admin/users', { credentials: 'include' });
+        const res = await fetch('/api/admin/me', { credentials: 'include' });
         if (res.ok) {
           window.location.href = '/admin/dashboard';
         }
@@ -29,20 +35,19 @@ export default function AdminLogin() {
   // ==================== AUTHENTICATION HANDLER [SEARCH: AUTH, HANDLER, SUBMIT] ====================
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
 
     try {
       const res = await fetch('/api/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: email.trim(), password }),
         credentials: 'include', // Enable cookie sending
       });
 
       const data = await res.json();
       if (!res.ok) {
-        setError(data?.error || 'Login failed');
+        toast.error(data?.error || 'Login failed');
         setLoading(false);
         return;
       }
@@ -50,7 +55,7 @@ export default function AdminLogin() {
       // Cookie is set by server; redirect to dashboard
       window.location.href = '/admin/dashboard';
     } catch {
-      setError('Server error');
+      toast.error('Server error');
       setLoading(false);
     }
   };
@@ -83,7 +88,11 @@ export default function AdminLogin() {
       <div className="glass p-8 md:p-12 rounded-3xl w-full max-w-md relative z-10">
         {/* ==================== LOGO & BRANDING AREA [SEARCH: LOGO, BRANDING, TITLE] ==================== */}
         <div className="text-center mb-8">
-          <div className="w-20 h-20 relative mx-auto mb-4">
+          <Link
+            href="/"
+            className="block w-20 h-20 relative mx-auto mb-4 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+            aria-label={t('nav.home')}
+          >
             <Image
               src="/Logos.png"
               alt="VULE ITS Logo"
@@ -92,20 +101,15 @@ export default function AdminLogin() {
               className="object-contain"
               priority
             />
-          </div>
-          <h1 className="text-3xl font-bold text-white mb-2 font-zcool">VULE ITS Admin</h1>
-          <p className="text-white/70 font-zcool">Content Management System</p>
+          </Link>
+          <h1 className="text-3xl font-bold text-white mb-2">
+            <span className="font-zcool tracking-wide">{companyName}</span> Admin
+          </h1>
+          <p className="text-white/70">Content Management System</p>
         </div>
 
         {/* ==================== LOGIN FORM AREA [SEARCH: FORM, INPUT, FIELDS] ==================== */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* ========== ERROR MESSAGE DISPLAY ========== */}
-          {error && (
-            <div className="bg-red-500/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg">
-              {error}
-            </div>
-          )}
-
           {/* ========== EMAIL INPUT FIELD ========== */}
           <div>
             <label htmlFor="email" className="text-white font-medium block mb-2">Email Address</label>
@@ -146,7 +150,7 @@ export default function AdminLogin() {
 
         {/* ==================== DEMO INFO AREA [SEARCH: DEMO, INFO, HELP] ==================== */}
         <p className="text-white/60 text-sm text-center mt-6">
-          Demo: vuleitsolution@gmail.com / VULEITS@2025#
+          For trial: user: demo@vuleits.com | password: Demo@123##
         </p>
       </div>
     </div>

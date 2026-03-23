@@ -11,9 +11,11 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:reset": "prisma db push --force-reset --accept-data-loss",
-    "seed": "node prisma/seed.js"
+    "seed": "node prisma/seed.js",
+    "db:ensure-user-display-name": "node prisma/scripts/ensure-user-display-name.js"
   },
   "dependencies": {
+    "@fontsource/zcool-xiaowei": "^5.2.8",
     "@prisma/client": "6.0.0",
     "bcryptjs": "^2.4.3",
     "dotenv": "^17.2.3",

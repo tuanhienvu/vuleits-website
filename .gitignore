@@ -20,6 +20,10 @@
 # production
 /build
 
+# User uploads under public (keep only **/.gitkeep tracked)
+/public/uploads/**
+!/public/uploads/**/.gitkeep
+
 # misc
 .DS_Store
 *.pem

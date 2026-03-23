@@ -21,6 +21,7 @@ async function main() {
     'aboutTeam',
     'aboutStats',
     'users',
+    'userPassword',
     'permissions',
   ];
 
@@ -37,6 +38,7 @@ async function main() {
     aboutTeam: 'aboutTeam',
     aboutStats: 'aboutStats',
     users: 'users',
+    userPassword: 'userPassword',
     permissions: 'permissions',
   };
 
@@ -93,6 +95,8 @@ async function main() {
     { email: 'manager1@example.com', role: 'MANAGER', isProtected: false },
     { email: 'editor1@example.com', role: 'EDITOR', isProtected: false },
     { email: 'writer1@example.com', role: 'WRITER', isProtected: false },
+    // Guest demo: MANAGER role, password "demo", view-only (read, no create/update/delete)
+    { email: 'demo@vuleits.com', role: 'MANAGER', isProtected: false, password: 'demo', readOnlyPermissions: true },
   ];
 
   // Defaults used to create UserPermission rows (Permission UI toggles these).
@@ -105,8 +109,8 @@ async function main() {
       for (const f of ['overview', 'services', 'products', 'news', 'media', 'banners', 'homeFeatures', 'contacts', 'aboutTeam', 'aboutStats']) {
         base[f] = { create: true, read: true, update: true, delete: false };
       }
-      base.users = { create: false, read: true, update: true, delete: false };
-      base.permissions = { create: false, read: true, update: true, delete: false };
+      base.users = { create: false, read: false, update: false, delete: false };
+      base.permissions = { create: false, read: false, update: false, delete: false };
       return base;
     })(),
     EDITOR: (() => {
@@ -116,8 +120,8 @@ async function main() {
       }
       base.services = { create: false, read: true, update: false, delete: false };
       base.products = { create: false, read: true, update: false, delete: false };
-      base.users = { create: false, read: true, update: false, delete: false };
-      base.permissions = { create: false, read: true, update: true, delete: false };
+      base.users = { create: false, read: false, update: false, delete: false };
+      base.permissions = { create: false, read: false, update: false, delete: false };
       return base;
     })(),
     WRITER: (() => {
@@ -132,17 +136,27 @@ async function main() {
       base.contacts = { create: false, read: true, update: false, delete: false };
       base.aboutTeam = { create: false, read: true, update: false, delete: false };
       base.aboutStats = { create: false, read: true, update: false, delete: false };
-      base.users = { create: false, read: true, update: false, delete: false };
+      base.users = { create: false, read: false, update: false, delete: false };
       base.permissions = { create: false, read: false, update: false, delete: false };
       return base;
     })(),
   };
 
+  const readOnlyMatrix = Object.fromEntries(
+    uiFeatures.map((f) => [f, { create: false, read: true, update: false, delete: false }]),
+  );
+  readOnlyMatrix.users = { create: false, read: false, update: false, delete: false };
+  readOnlyMatrix.userPassword = { create: false, read: false, update: false, delete: false };
+  readOnlyMatrix.permissions = { create: false, read: false, update: false, delete: false };
+
+  await prisma.user.deleteMany({ where: { email: 'demo' } });
+
   for (const u of usersToSeed) {
     const roleId = roleNameToId.get(u.role);
     if (!roleId) continue;
 
-    const hash = await bcrypt.hash(sysAdminPassword, 10);
+    const plainPassword = u.password != null ? u.password : sysAdminPassword;
+    const hash = await bcrypt.hash(plainPassword, 10);
 
     const created = await prisma.user.upsert({
       where: { email: u.email },
@@ -164,7 +178,7 @@ async function main() {
     // Reset user permissions to match the role defaults
     await prisma.userPermission.deleteMany({ where: { userId: created.id } });
 
-    const defaults = roleCrudDefaults[u.role];
+    const defaults = u.readOnlyPermissions ? readOnlyMatrix : roleCrudDefaults[u.role];
     for (const feature of uiFeatures) {
       const prefix = featureToPermissionPrefix[feature];
       const crud = defaults[feature] || { create: false, read: false, update: false, delete: false };

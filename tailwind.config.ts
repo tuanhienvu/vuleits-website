@@ -9,7 +9,8 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        zcool: ['var(--font-zcool-xiaowei)', 'serif'],
+        /** ZCOOL XiaoWei — prefer globals.css @theme + @layer utilities (v4 PostCSS); kept for tooling parity */
+        zcool: ['"ZCOOL XiaoWei"', 'ui-serif', 'Georgia', 'serif'],
       },
       animation: {
         float: 'float 6s ease-in-out infinite',

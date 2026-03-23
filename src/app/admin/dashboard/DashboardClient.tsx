@@ -1,7 +1,18 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import Image from 'next/image';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useAdminPermissions } from '@/components/admin/AdminPermissionContext';
+import { UI_FEATURES, type AdminUiFeatureId } from '@/lib/adminPermissionModel';
+import { getRoleRank } from '@/lib/adminRoleRank';
+import { useToast } from '@/components/providers/ToastProvider';
+import type { AboutIntroPayload } from '@/lib/aboutIntroSetting';
+
+function isAdminFeatureTab(tab: string): tab is AdminUiFeatureId {
+  return (UI_FEATURES as readonly string[]).includes(tab);
+}
 
 function catchMessage(e: unknown, fallback: string): string {
   return e instanceof Error ? e.message : fallback;
@@ -12,7 +23,7 @@ function AuthRedirect() {
   useEffect(() => {
     try {
       // Try to access a protected API; if 401, redirect to login
-      fetch('/api/admin/users', { credentials: 'include' }).then((res) => {
+      fetch('/api/admin/me', { credentials: 'include' }).then((res) => {
         if (!res.ok) {
           window.location.href = '/admin/login';
         }
@@ -26,12 +37,22 @@ function AuthRedirect() {
 
 export default function DashboardClient() {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const { can, loading: permsLoading } = useAdminPermissions();
+  const toast = useToast();
 
   // ==================== STATE MANAGEMENT [SEARCH: STATE, TAB] ====================
   const [activeTab, setActiveTab] = useState('overview');
 
   type AdminRole = { id: number; name: string };
-  type AdminUser = { id: number; email: string; roleId: number; isActive: boolean; isProtected: boolean };
+  type AdminUser = {
+    id: number;
+    email: string;
+    displayName: string | null;
+    roleId: number;
+    isActive: boolean;
+    isProtected: boolean;
+  };
   type HomeFeature = {
     id: number;
     icon: string;
@@ -60,11 +81,85 @@ export default function DashboardClient() {
     isActive: boolean;
   };
 
+  type MediaLibraryRow = {
+    id: number;
+    url: string;
+    filename: string;
+    mimeType: string;
+    folder: string;
+    createdAt: string;
+  };
+
+  const [mediaList, setMediaList] = useState<MediaLibraryRow[]>([]);
+  const [mediaLoading, setMediaLoading] = useState(false);
+  const [mediaUploading, setMediaUploading] = useState(false);
+  const [mediaFolder, setMediaFolder] = useState('library');
+  const mediaFileInputRef = useRef<HTMLInputElement>(null);
+
   // Sync activeTab with URL parameter
   useEffect(() => {
     const tab = searchParams.get('tab') || 'overview';
     setActiveTab(tab);
   }, [searchParams]);
+
+  useEffect(() => {
+    if (permsLoading) return;
+    const tab = searchParams.get('tab') || 'overview';
+    if (!isAdminFeatureTab(tab)) return;
+    if (can(tab, 'read')) return;
+    const fallback = UI_FEATURES.find((f) => can(f, 'read'));
+    if (fallback) {
+      router.replace(`/admin/dashboard?tab=${fallback}`);
+    } else {
+      router.replace('/admin/login');
+    }
+  }, [permsLoading, searchParams, can, router]);
+
+  useEffect(() => {
+    if (activeTab !== 'media' || permsLoading || !can('media', 'read')) return;
+    let cancelled = false;
+    setMediaLoading(true);
+    fetch('/api/admin/media?take=100&imagesOnly=0', { credentials: 'include' })
+      .then(async (res) => {
+        const data = await res.json().catch(() => null);
+        if (!res.ok || cancelled) return;
+        if (Array.isArray(data)) setMediaList(data as MediaLibraryRow[]);
+      })
+      .catch(() => {
+        if (!cancelled) toast.error('Failed to load media');
+      })
+      .finally(() => {
+        if (!cancelled) setMediaLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab, permsLoading, can, toast]);
+
+  const uploadMediaFile = useCallback(
+    async (file: File | null) => {
+      if (!file || !can('media', 'create')) return;
+      setMediaUploading(true);
+      try {
+        const fd = new FormData();
+        fd.set('file', file);
+        fd.set('folder', mediaFolder.trim() || 'library');
+        const res = await fetch('/api/admin/media', { method: 'POST', credentials: 'include', body: fd });
+        const data = (await res.json().catch(() => ({}))) as { error?: string; media?: MediaLibraryRow };
+        if (!res.ok) throw new Error(data.error || 'Upload failed');
+        if (data.media) {
+          setMediaList((prev) => [data.media!, ...prev]);
+          toast.success('Upload complete');
+        }
+      } catch (e: unknown) {
+        toast.error(catchMessage(e, 'Upload failed'));
+      } finally {
+        setMediaUploading(false);
+        if (mediaFileInputRef.current) mediaFileInputRef.current.value = '';
+      }
+    },
+    [can, mediaFolder, toast],
+  );
 
   // ==================== STATISTICS CONFIG [SEARCH: STATS, DATA] ====================
   const stats = [
@@ -80,6 +175,38 @@ export default function DashboardClient() {
   const [usersLoading, setUsersLoading] = useState(false);
   const [rolesLoading, setRolesLoading] = useState(false);
 
+  const [addUserModalOpen, setAddUserModalOpen] = useState(false);
+  const [addUserForm, setAddUserForm] = useState({
+    email: '',
+    password: '',
+    displayName: '',
+    roleId: '' as number | '',
+    isActive: true,
+  });
+  const [addUserSaving, setAddUserSaving] = useState(false);
+  /** User Management: empty string = all roles; otherwise numeric role id as string (select value). */
+  const [userManagementRoleFilter, setUserManagementRoleFilter] = useState('');
+
+  type SessionMe = { id: number; email: string; roleId: number; role: { name: string } | null };
+  const [sessionMe, setSessionMe] = useState<SessionMe | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/admin/me', { credentials: 'include' });
+        if (!res.ok) return;
+        const data = (await res.json()) as SessionMe;
+        if (!cancelled && data?.id) setSessionMe(data);
+      } catch {
+        // ignore
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   type FeatureId =
     | 'overview'
     | 'services'
@@ -92,6 +219,7 @@ export default function DashboardClient() {
     | 'aboutTeam'
     | 'aboutStats'
     | 'users'
+    | 'userPassword'
     | 'permissions';
 
   type CrudPermission = { create: boolean; read: boolean; update: boolean; delete: boolean };
@@ -111,37 +239,118 @@ export default function DashboardClient() {
     { id: 'aboutTeam', label: 'About Team', icon: '👤' },
     { id: 'aboutStats', label: 'About Stats', icon: '📈' },
     // Permission
-    { id: 'users', label: 'Users', icon: '👥' },
+    { id: 'users', label: 'Users (list, create, role, active)', icon: '👥' },
+    { id: 'userPassword', label: 'User password (reset)', icon: '🔑' },
     { id: 'permissions', label: 'Permissions', icon: '🔐' },
   ];
 
   const emptyCrud = (): CrudPermission => ({ create: false, read: false, update: false, delete: false });
+  const fullCrud = (): CrudPermission => ({ create: true, read: true, update: true, delete: true });
   const makeEmptyMatrix = (): Record<FeatureId, CrudPermission> =>
     Object.fromEntries(features.map((f) => [f.id, emptyCrud()])) as Record<FeatureId, CrudPermission>;
+  const makeFullMatrix = (): Record<FeatureId, CrudPermission> =>
+    Object.fromEntries(features.map((f) => [f.id, fullCrud()])) as Record<FeatureId, CrudPermission>;
 
   const [selectedPermissionUserId, setSelectedPermissionUserId] = useState<number | null>(null);
   const [permissionMatrix, setPermissionMatrix] = useState<Record<FeatureId, CrudPermission>>(makeEmptyMatrix);
   const [permissionsLoading, setPermissionsLoading] = useState(false);
   const [permissionsSaving, setPermissionsSaving] = useState(false);
-  const [permissionsError, setPermissionsError] = useState<string | null>(null);
+  const [permissionsResetting, setPermissionsResetting] = useState(false);
+  /** Permissions tab: filter chooser list by role; empty = all roles. */
+  const [permissionsTabRoleFilter, setPermissionsTabRoleFilter] = useState('');
+  /** Permissions tab: empty = all users (within role filter); else one user id string. */
+  const [permissionsTabUserFilter, setPermissionsTabUserFilter] = useState('');
 
   const selectedPermissionUser = useMemo(
     () => (selectedPermissionUserId != null ? users.find((u) => u.id === selectedPermissionUserId) || null : null),
     [selectedPermissionUserId, users],
   );
 
-  async function loadRoles() {
+  /** User Management tab: ascending by role name, then display name / email. */
+  const usersSortedForManagement = useMemo(() => {
+    const roleLabel = (roleId: number) =>
+      roles.find((r) => r.id === roleId)?.name ?? `\uFFFF#${roleId}`;
+    const personLabel = (u: AdminUser) => {
+      const d = (u.displayName ?? '').trim();
+      return (d || u.email).toLocaleLowerCase();
+    };
+    return [...users].sort((a, b) => {
+      const byRole = roleLabel(a.roleId).localeCompare(roleLabel(b.roleId), undefined, { sensitivity: 'base' });
+      if (byRole !== 0) return byRole;
+      return personLabel(a).localeCompare(personLabel(b), undefined, { sensitivity: 'base' });
+    });
+  }, [users, roles]);
+
+  const rolesSortedByName = useMemo(
+    () =>
+      [...roles].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })),
+    [roles],
+  );
+
+  const usersFilteredForManagement = useMemo(() => {
+    if (userManagementRoleFilter === '') return usersSortedForManagement;
+    const id = Number(userManagementRoleFilter);
+    if (!Number.isFinite(id)) return usersSortedForManagement;
+    return usersSortedForManagement.filter((u) => u.roleId === id);
+  }, [usersSortedForManagement, userManagementRoleFilter]);
+
+  const usersMatchingPermissionsRoleFilter = useMemo(() => {
+    if (permissionsTabRoleFilter === '') return usersSortedForManagement;
+    const rid = Number(permissionsTabRoleFilter);
+    if (!Number.isFinite(rid)) return usersSortedForManagement;
+    return usersSortedForManagement.filter((u) => u.roleId === rid);
+  }, [usersSortedForManagement, permissionsTabRoleFilter]);
+
+  const permissionsTabUserFilterValid = useMemo(() => {
+    if (permissionsTabUserFilter === '') return true;
+    const id = Number(permissionsTabUserFilter);
+    if (!Number.isFinite(id)) return false;
+    return usersMatchingPermissionsRoleFilter.some((u) => u.id === id);
+  }, [permissionsTabUserFilter, usersMatchingPermissionsRoleFilter]);
+
+  const usersForPermissionsChooserList = useMemo(() => {
+    if (permissionsTabUserFilter === '' || !permissionsTabUserFilterValid) {
+      return usersMatchingPermissionsRoleFilter;
+    }
+    const id = Number(permissionsTabUserFilter);
+    return usersMatchingPermissionsRoleFilter.filter((u) => u.id === id);
+  }, [usersMatchingPermissionsRoleFilter, permissionsTabUserFilter, permissionsTabUserFilterValid]);
+
+  function permissionChooserUserLabel(u: AdminUser): string {
+    const d = (u.displayName ?? '').trim();
+    if (d) return d;
+    return u.email;
+  }
+
+  useEffect(() => {
+    if (!permissionsTabUserFilterValid && permissionsTabUserFilter !== '') {
+      setPermissionsTabUserFilter('');
+    }
+  }, [permissionsTabUserFilterValid, permissionsTabUserFilter]);
+
+  useEffect(() => {
+    if (permissionsTabRoleFilter === '') return;
+    const rid = Number(permissionsTabRoleFilter);
+    if (!Number.isFinite(rid)) return;
+    if (selectedPermissionUserId == null) return;
+    const u = users.find((x) => x.id === selectedPermissionUserId);
+    if (u && u.roleId !== rid) setSelectedPermissionUserId(null);
+  }, [permissionsTabRoleFilter, selectedPermissionUserId, users]);
+
+  async function loadRoles(): Promise<AdminRole[] | undefined> {
     setRolesLoading(true);
     try {
       const res = await fetch('/api/admin/roles', { credentials: 'include' });
       if (!res.ok) {
         if (res.status === 401 || res.status === 403) window.location.href = '/admin/login';
-        return;
+        return undefined;
       }
       const data = await res.json();
-      setRoles(Array.isArray(data) ? data : []);
+      const list = Array.isArray(data) ? data : [];
+      setRoles(list);
+      return list;
     } catch {
-      // ignore
+      return undefined;
     } finally {
       setRolesLoading(false);
     }
@@ -164,9 +373,69 @@ export default function DashboardClient() {
     }
   }
 
+  async function openAddUserModal() {
+    const list = (await loadRoles()) ?? roles;
+    const admin = list.find((r) => r.name.toUpperCase() === 'ADMIN');
+    setAddUserForm({
+      email: '',
+      password: '',
+      displayName: '',
+      roleId: admin?.id ?? (list[0]?.id ?? ''),
+      isActive: true,
+    });
+    if (!list.length) toast.error('Could not load roles. Try again or refresh the page.');
+    setAddUserModalOpen(true);
+  }
+
+  function closeAddUserModal() {
+    if (addUserSaving) return;
+    setAddUserModalOpen(false);
+  }
+
+  async function submitAddUser() {
+    const email = addUserForm.email.trim();
+    if (!email || !addUserForm.password) {
+      toast.error('Email and password are required.');
+      return;
+    }
+    if (addUserForm.roleId === '') {
+      toast.error('Select a role.');
+      return;
+    }
+    setAddUserSaving(true);
+    try {
+      const body: Record<string, unknown> = {
+        email,
+        password: addUserForm.password,
+        roleId: addUserForm.roleId,
+        isActive: addUserForm.isActive,
+      };
+      const dn = addUserForm.displayName.trim();
+      if (dn) body.displayName = dn;
+
+      const res = await fetch('/api/admin/users', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error((data as { error?: string }).error || 'Failed to create user');
+        return;
+      }
+      setAddUserModalOpen(false);
+      await loadUsers();
+      toast.success('User created');
+    } catch {
+      toast.error('Network error');
+    } finally {
+      setAddUserSaving(false);
+    }
+  }
+
   const loadPermissionMatrix = useCallback(async (userId: number) => {
     setPermissionsLoading(true);
-    setPermissionsError(null);
     try {
       const res = await fetch(`/api/admin/permissions/${userId}`, { credentials: 'include' });
       if (!res.ok) {
@@ -177,15 +446,14 @@ export default function DashboardClient() {
       const data = await res.json();
       if (data?.features) setPermissionMatrix(data.features as Record<FeatureId, CrudPermission>);
     } catch (e: unknown) {
-      setPermissionsError(catchMessage(e, 'Failed to load permissions'));
+      toast.error(catchMessage(e, 'Failed to load permissions'));
     } finally {
       setPermissionsLoading(false);
     }
-  }, []);
+  }, [toast]);
 
   async function savePermissionMatrix(userId: number) {
     setPermissionsSaving(true);
-    setPermissionsError(null);
     try {
       const res = await fetch(`/api/admin/permissions/${userId}`, {
         method: 'PUT',
@@ -198,10 +466,49 @@ export default function DashboardClient() {
         throw new Error(data?.error || 'Failed to save permissions');
       }
       await loadPermissionMatrix(userId);
+      toast.success('Permissions saved');
     } catch (e: unknown) {
-      setPermissionsError(catchMessage(e, 'Failed to save permissions'));
+      toast.error(catchMessage(e, 'Failed to save permissions'));
     } finally {
       setPermissionsSaving(false);
+    }
+  }
+
+  const allPermissionCheckboxesSelected = useMemo(() => {
+    const actions = ['create', 'read', 'update', 'delete'] as const;
+    const ids = Object.keys(permissionMatrix) as FeatureId[];
+    return ids.length > 0 && ids.every((fid) => actions.every((a) => Boolean(permissionMatrix[fid]?.[a])));
+  }, [permissionMatrix]);
+
+  function toggleSelectAllPermissions() {
+    setPermissionMatrix(allPermissionCheckboxesSelected ? makeEmptyMatrix() : makeFullMatrix());
+  }
+
+  async function resetPermissionMatrixToDefaults(userId: number) {
+    if (
+      !window.confirm(
+        "Reset this user's permissions to the built-in defaults for their current role? Any custom permission changes will be removed.",
+      )
+    ) {
+      return;
+    }
+    setPermissionsResetting(true);
+    try {
+      const res = await fetch(`/api/admin/permissions/${userId}`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error((data as { error?: string }).error || 'Failed to reset permissions');
+      }
+      if (data?.features) setPermissionMatrix(data.features as Record<FeatureId, CrudPermission>);
+      else await loadPermissionMatrix(userId);
+      toast.success('Permissions reset to role defaults');
+    } catch (e: unknown) {
+      toast.error(catchMessage(e, 'Failed to reset permissions'));
+    } finally {
+      setPermissionsResetting(false);
     }
   }
 
@@ -232,7 +539,6 @@ export default function DashboardClient() {
   // ==================== HOME FEATURES STATE [SEARCH: HOME FEATURES, CRUD] ====================
   const [homeFeatures, setHomeFeatures] = useState<HomeFeature[]>([]);
   const [hfLoading, setHfLoading] = useState(false);
-  const [hfError, setHfError] = useState<string | null>(null);
   const [hfModalOpen, setHfModalOpen] = useState(false);
   const [hfSaving, setHfSaving] = useState(false);
   const [hfForm, setHfForm] = useState({
@@ -247,7 +553,6 @@ export default function DashboardClient() {
   // ==================== ABOUT STATS STATE [SEARCH: ABOUT STATS, CRUD] ====================
   const [aboutStats, setAboutStats] = useState<AboutStat[]>([]);
   const [asLoading, setAsLoading] = useState(false);
-  const [asError, setAsError] = useState<string | null>(null);
   const [asModalOpen, setAsModalOpen] = useState(false);
   const [asSaving, setAsSaving] = useState(false);
   const [asForm, setAsForm] = useState({
@@ -260,7 +565,6 @@ export default function DashboardClient() {
 
   async function loadAboutStats() {
     setAsLoading(true);
-    setAsError(null);
     try {
       const res = await fetch('/api/admin/about-stats', { credentials: 'include' });
       if (!res.ok) {
@@ -271,7 +575,7 @@ export default function DashboardClient() {
       const data = await res.json();
       setAboutStats(Array.isArray(data) ? (data as AboutStat[]) : []);
     } catch (e: unknown) {
-      setAsError(catchMessage(e, 'Failed to load about stats'));
+      toast.error(catchMessage(e, 'Failed to load about stats'));
     } finally {
       setAsLoading(false);
     }
@@ -295,7 +599,6 @@ export default function DashboardClient() {
 
   async function saveAboutStat() {
     setAsSaving(true);
-    setAsError(null);
     try {
       const payload = { number: asForm.number, label: asForm.label, order: Number(asForm.order), isActive: Boolean(asForm.isActive) };
       const isEdit = asForm.id != null;
@@ -314,8 +617,9 @@ export default function DashboardClient() {
       }
       setAsModalOpen(false);
       await loadAboutStats();
+      toast.success('Saved');
     } catch (e: unknown) {
-      setAsError(catchMessage(e, 'Save failed'));
+      toast.error(catchMessage(e, 'Save failed'));
     } finally {
       setAsSaving(false);
     }
@@ -324,7 +628,6 @@ export default function DashboardClient() {
   async function deleteAboutStat(id: number) {
     const ok = typeof window === 'undefined' ? true : window.confirm('Delete this stat?');
     if (!ok) return;
-    setAsError(null);
     try {
       const res = await fetch(`/api/admin/about-stats/${id}`, { method: 'DELETE', credentials: 'include' });
       if (!res.ok) {
@@ -333,15 +636,15 @@ export default function DashboardClient() {
         throw new Error(data?.error || 'Delete failed');
       }
       await loadAboutStats();
+      toast.success('Deleted');
     } catch (e: unknown) {
-      setAsError(catchMessage(e, 'Delete failed'));
+      toast.error(catchMessage(e, 'Delete failed'));
     }
   }
 
   // ==================== ABOUT TEAM STATE [SEARCH: ABOUT TEAM, CRUD] ====================
   const [aboutTeam, setAboutTeam] = useState<AboutTeamMember[]>([]);
   const [atLoading, setAtLoading] = useState(false);
-  const [atError, setAtError] = useState<string | null>(null);
   const [atModalOpen, setAtModalOpen] = useState(false);
   const [atSaving, setAtSaving] = useState(false);
   const [atForm, setAtForm] = useState({
@@ -354,9 +657,139 @@ export default function DashboardClient() {
     isActive: true,
   });
 
+  const [aboutPageIntro, setAboutPageIntro] = useState<AboutIntroPayload>({
+    titleEn: '',
+    titleVi: '',
+    bodyEn: '',
+    bodyVi: '',
+    heroImageUrl: '',
+    heroImageAltEn: '',
+    heroImageAltVi: '',
+  });
+  const [aiIntroLoading, setAiIntroLoading] = useState(false);
+  const [aiIntroSaving, setAiIntroSaving] = useState(false);
+  const [heroIntroImageLibraryOpen, setHeroIntroImageLibraryOpen] = useState(false);
+  const [heroIntroImageLibraryLoading, setHeroIntroImageLibraryLoading] = useState(false);
+  const [heroIntroImageLibraryList, setHeroIntroImageLibraryList] = useState<MediaLibraryRow[]>([]);
+  const [heroIntroImageUploading, setHeroIntroImageUploading] = useState(false);
+  const heroIntroImageFileRef = useRef<HTMLInputElement>(null);
+
+  async function loadAboutIntro() {
+    setAiIntroLoading(true);
+    try {
+      const res = await fetch('/api/admin/about-intro', { credentials: 'include' });
+      if (!res.ok) {
+        if (res.status === 401 || res.status === 403) window.location.href = '/admin/login';
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.error || 'Failed to load about intro');
+      }
+      const data = (await res.json()) as AboutIntroPayload;
+      setAboutPageIntro({
+        titleEn: data.titleEn ?? '',
+        titleVi: data.titleVi ?? '',
+        bodyEn: data.bodyEn ?? '',
+        bodyVi: data.bodyVi ?? '',
+        heroImageUrl: data.heroImageUrl ?? '',
+        heroImageAltEn: data.heroImageAltEn ?? '',
+        heroImageAltVi: data.heroImageAltVi ?? '',
+      });
+    } catch (e: unknown) {
+      toast.error(catchMessage(e, 'Failed to load about intro'));
+    } finally {
+      setAiIntroLoading(false);
+    }
+  }
+
+  async function saveAboutIntro() {
+    setAiIntroSaving(true);
+    try {
+      const res = await fetch('/api/admin/about-intro', {
+        method: 'PUT',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(aboutPageIntro),
+      });
+      if (!res.ok) {
+        if (res.status === 401 || res.status === 403) window.location.href = '/admin/login';
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.error || 'Save failed');
+      }
+      toast.success('About introduction saved');
+    } catch (e: unknown) {
+      toast.error(catchMessage(e, 'Save failed'));
+    } finally {
+      setAiIntroSaving(false);
+    }
+  }
+
+  const openHeroIntroImageLibrary = useCallback(async () => {
+    if (!can('aboutTeam', 'update')) return;
+    if (!can('media', 'read')) {
+      toast.error('Media read permission is required to browse uploaded images.');
+      return;
+    }
+    setHeroIntroImageLibraryOpen(true);
+    setHeroIntroImageLibraryLoading(true);
+    try {
+      const res = await fetch('/api/admin/media?take=100', { credentials: 'include' });
+      if (!res.ok) {
+        setHeroIntroImageLibraryList([]);
+        return;
+      }
+      const list = (await res.json()) as MediaLibraryRow[];
+      setHeroIntroImageLibraryList(Array.isArray(list) ? list : []);
+    } catch {
+      setHeroIntroImageLibraryList([]);
+    } finally {
+      setHeroIntroImageLibraryLoading(false);
+    }
+  }, [can, toast]);
+
+  const uploadHeroIntroImage = useCallback(
+    async (file: File | null) => {
+      if (!file || !can('aboutTeam', 'update')) return;
+      if (!can('media', 'create')) {
+        toast.error('Media upload permission is required to add files.');
+        return;
+      }
+      setHeroIntroImageUploading(true);
+      try {
+        const fd = new FormData();
+        fd.set('file', file);
+        fd.set('folder', 'library');
+        const res = await fetch('/api/admin/media', { method: 'POST', credentials: 'include', body: fd });
+        const data = (await res.json().catch(() => ({}))) as { error?: string; media?: MediaLibraryRow };
+        if (!res.ok) throw new Error(data.error || 'Upload failed');
+        if (data.media?.url) {
+          setAboutPageIntro((x) => ({ ...x, heroImageUrl: data.media!.url }));
+          toast.success('Image uploaded. Save introduction to publish.');
+        }
+      } catch (e: unknown) {
+        toast.error(catchMessage(e, 'Upload failed'));
+      } finally {
+        setHeroIntroImageUploading(false);
+        if (heroIntroImageFileRef.current) heroIntroImageFileRef.current.value = '';
+      }
+    },
+    [can, toast],
+  );
+
+  function pickHeroIntroImageFromLibrary(row: MediaLibraryRow) {
+    setAboutPageIntro((x) => ({ ...x, heroImageUrl: row.url }));
+    setHeroIntroImageLibraryOpen(false);
+  }
+
+  useEffect(() => {
+    if (!heroIntroImageLibraryOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setHeroIntroImageLibraryOpen(false);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [heroIntroImageLibraryOpen]);
+
   async function loadAboutTeam() {
     setAtLoading(true);
-    setAtError(null);
     try {
       const res = await fetch('/api/admin/about-team', { credentials: 'include' });
       if (!res.ok) {
@@ -367,7 +800,7 @@ export default function DashboardClient() {
       const data = await res.json();
       setAboutTeam(Array.isArray(data) ? (data as AboutTeamMember[]) : []);
     } catch (e: unknown) {
-      setAtError(catchMessage(e, 'Failed to load about team'));
+      toast.error(catchMessage(e, 'Failed to load about team'));
     } finally {
       setAtLoading(false);
     }
@@ -393,7 +826,6 @@ export default function DashboardClient() {
 
   async function saveAboutTeam() {
     setAtSaving(true);
-    setAtError(null);
     try {
       const payload = {
         emoji: atForm.emoji,
@@ -419,8 +851,9 @@ export default function DashboardClient() {
       }
       setAtModalOpen(false);
       await loadAboutTeam();
+      toast.success('Saved');
     } catch (e: unknown) {
-      setAtError(catchMessage(e, 'Save failed'));
+      toast.error(catchMessage(e, 'Save failed'));
     } finally {
       setAtSaving(false);
     }
@@ -429,7 +862,6 @@ export default function DashboardClient() {
   async function deleteAboutTeam(id: number) {
     const ok = typeof window === 'undefined' ? true : window.confirm('Delete this team member?');
     if (!ok) return;
-    setAtError(null);
     try {
       const res = await fetch(`/api/admin/about-team/${id}`, { method: 'DELETE', credentials: 'include' });
       if (!res.ok) {
@@ -438,15 +870,15 @@ export default function DashboardClient() {
         throw new Error(data?.error || 'Delete failed');
       }
       await loadAboutTeam();
+      toast.success('Deleted');
     } catch (e: unknown) {
-      setAtError(catchMessage(e, 'Delete failed'));
+      toast.error(catchMessage(e, 'Delete failed'));
     }
   }
 
   // ==================== SERVICES STATE [SEARCH: SERVICES, CRUD] ====================
   const [services, setServices] = useState<ServiceItem[]>([]);
   const [svLoading, setSvLoading] = useState(false);
-  const [svError, setSvError] = useState<string | null>(null);
   const [svModalOpen, setSvModalOpen] = useState(false);
   const [svSaving, setSvSaving] = useState(false);
   const [svForm, setSvForm] = useState({
@@ -472,7 +904,6 @@ export default function DashboardClient() {
 
   async function loadServices() {
     setSvLoading(true);
-    setSvError(null);
     try {
       const res = await fetch('/api/admin/services', { credentials: 'include' });
       if (!res.ok) {
@@ -483,7 +914,7 @@ export default function DashboardClient() {
       const data = await res.json();
       setServices(Array.isArray(data) ? (data as ServiceItem[]) : []);
     } catch (e: unknown) {
-      setSvError(catchMessage(e, 'Failed to load services'));
+      toast.error(catchMessage(e, 'Failed to load services'));
     } finally {
       setSvLoading(false);
     }
@@ -509,7 +940,6 @@ export default function DashboardClient() {
 
   async function saveService() {
     setSvSaving(true);
-    setSvError(null);
     try {
       const payload = {
         icon: svForm.icon,
@@ -535,8 +965,9 @@ export default function DashboardClient() {
       }
       setSvModalOpen(false);
       await loadServices();
+      toast.success('Saved');
     } catch (e: unknown) {
-      setSvError(catchMessage(e, 'Save failed'));
+      toast.error(catchMessage(e, 'Save failed'));
     } finally {
       setSvSaving(false);
     }
@@ -545,7 +976,6 @@ export default function DashboardClient() {
   async function deleteService(id: number) {
     const ok = typeof window === 'undefined' ? true : window.confirm('Delete this service?');
     if (!ok) return;
-    setSvError(null);
     try {
       const res = await fetch(`/api/admin/services/${id}`, { method: 'DELETE', credentials: 'include' });
       if (!res.ok) {
@@ -554,14 +984,14 @@ export default function DashboardClient() {
         throw new Error(data?.error || 'Delete failed');
       }
       await loadServices();
+      toast.success('Deleted');
     } catch (e: unknown) {
-      setSvError(catchMessage(e, 'Delete failed'));
+      toast.error(catchMessage(e, 'Delete failed'));
     }
   }
 
   async function loadHomeFeatures() {
     setHfLoading(true);
-    setHfError(null);
     try {
       const res = await fetch('/api/admin/home-features', { credentials: 'include' });
       if (!res.ok) {
@@ -572,7 +1002,7 @@ export default function DashboardClient() {
       const data = await res.json();
       setHomeFeatures(Array.isArray(data) ? (data as HomeFeature[]) : []);
     } catch (e: unknown) {
-      setHfError(catchMessage(e, 'Failed to load home features'));
+      toast.error(catchMessage(e, 'Failed to load home features'));
     } finally {
       setHfLoading(false);
     }
@@ -587,7 +1017,10 @@ export default function DashboardClient() {
 
   useEffect(() => {
     if (activeTab === 'aboutStats') loadAboutStats();
-    if (activeTab === 'aboutTeam') loadAboutTeam();
+    if (activeTab === 'aboutTeam') {
+      void loadAboutTeam();
+      void loadAboutIntro();
+    }
     if (activeTab === 'services') loadServices();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
@@ -611,7 +1044,6 @@ export default function DashboardClient() {
 
   async function saveHomeFeature() {
     setHfSaving(true);
-    setHfError(null);
     try {
       const payload = {
         icon: hfForm.icon,
@@ -640,8 +1072,9 @@ export default function DashboardClient() {
 
       setHfModalOpen(false);
       await loadHomeFeatures();
+      toast.success('Saved');
     } catch (e: unknown) {
-      setHfError(catchMessage(e, 'Save failed'));
+      toast.error(catchMessage(e, 'Save failed'));
     } finally {
       setHfSaving(false);
     }
@@ -651,7 +1084,6 @@ export default function DashboardClient() {
     const ok = typeof window === 'undefined' ? true : window.confirm('Delete this feature?');
     if (!ok) return;
 
-    setHfError(null);
     try {
       const res = await fetch(`/api/admin/home-features/${id}`, { method: 'DELETE', credentials: 'include' });
       if (!res.ok) {
@@ -660,8 +1092,9 @@ export default function DashboardClient() {
         throw new Error(data?.error || 'Delete failed');
       }
       await loadHomeFeatures();
+      toast.success('Deleted');
     } catch (e: unknown) {
-      setHfError(catchMessage(e, 'Delete failed'));
+      toast.error(catchMessage(e, 'Delete failed'));
     }
   }
 
@@ -736,9 +1169,6 @@ export default function DashboardClient() {
               </div>
             </div>
 
-            {hfError && (
-              <div className="bg-red-500/20 border border-red-400/30 text-red-100 p-4 rounded-lg mb-4">{hfError}</div>
-            )}
 
             {hfLoading ? (
               <div className="text-white/80">Loading...</div>
@@ -886,7 +1316,6 @@ export default function DashboardClient() {
               </div>
             </div>
 
-            {asError && <div className="bg-red-500/20 border border-red-400/30 text-red-100 p-4 rounded-lg mb-4">{asError}</div>}
 
             {asLoading ? (
               <div className="text-white/80">Loading...</div>
@@ -1003,10 +1432,16 @@ export default function DashboardClient() {
             <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
               <div>
                 <h2 className="text-2xl font-bold text-white">About Team</h2>
-                <p className="text-white/60 text-sm mt-1">Manage team members shown on the About page.</p>
+                <p className="text-white/60 text-sm mt-1">Edit the About page introduction and team members (public site).</p>
               </div>
               <div className="flex gap-2">
-                <button onClick={() => loadAboutTeam()} className="bg-white/20 text-white px-4 py-2 rounded hover:bg-white/30">
+                <button
+                  onClick={() => {
+                    void loadAboutTeam();
+                    void loadAboutIntro();
+                  }}
+                  className="bg-white/20 text-white px-4 py-2 rounded hover:bg-white/30"
+                >
                   Refresh
                 </button>
                 <button onClick={openCreateAboutTeam} className="cta-button px-6 py-2">
@@ -1015,7 +1450,162 @@ export default function DashboardClient() {
               </div>
             </div>
 
-            {atError && <div className="bg-red-500/20 border border-red-400/30 text-red-100 p-4 rounded-lg mb-4">{atError}</div>}
+            <div className="mb-8 glass p-6 rounded-2xl border border-white/10 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <h3 className="text-lg font-bold text-white">About page — introduction</h3>
+                <button
+                  type="button"
+                  onClick={() => void saveAboutIntro()}
+                  className="cta-button px-5 py-2 text-sm shrink-0 disabled:opacity-50"
+                  disabled={aiIntroSaving || aiIntroLoading || !can('aboutTeam', 'update')}
+                >
+                  {aiIntroSaving ? 'Saving…' : 'Save introduction'}
+                </button>
+              </div>
+              <p className="text-white/60 text-sm">
+                Shown in the top content block on the public About page (above statistics). Use a blank line between paragraphs. The hero image also appears on the Home page (right column of the hero).
+              </p>
+              {aiIntroLoading ? (
+                <div className="text-white/70 text-sm">Loading introduction…</div>
+              ) : (
+                <div className="space-y-4">
+                <div className="rounded-xl border border-white/10 bg-white/5 p-4 space-y-3">
+                  <p className="text-white/80 text-sm font-medium">Home &amp; About — hero image</p>
+                  <p className="text-white/50 text-xs">
+                    Use an external URL, upload a new image, or pick from the media library (saved under <code className="text-white/60">/uploads/library/</code>). Leave empty for the default emoji on Home.
+                  </p>
+                  <div className="flex flex-wrap items-start gap-4">
+                    <div className="relative w-28 h-20 rounded-lg border border-white/20 bg-white/5 overflow-hidden shrink-0">
+                      {aboutPageIntro.heroImageUrl.trim() ? (
+                        <Image
+                          src={aboutPageIntro.heroImageUrl.trim()}
+                          alt=""
+                          fill
+                          className="object-cover"
+                          sizes="112px"
+                          unoptimized={/^https?:\/\//i.test(aboutPageIntro.heroImageUrl.trim())}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-white/35 text-2xl">🎨</div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-[12rem] space-y-2">
+                      <label className="block">
+                        <span className="text-white/70 text-xs">Image URL</span>
+                        <input
+                          value={aboutPageIntro.heroImageUrl}
+                          onChange={(e) => setAboutPageIntro((x) => ({ ...x, heroImageUrl: e.target.value }))}
+                          readOnly={!can('aboutTeam', 'update')}
+                          className="mt-1 w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-white/30 read-only:opacity-70"
+                          placeholder="https://… or /uploads/library/…"
+                        />
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => void openHeroIntroImageLibrary()}
+                          disabled={!can('aboutTeam', 'update') || !can('media', 'read')}
+                          className="bg-white/15 text-white px-3 py-2 rounded-lg text-sm hover:bg-white/25 disabled:opacity-40 disabled:pointer-events-none"
+                        >
+                          Select from uploaded
+                        </button>
+                        <label
+                          className={`inline-flex items-center gap-2 bg-white/15 text-white px-3 py-2 rounded-lg text-sm hover:bg-white/25 cursor-pointer ${
+                            !can('aboutTeam', 'update') || !can('media', 'create') || heroIntroImageUploading
+                              ? 'opacity-40 pointer-events-none'
+                              : ''
+                          }`}
+                        >
+                          <input
+                            ref={heroIntroImageFileRef}
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp,image/gif"
+                            className="hidden"
+                            disabled={
+                              heroIntroImageUploading || !can('aboutTeam', 'update') || !can('media', 'create')
+                            }
+                            onChange={(e) => void uploadHeroIntroImage(e.target.files?.[0] ?? null)}
+                          />
+                          {heroIntroImageUploading ? 'Uploading…' : 'Upload file'}
+                        </label>
+                      </div>
+                      {(!can('media', 'read') || !can('media', 'create')) && can('aboutTeam', 'update') && (
+                        <p className="text-amber-200/80 text-xs">
+                          Upload and library need <span className="text-white/90">Media</span> permissions (read / create) in your role.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <label className="block">
+                      <span className="text-white/70 text-xs">Alt text (English)</span>
+                      <input
+                        value={aboutPageIntro.heroImageAltEn}
+                        onChange={(e) => setAboutPageIntro((x) => ({ ...x, heroImageAltEn: e.target.value }))}
+                        readOnly={!can('aboutTeam', 'update')}
+                        className="mt-1 w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-white/30 read-only:opacity-70"
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="text-white/70 text-xs">Alt text (Tiếng Việt)</span>
+                      <input
+                        value={aboutPageIntro.heroImageAltVi}
+                        onChange={(e) => setAboutPageIntro((x) => ({ ...x, heroImageAltVi: e.target.value }))}
+                        readOnly={!can('aboutTeam', 'update')}
+                        className="mt-1 w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-white/30 read-only:opacity-70"
+                      />
+                    </label>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <p className="text-white/80 text-sm font-medium">English</p>
+                    <label className="block">
+                      <span className="text-white/70 text-xs">Section title</span>
+                      <input
+                        value={aboutPageIntro.titleEn}
+                        onChange={(e) => setAboutPageIntro((x) => ({ ...x, titleEn: e.target.value }))}
+                        readOnly={!can('aboutTeam', 'update')}
+                        className="mt-1 w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-white/30 read-only:opacity-70"
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="text-white/70 text-xs">Body (paragraphs separated by a blank line)</span>
+                      <textarea
+                        value={aboutPageIntro.bodyEn}
+                        onChange={(e) => setAboutPageIntro((x) => ({ ...x, bodyEn: e.target.value }))}
+                        readOnly={!can('aboutTeam', 'update')}
+                        rows={10}
+                        className="mt-1 w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-white/30 font-mono text-sm read-only:opacity-70"
+                      />
+                    </label>
+                  </div>
+                  <div className="space-y-3">
+                    <p className="text-white/80 text-sm font-medium">Tiếng Việt</p>
+                    <label className="block">
+                      <span className="text-white/70 text-xs">Tiêu đề mục</span>
+                      <input
+                        value={aboutPageIntro.titleVi}
+                        onChange={(e) => setAboutPageIntro((x) => ({ ...x, titleVi: e.target.value }))}
+                        readOnly={!can('aboutTeam', 'update')}
+                        className="mt-1 w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-white/30 read-only:opacity-70"
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="text-white/70 text-xs">Nội dung (đoạn cách nhau bằng một dòng trống)</span>
+                      <textarea
+                        value={aboutPageIntro.bodyVi}
+                        onChange={(e) => setAboutPageIntro((x) => ({ ...x, bodyVi: e.target.value }))}
+                        readOnly={!can('aboutTeam', 'update')}
+                        rows={10}
+                        className="mt-1 w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-white/30 font-mono text-sm read-only:opacity-70"
+                      />
+                    </label>
+                  </div>
+                </div>
+                </div>
+              )}
+            </div>
 
             {atLoading ? (
               <div className="text-white/80">Loading...</div>
@@ -1144,6 +1734,67 @@ export default function DashboardClient() {
                 </div>
               </div>
             )}
+
+            {heroIntroImageLibraryOpen &&
+              typeof document !== 'undefined' &&
+              createPortal(
+                <div
+                  className="fixed inset-0 z-[100] flex min-h-dvh w-full items-center justify-center p-4 sm:p-6"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="hero-intro-picker-title"
+                >
+                  <div
+                    className="absolute inset-0 bg-black/70"
+                    aria-hidden
+                    onClick={() => setHeroIntroImageLibraryOpen(false)}
+                  />
+                  <div className="relative z-10 mx-auto w-full max-w-2xl max-h-[min(85vh,100dvh-2rem)] shrink-0 flex flex-col rounded-2xl border border-white/15 bg-[#12121a] shadow-2xl">
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 shrink-0">
+                      <h2 id="hero-intro-picker-title" className="text-lg font-semibold text-white">
+                        Pick hero image
+                      </h2>
+                      <button
+                        type="button"
+                        onClick={() => setHeroIntroImageLibraryOpen(false)}
+                        className="text-white/70 hover:text-white px-2 py-1 rounded"
+                      >
+                        Close
+                      </button>
+                    </div>
+                    <div className="min-h-0 flex-1 overflow-y-auto p-4">
+                      {heroIntroImageLibraryLoading ? (
+                        <p className="text-white/60 text-sm">Loading…</p>
+                      ) : heroIntroImageLibraryList.length === 0 ? (
+                        <p className="text-white/60 text-sm">
+                          No images in the library yet. Upload files in the Media tab first.
+                        </p>
+                      ) : (
+                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                          {heroIntroImageLibraryList.map((m) => (
+                            <button
+                              key={m.id}
+                              type="button"
+                              onClick={() => pickHeroIntroImageFromLibrary(m)}
+                              className="relative aspect-square rounded-lg border border-white/20 overflow-hidden hover:ring-2 hover:ring-white/40"
+                            >
+                              <Image
+                                src={m.url}
+                                alt=""
+                                fill
+                                className="object-cover"
+                                sizes="120px"
+                                unoptimized={/^https?:\/\//i.test(m.url)}
+                              />
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>,
+                document.body,
+              )}
           </div>
         )}
 
@@ -1165,7 +1816,6 @@ export default function DashboardClient() {
               </div>
             </div>
 
-            {svError && <div className="bg-red-500/20 border border-red-400/30 text-red-100 p-4 rounded-lg mb-4">{svError}</div>}
 
             {svLoading ? (
               <div className="text-white/80">Loading...</div>
@@ -1302,51 +1952,69 @@ export default function DashboardClient() {
         {/* ========== USERS TAB CONTENT [SEARCH: USERS, ROLES, MANAGEMENT] ========== */}
         {activeTab === 'users' && (
           <div>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-white">User Management</h2>
-              <button
-                onClick={() => {
-                  (async () => {
-                    const email = window.prompt('New user email:');
-                    if (!email) return;
-                    const password = window.prompt('New user password:');
-                    if (!password) return;
-
-                    if (!roles.length) await loadRoles();
-                    const roleName = window.prompt(`Role name (${roles.map((r) => r.name).join(', ')}):`) || '';
-                    const role = roles.find((r) => r.name.toUpperCase() === roleName.toUpperCase());
-                    const roleId = role?.id;
-                    if (!roleId) {
-                      alert('Invalid role.');
-                      return;
-                    }
-
-                    const res = await fetch('/api/admin/users', {
-                      method: 'POST',
-                      credentials: 'include',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ email, password, roleId }),
-                    });
-                    if (!res.ok) {
-                      const data = await res.json().catch(() => ({}));
-                      alert(data?.error || 'Failed to create user');
-                      return;
-                    }
-                    await loadUsers();
-                  })();
-                }}
-                className="cta-button px-6 py-2"
-              >
-                + Add User
-              </button>
+            <div className="flex flex-col gap-4 mb-6">
+              <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+                <h2 className="text-2xl font-bold text-white shrink-0">User Management</h2>
+                <div className="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-4 w-full lg:w-auto lg:justify-end">
+                  <label className="flex flex-col gap-1.5 min-w-0 sm:min-w-48">
+                    <span className="text-white/70 text-xs font-medium uppercase tracking-wide">Role filter</span>
+                    <select
+                      value={userManagementRoleFilter}
+                      onChange={(e) => setUserManagementRoleFilter(e.target.value)}
+                      disabled={rolesLoading || !roles.length}
+                      className="bg-white/20 border border-white/30 text-white px-3 py-2 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-white/50 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      aria-label="Filter users by role"
+                    >
+                      <option value="" className="bg-gray-800 text-white">
+                        All roles
+                      </option>
+                      {rolesSortedByName.map((r) => (
+                        <option key={r.id} value={String(r.id)} className="bg-gray-800 text-white">
+                          {r.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  {can('users', 'create') && (
+                    <button type="button" onClick={() => void openAddUserModal()} className="cta-button px-6 py-2 shrink-0">
+                      + Add User
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
+
+            {!permsLoading && can('users', 'read') && (
+              <p className="text-white/60 text-sm mb-4">
+                Role and active flag use <span className="text-white/80">Users → Update</span>. Password reset uses{' '}
+                <span className="text-white/80">User password → Update</span>.
+              </p>
+            )}
 
             {usersLoading || rolesLoading ? (
               <div className="text-white/80">Loading...</div>
             ) : (
               <div className="space-y-3">
-                {users.map((user) => {
+                {usersFilteredForManagement.length === 0 ? (
+                  <p className="text-white/60 text-sm py-6">
+                    {userManagementRoleFilter === ''
+                      ? 'No users yet.'
+                      : 'No users with this role. Choose another filter or All roles.'}
+                  </p>
+                ) : null}
+                {usersFilteredForManagement.map((user) => {
                   const roleName = roles.find((r) => r.id === user.roleId)?.name || String(user.roleId);
+                  const isSysadminRow = roleName.toUpperCase() === 'SYSADMIN';
+                  const inactiveRow = !user.isActive;
+                  const opRoleName = sessionMe?.role?.name ?? '';
+                  const opIsSysadminOperator = opRoleName.toUpperCase() === 'SYSADMIN';
+                  const sameRoleLevelAsOperator =
+                    sessionMe != null &&
+                    (user.id === sessionMe.id || getRoleRank(opRoleName) === getRoleRank(roleName));
+                  const cannotChangeActiveStatus = !opIsSysadminOperator && sameRoleLevelAsOperator;
+                  const canEditUser = can('users', 'update');
+                  const canResetPassword = can('userPassword', 'update');
+                  const canDeleteUser = can('users', 'delete');
                   return (
                     <div
                       key={user.id}
@@ -1354,30 +2022,103 @@ export default function DashboardClient() {
                     >
                       <div>
                         <p className="text-white font-semibold text-base">{user.email}</p>
+                        {user.displayName ? (
+                          <p className="text-white/90 text-sm mt-0.5">{user.displayName}</p>
+                        ) : null}
                         <p className="text-white/80 text-sm mt-1">Role: {roleName}</p>
+                        {inactiveRow ? (
+                          <p className="text-amber-200/90 text-xs mt-1.5 font-medium">
+                            Sign-in disabled — account is inactive
+                          </p>
+                        ) : null}
                       </div>
 
                       <div className="flex gap-2 items-center flex-wrap justify-end">
-                        <label className="flex items-center gap-2 text-white/70 text-sm">
-                          <span>Active</span>
-                          <input
-                            type="checkbox"
-                            checked={user.isActive}
-                            onChange={async (e) => {
+                        {/* 1. Active | Inactive */}
+                        <div
+                          className={`inline-flex rounded-lg border border-white/30 overflow-hidden text-xs sm:text-sm font-medium shadow-sm ${
+                            !canEditUser || cannotChangeActiveStatus ? 'opacity-50' : ''
+                          }`}
+                          role="group"
+                          aria-label="Account status"
+                          title={
+                            cannotChangeActiveStatus
+                              ? 'Only SYSADMIN can change active status for you or users at your role level'
+                              : undefined
+                          }
+                        >
+                          <button
+                            type="button"
+                            disabled={!canEditUser || cannotChangeActiveStatus}
+                            onClick={async () => {
+                              if (user.isActive) return;
                               const res = await fetch(`/api/admin/users/${user.id}`, {
                                 method: 'PUT',
                                 credentials: 'include',
                                 headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ isActive: e.target.checked }),
+                                body: JSON.stringify({ isActive: true }),
                               });
-                              if (res.ok) await loadUsers();
+                              if (!res.ok) {
+                                const data = await res.json().catch(() => ({}));
+                                toast.error((data as { error?: string })?.error || 'Update failed');
+                                return;
+                              }
+                              await loadUsers();
                             }}
-                            className="w-4 h-4"
-                          />
-                        </label>
+                            className={`px-3 py-2 min-w-18 transition-colors ${
+                              user.isActive
+                                ? 'bg-emerald-500/35 text-emerald-50 border-r border-white/20'
+                                : 'bg-white/5 text-white/55 hover:bg-white/10 hover:text-white/80'
+                            }`}
+                          >
+                            Active
+                          </button>
+                          <button
+                            type="button"
+                            disabled={!canEditUser || isSysadminRow || cannotChangeActiveStatus}
+                            title={
+                              cannotChangeActiveStatus
+                                ? 'Only SYSADMIN can change active status for you or users at your role level'
+                                : isSysadminRow
+                                  ? 'SYSADMIN account cannot be set inactive from here'
+                                  : undefined
+                            }
+                            onClick={async () => {
+                              if (!user.isActive) return;
+                              const res = await fetch(`/api/admin/users/${user.id}`, {
+                                method: 'PUT',
+                                credentials: 'include',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ isActive: false }),
+                              });
+                              if (!res.ok) {
+                                const data = await res.json().catch(() => ({}));
+                                toast.error((data as { error?: string })?.error || 'Update failed');
+                                return;
+                              }
+                              await loadUsers();
+                            }}
+                            className={`px-3 py-2 min-w-18 transition-colors ${
+                              !user.isActive
+                                ? 'bg-red-500/30 text-red-100'
+                                : 'bg-white/5 text-white/55 hover:bg-white/10 hover:text-white/80'
+                            } disabled:opacity-50 disabled:cursor-not-allowed`}
+                          >
+                            Inactive
+                          </button>
+                        </div>
 
+                        {/* 2. User role */}
                         <select
                           value={user.roleId}
+                          disabled={!canEditUser || isSysadminRow || inactiveRow}
+                          title={
+                            inactiveRow
+                              ? 'Activate the account before changing role'
+                              : isSysadminRow
+                                ? 'SYSADMIN role cannot be changed here'
+                                : undefined
+                          }
                           onChange={async (e) => {
                             const roleId = Number(e.target.value);
                             const res = await fetch(`/api/admin/users/${user.id}`, {
@@ -1386,9 +2127,15 @@ export default function DashboardClient() {
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({ roleId }),
                             });
-                            if (res.ok) await loadUsers();
+                            if (!res.ok) {
+                              const data = await res.json().catch(() => ({}));
+                              toast.error((data as { error?: string })?.error || 'Role update failed');
+                              return;
+                            }
+                            await loadUsers();
                           }}
-                          className="bg-white/20 border border-white/30 text-white px-3 py-2 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50 cursor-pointer"
+                          className="bg-white/20 border border-white/30 text-white px-3 py-2 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                          aria-label="User role"
                         >
                           {roles.map((r) => (
                             <option key={r.id} value={r.id} className="bg-gray-800 text-white">
@@ -1397,16 +2144,63 @@ export default function DashboardClient() {
                           ))}
                         </select>
 
+                        {/* 3. Permissions */}
+                        {can('permissions', 'read') && (
+                          <button
+                            type="button"
+                            disabled={isSysadminRow || inactiveRow}
+                            title={
+                              inactiveRow
+                                ? 'Activate the account before opening permissions'
+                                : isSysadminRow
+                                  ? 'SYSADMIN permissions are fixed'
+                                  : undefined
+                            }
+                            onClick={() => {
+                              if (isSysadminRow || inactiveRow) return;
+                              window.location.href = `/admin/dashboard?tab=permissions&userId=${user.id}`;
+                            }}
+                            className={`bg-white/25 border border-white/30 text-white px-4 py-2 rounded-lg transition-all font-medium shadow-sm ${
+                              isSysadminRow || inactiveRow
+                                ? 'opacity-50 cursor-not-allowed'
+                                : 'hover:bg-white/35 hover:border-white/40'
+                            }`}
+                          >
+                            Permissions
+                          </button>
+                        )}
+
+                        {/* 4. Reset password */}
                         <button
-                          onClick={() => {
-                            window.location.href = `/admin/dashboard?tab=permissions&userId=${user.id}`;
+                          type="button"
+                          disabled={!canResetPassword || inactiveRow}
+                          title={inactiveRow ? 'Activate the account before resetting password' : undefined}
+                          onClick={async () => {
+                            const pw = window.prompt('New password for this user:');
+                            if (!pw) return;
+                            const res = await fetch(`/api/admin/users/${user.id}`, {
+                              method: 'PUT',
+                              credentials: 'include',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ password: pw }),
+                            });
+                            if (!res.ok) {
+                              const data = await res.json().catch(() => ({}));
+                              toast.error((data as { error?: string })?.error || 'Reset failed');
+                              return;
+                            }
+                            toast.success('Password updated.');
                           }}
-                          className="bg-white/25 border border-white/30 text-white px-4 py-2 rounded-lg hover:bg-white/35 hover:border-white/40 transition-all font-medium shadow-sm"
+                          className={`bg-amber-500/25 border border-amber-400/40 text-amber-50 px-4 py-2 rounded-lg font-medium hover:bg-amber-500/35 transition-all ${
+                            !canResetPassword || inactiveRow ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
                         >
-                          Permissions
+                          Reset password
                         </button>
 
+                        {/* 5. Delete */}
                         <button
+                          type="button"
                           onClick={async () => {
                             const res = await fetch(`/api/admin/users/${user.id}`, {
                               method: 'DELETE',
@@ -1414,9 +2208,10 @@ export default function DashboardClient() {
                             });
                             if (res.ok) await loadUsers();
                           }}
-                          disabled={user.isProtected}
+                          disabled={user.isProtected || !canDeleteUser || isSysadminRow}
+                          title={isSysadminRow ? 'SYSADMIN cannot be deleted' : undefined}
                           className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                            user.isProtected
+                            user.isProtected || !canDeleteUser || isSysadminRow
                               ? 'bg-gray-700/40 border border-gray-600/30 text-gray-300 cursor-not-allowed'
                               : 'bg-red-500/30 border border-red-400/40 text-red-100 hover:bg-red-500/40 hover:border-red-400/50 shadow-sm'
                           }`}
@@ -1429,41 +2224,274 @@ export default function DashboardClient() {
                 })}
               </div>
             )}
+
+            {addUserModalOpen && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+                <div className="absolute inset-0 bg-black/60" onClick={closeAddUserModal} aria-hidden />
+                <div
+                  className="relative w-full max-w-md glass p-6 rounded-2xl border border-white/10"
+                  role="dialog"
+                  aria-labelledby="add-user-title"
+                >
+                  <div className="flex items-start justify-between gap-4 mb-4">
+                    <div>
+                      <h3 id="add-user-title" className="text-xl font-bold text-white">
+                        Add new user
+                      </h3>
+                      <p className="text-white/60 text-sm mt-1">
+                        Creates an account that can sign in to the admin area. Feature permissions default to the template
+                        for the role you select below.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={closeAddUserModal}
+                      disabled={addUserSaving}
+                      className="text-white/70 hover:text-white bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded disabled:opacity-50"
+                      aria-label="Close"
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  <form
+                    className="space-y-4"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      void submitAddUser();
+                    }}
+                  >
+                    <label className="block">
+                      <span className="text-white/80 text-sm">Email</span>
+                      <input
+                        type="email"
+                        autoComplete="off"
+                        value={addUserForm.email}
+                        onChange={(e) => setAddUserForm((f) => ({ ...f, email: e.target.value }))}
+                        className="mt-1 w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-white/30"
+                        placeholder="user@example.com"
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="text-white/80 text-sm">Password</span>
+                      <input
+                        type="password"
+                        autoComplete="new-password"
+                        value={addUserForm.password}
+                        onChange={(e) => setAddUserForm((f) => ({ ...f, password: e.target.value }))}
+                        className="mt-1 w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-white/30"
+                        placeholder="Initial password"
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="text-white/80 text-sm">Display name (optional)</span>
+                      <input
+                        type="text"
+                        value={addUserForm.displayName}
+                        onChange={(e) => setAddUserForm((f) => ({ ...f, displayName: e.target.value }))}
+                        className="mt-1 w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-white/30"
+                        placeholder="Shown in the admin UI"
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="text-white/80 text-sm">Role</span>
+                      <p className="text-white/45 text-xs mt-0.5 mb-1">
+                        Default feature permissions for this role are applied when the user is created.
+                      </p>
+                      <select
+                        value={addUserForm.roleId === '' ? '' : String(addUserForm.roleId)}
+                        onChange={(e) =>
+                          setAddUserForm((f) => ({
+                            ...f,
+                            roleId: e.target.value === '' ? '' : Number(e.target.value),
+                          }))
+                        }
+                        className="mt-1 w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-white/30 cursor-pointer"
+                        aria-label="Role for new user"
+                      >
+                        {roles.length === 0 ? (
+                          <option value="" className="bg-gray-800 text-white">
+                            No roles loaded
+                          </option>
+                        ) : (
+                          roles.map((r) => (
+                            <option key={r.id} value={r.id} className="bg-gray-800 text-white">
+                              {r.name}
+                            </option>
+                          ))
+                        )}
+                      </select>
+                    </label>
+
+                    <div className="block">
+                      <span className="text-white/80 text-sm">Account status</span>
+                      <div
+                        className="mt-2 inline-flex w-full max-w-sm rounded-lg border border-white/30 overflow-hidden text-sm font-medium shadow-sm"
+                        role="group"
+                        aria-label="Account status for new user"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => setAddUserForm((f) => ({ ...f, isActive: true }))}
+                          className={`flex-1 px-3 py-2 transition-colors ${
+                            addUserForm.isActive
+                              ? 'bg-emerald-500/35 text-emerald-50 border-r border-white/20'
+                              : 'bg-white/5 text-white/55 hover:bg-white/10 hover:text-white/80'
+                          }`}
+                        >
+                          Active
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setAddUserForm((f) => ({ ...f, isActive: false }))}
+                          className={`flex-1 px-3 py-2 transition-colors ${
+                            !addUserForm.isActive
+                              ? 'bg-red-500/30 text-red-100'
+                              : 'bg-white/5 text-white/55 hover:bg-white/10 hover:text-white/80'
+                          }`}
+                        >
+                          Inactive
+                        </button>
+                      </div>
+                      <p className="text-white/50 text-xs mt-1.5">
+                        Inactive accounts cannot sign in until someone sets them to Active.
+                      </p>
+                    </div>
+
+
+                    <div className="flex justify-end gap-2 pt-2">
+                      <button
+                        type="button"
+                        onClick={closeAddUserModal}
+                        className="bg-white/10 text-white px-4 py-2 rounded hover:bg-white/20"
+                        disabled={addUserSaving}
+                      >
+                        Cancel
+                      </button>
+                      <button type="submit" className="cta-button px-6 py-2" disabled={addUserSaving || roles.length === 0}>
+                        {addUserSaving ? 'Creating…' : 'Create user'}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
         {/* ========== PERMISSIONS TAB CONTENT [SEARCH: PERMISSION FEATURES] ========== */}
         {activeTab === 'permissions' && (
           <div>
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center mb-6">
               <h2 className="text-2xl font-bold text-white">Permission Features</h2>
-              <div className="text-white/60 text-sm">Click a user row to edit their CRUD permissions.</div>
+              <div className="text-white/60 text-sm">
+                {can('permissions', 'update')
+                  ? 'Click a user row to edit CRUD per feature. Users = list/create/role/active; User password = reset password.'
+                  : 'View only — you need permissions.update to change checkboxes.'}
+              </div>
             </div>
 
             <div className="flex flex-col lg:flex-row gap-6">
-              <div className="w-full lg:w-80">
+              <div className="w-full lg:w-80 flex flex-col gap-4">
+                <div className="space-y-3">
+                  <label className="flex flex-col gap-1.5">
+                    <span className="text-white/70 text-xs font-medium uppercase tracking-wide">Filter by role</span>
+                    <select
+                      value={permissionsTabRoleFilter}
+                      onChange={(e) => setPermissionsTabRoleFilter(e.target.value)}
+                      disabled={usersLoading || rolesLoading || !roles.length}
+                      className="w-full bg-white/20 border border-white/30 text-white px-3 py-2 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-white/50 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      aria-label="Filter permission users by role"
+                    >
+                      <option value="" className="bg-gray-800 text-white">
+                        All roles
+                      </option>
+                      {rolesSortedByName.map((r) => (
+                        <option key={r.id} value={String(r.id)} className="bg-gray-800 text-white">
+                          {r.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="flex flex-col gap-1.5">
+                    <span className="text-white/70 text-xs font-medium uppercase tracking-wide">Filter by user</span>
+                    <select
+                      value={permissionsTabUserFilterValid ? permissionsTabUserFilter : ''}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        setPermissionsTabUserFilter(v);
+                        if (v === '') return;
+                        const id = Number(v);
+                        if (!Number.isFinite(id)) return;
+                        setSelectedPermissionUserId(id);
+                      }}
+                      disabled={usersLoading || rolesLoading || usersMatchingPermissionsRoleFilter.length === 0}
+                      className="w-full bg-white/20 border border-white/30 text-white px-3 py-2 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-white/50 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      aria-label="Filter permission users by name"
+                    >
+                      <option value="" className="bg-gray-800 text-white">
+                        All users
+                      </option>
+                      {usersMatchingPermissionsRoleFilter.map((u) => {
+                        const d = (u.displayName ?? '').trim();
+                        const line =
+                          d && d.toLowerCase() !== u.email.toLowerCase()
+                            ? `${d} (${u.email})`
+                            : u.email;
+                        return (
+                          <option key={u.id} value={String(u.id)} className="bg-gray-800 text-white">
+                            {!u.isActive ? `${line} — Inactive` : line}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </label>
+                </div>
+
                 <div className="space-y-2">
-                  {users.map((user) => {
+                  {usersForPermissionsChooserList.length === 0 ? (
+                    <p className="text-white/55 text-sm py-2">No users match these filters.</p>
+                  ) : null}
+                  {usersForPermissionsChooserList.map((user) => {
                     const isSelected = user.id === selectedPermissionUserId;
                     const roleName = roles.find((r) => r.id === user.roleId)?.name || String(user.roleId);
+                    const permUserInactive = !user.isActive;
                     return (
                       <button
                         key={user.id}
-                        onClick={() => setSelectedPermissionUserId(user.id)}
+                        type="button"
+                        disabled={permUserInactive}
+                        title={permUserInactive ? 'Activate the user before editing permissions' : undefined}
+                        onClick={() => {
+                          if (permUserInactive) return;
+                          setSelectedPermissionUserId(user.id);
+                        }}
                         className={`w-full text-left p-4 rounded-lg border transition-all shadow-sm ${
-                          isSelected ? 'bg-white/20 border-white/30 text-white' : 'bg-white/10 border-white/15 text-white/80 hover:bg-white/15'
+                          permUserInactive
+                            ? 'opacity-50 cursor-not-allowed bg-white/5 border-white/10 text-white/50'
+                            : isSelected
+                              ? 'bg-white/20 border-white/30 text-white'
+                              : 'bg-white/10 border-white/15 text-white/80 hover:bg-white/15'
                         }`}
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div>
-                            <p className="font-semibold">{user.email}</p>
+                            <p className="font-semibold">{permissionChooserUserLabel(user)}</p>
+                            <p className="text-sm text-white/70 mt-0.5">{user.email}</p>
                             <p className="text-sm text-white/70 mt-1">Role: {roleName}</p>
                           </div>
-                          {user.isProtected && (
-                            <span className="text-xs px-2 py-1 rounded-full bg-gray-700/40 border border-gray-600/30 text-gray-200">
-                              Protected
-                            </span>
-                          )}
+                          <div className="flex flex-col items-end gap-1 shrink-0">
+                            {permUserInactive && (
+                              <span className="text-xs px-2 py-1 rounded-full bg-amber-900/40 border border-amber-500/30 text-amber-100">
+                                Inactive
+                              </span>
+                            )}
+                            {user.isProtected && (
+                              <span className="text-xs px-2 py-1 rounded-full bg-gray-700/40 border border-gray-600/30 text-gray-200">
+                                Protected
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </button>
                     );
@@ -1478,12 +2506,6 @@ export default function DashboardClient() {
                   </div>
                 ) : (
                   <div className="bg-white/10 border border-white/15 rounded-xl p-4">
-                    {permissionsError && (
-                      <div className="mb-4 bg-red-500/20 border border-red-400/30 text-red-100 p-3 rounded-lg text-sm">
-                        {permissionsError}
-                      </div>
-                    )}
-
                     <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-4">
                       <div>
                         <div className="text-white font-semibold">
@@ -1494,17 +2516,47 @@ export default function DashboardClient() {
                         </div>
                       </div>
 
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2">
                         <button
-                          onClick={() => {
-                            if (selectedPermissionUserId != null) loadPermissionMatrix(selectedPermissionUserId);
-                          }}
-                          className="bg-white/20 text-white px-4 py-2 rounded hover:bg-white/30"
-                          disabled={permissionsLoading || permissionsSaving}
+                          type="button"
+                          onClick={toggleSelectAllPermissions}
+                          className="bg-white/20 text-white px-4 py-2 rounded-lg font-medium border border-white/25 hover:bg-white/30"
+                          disabled={
+                            permissionsLoading ||
+                            permissionsSaving ||
+                            permissionsResetting ||
+                            selectedPermissionUser?.isProtected === true ||
+                            !can('permissions', 'update')
+                          }
+                          title={
+                            allPermissionCheckboxesSelected
+                              ? 'Clear every permission checkbox (save to apply)'
+                              : 'Select every permission checkbox (save to apply)'
+                          }
                         >
-                          Refresh
+                          {allPermissionCheckboxesSelected ? 'Deselect all' : 'Select all'}
                         </button>
                         <button
+                          type="button"
+                          onClick={() => {
+                            if (selectedPermissionUserId != null) {
+                              void resetPermissionMatrixToDefaults(selectedPermissionUserId);
+                            }
+                          }}
+                          className="bg-amber-500/25 border border-amber-400/35 text-amber-50 px-4 py-2 rounded-lg font-medium hover:bg-amber-500/35"
+                          disabled={
+                            permissionsLoading ||
+                            permissionsSaving ||
+                            permissionsResetting ||
+                            selectedPermissionUser?.isProtected === true ||
+                            !can('permissions', 'update')
+                          }
+                          title="Replace custom User permissions with the template for this user’s current role"
+                        >
+                          {permissionsResetting ? 'Resetting...' : 'Default permissions'}
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => {
                             if (selectedPermissionUserId != null) savePermissionMatrix(selectedPermissionUserId);
                           }}
@@ -1512,7 +2564,9 @@ export default function DashboardClient() {
                           disabled={
                             permissionsLoading ||
                             permissionsSaving ||
-                            selectedPermissionUser?.isProtected === true
+                            permissionsResetting ||
+                            selectedPermissionUser?.isProtected === true ||
+                            !can('permissions', 'update')
                           }
                         >
                           {permissionsSaving ? 'Saving...' : 'Save'}
@@ -1545,7 +2599,8 @@ export default function DashboardClient() {
                                 </td>
                                 {(['create', 'read', 'update', 'delete'] as const).map((action) => {
                                   const checked = Boolean(permissionMatrix?.[f.id]?.[action]);
-                                  const disabled = selectedPermissionUser?.isProtected === true;
+                                  const disabled =
+                                    selectedPermissionUser?.isProtected === true || !can('permissions', 'update');
                                   return (
                                     <td key={action} className="py-3 px-3 border-b border-white/10">
                                       <label
@@ -1556,7 +2611,7 @@ export default function DashboardClient() {
                                         <input
                                           type="checkbox"
                                           checked={checked}
-                                          disabled={disabled || permissionsSaving}
+                                          disabled={disabled || permissionsSaving || permissionsResetting}
                                           onChange={(e) => {
                                             const value = e.target.checked;
                                             setPermissionMatrix((prev) => ({
@@ -1633,18 +2688,77 @@ export default function DashboardClient() {
 
         {activeTab === 'media' && (
           <div>
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
               <h2 className="text-2xl font-bold text-white">Media Library</h2>
-              <button className="cta-button px-6 py-2">+ Upload Media</button>
+              <div className="flex flex-wrap items-center gap-2">
+                <label className="text-white/70 text-sm whitespace-nowrap">
+                  Subfolder
+                  <input
+                    type="text"
+                    value={mediaFolder}
+                    onChange={(e) => setMediaFolder(e.target.value)}
+                    placeholder="library"
+                    className="ml-2 bg-white/10 border border-white/20 rounded px-2 py-1.5 text-white text-sm w-36"
+                    disabled={!can('media', 'create')}
+                  />
+                </label>
+                <input
+                  ref={mediaFileInputRef}
+                  type="file"
+                  className="hidden"
+                  accept="image/jpeg,image/png,image/webp,image/gif,application/pdf,video/mp4,video/webm"
+                  onChange={(e) => void uploadMediaFile(e.target.files?.[0] ?? null)}
+                />
+                <button
+                  type="button"
+                  className="cta-button px-6 py-2 disabled:opacity-50"
+                  disabled={!can('media', 'create') || mediaUploading}
+                  onClick={() => mediaFileInputRef.current?.click()}
+                >
+                  {mediaUploading ? 'Uploading…' : '+ Upload Media'}
+                </button>
+              </div>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="bg-white/10 p-4 rounded-lg text-center">
-                  <div className="text-4xl mb-2">🖼️</div>
-                  <p className="text-white/70 text-sm">image_{i}.jpg</p>
-                </div>
-              ))}
-            </div>
+            {mediaLoading ? (
+              <p className="text-white/60">Loading…</p>
+            ) : mediaList.length === 0 ? (
+              <p className="text-white/50">No files yet. Uploads are stored under <code className="text-white/70">public/uploads/&lt;subfolder&gt;/</code>.</p>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {mediaList.map((m) => (
+                  <div key={m.id} className="bg-white/10 p-3 rounded-lg text-center overflow-hidden">
+                    <div
+                      className={`aspect-square relative mb-2 bg-black/20 rounded overflow-hidden ${
+                        m.mimeType.startsWith('image/') ? '' : 'flex items-center justify-center'
+                      }`}
+                    >
+                      {m.mimeType.startsWith('image/') ? (
+                        <Image
+                          src={m.url}
+                          alt=""
+                          fill
+                          className="object-contain"
+                          sizes="(max-width: 768px) 50vw, 25vw"
+                          unoptimized
+                        />
+                      ) : (
+                        <span className="text-4xl">
+                          {m.mimeType.includes('pdf')
+                            ? '📄'
+                            : m.mimeType.startsWith('video/')
+                              ? '🎬'
+                              : '📎'}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-white/80 text-xs truncate" title={m.filename}>
+                      {m.filename}
+                    </p>
+                    <p className="text-white/40 text-[10px] truncate">{m.folder}</p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

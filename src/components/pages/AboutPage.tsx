@@ -1,7 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { safeArray } from '@/lib/safe-array';
+import { useLocale } from '@/components/providers/LocaleProvider';
+import { defaultAboutIntroPayload, toPublicIntro } from '@/lib/aboutIntroSetting';
 
 type StatRow = { number: string; label: string };
 type TeamRow = { name: string; role: string; emoji: string; bio: string };
@@ -25,7 +28,29 @@ function normalizeTeam(raw: unknown): TeamRow[] {
   });
 }
 
+type AboutIntro = {
+  title: string;
+  paragraphs: string[];
+  heroImageUrl: string | null;
+  heroImageAlt: string;
+};
+
 export default function AboutPage() {
+  const { locale } = useLocale();
+  const [intro, setIntro] = useState<AboutIntro | null>(null);
+  const introFallback = toPublicIntro(defaultAboutIntroPayload(), locale);
+
+  function parseIntroJson(j: Record<string, unknown>): AboutIntro {
+    const title = typeof j.title === 'string' ? j.title : '';
+    const paragraphs = Array.isArray(j.paragraphs)
+      ? j.paragraphs.map((x) => String(x ?? '').trim()).filter(Boolean)
+      : [];
+    const heroImageUrl =
+      j.heroImageUrl != null && String(j.heroImageUrl).trim() ? String(j.heroImageUrl).trim() : null;
+    const heroImageAlt = typeof j.heroImageAlt === 'string' ? j.heroImageAlt : '';
+    return { title, paragraphs, heroImageUrl, heroImageAlt };
+  }
+
   const fallbackStats = [
     { number: '150+', label: 'Projects Completed' },
     { number: '50+', label: 'Happy Clients' },
@@ -46,10 +71,15 @@ export default function AboutPage() {
   const [team, setTeam] = useState<TeamRow[]>(fallbackTeam);
 
   useEffect(() => {
+    setIntro(null);
     let cancelled = false;
     (async () => {
       try {
-        const [statsRes, teamRes] = await Promise.all([fetch('/api/about/stats'), fetch('/api/about/team')]);
+        const [statsRes, teamRes, introRes] = await Promise.all([
+          fetch('/api/about/stats'),
+          fetch('/api/about/team'),
+          fetch(`/api/about/intro?locale=${encodeURIComponent(locale)}`),
+        ]);
         if (!cancelled) {
           if (statsRes.ok) {
             const s = await statsRes.json();
@@ -61,6 +91,10 @@ export default function AboutPage() {
             const nt = normalizeTeam(t);
             if (nt.length > 0) setTeam(nt);
           }
+          if (introRes.ok) {
+            const j = (await introRes.json()) as Record<string, unknown>;
+            setIntro(parseIntroJson(j));
+          }
         }
       } catch {
         // keep fallback
@@ -69,24 +103,38 @@ export default function AboutPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [locale]);
 
   return (
     <div className="container mx-auto px-4">
       {/* ==================== ABOUT CONTENT SECTION ==================== */}
       <section className="mb-12">
         <div className="glass p-8 md:p-12 rounded-3xl mb-8">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">About Our Vision</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">{intro?.title || introFallback.title}</h2>
+          {(() => {
+            const heroUrl = intro?.heroImageUrl ?? introFallback.heroImageUrl;
+            const heroAlt = intro?.heroImageAlt ?? introFallback.heroImageAlt;
+            if (!heroUrl) return null;
+            const remote = /^https?:/i.test(heroUrl);
+            return (
+              <div className="relative w-full max-w-3xl mx-auto aspect-video max-h-80 mb-6 rounded-2xl overflow-hidden border border-white/15 bg-white/5">
+                <Image
+                  src={heroUrl}
+                  alt={heroAlt || (locale === 'vi-VN' ? 'Hình minh họa' : 'Illustration')}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 42rem"
+                  unoptimized={remote}
+                />
+              </div>
+            );
+          })()}
           <div className="space-y-4 text-white/80">
-            <p className="text-lg">
-              We believe in creating digital experiences that feel natural and intuitive. Our glass morphism design philosophy combines transparency, depth, and subtle animations to create interfaces that users love to interact with.
-            </p>
-            <p className="text-lg">
-              Founded in 2024, our team of designers and developers are passionate about pushing the boundaries of web design while maintaining accessibility and performance standards.
-            </p>
-            <p className="text-lg">
-              Every project we undertake is crafted with attention to detail, ensuring that form follows function while never compromising on aesthetic beauty.
-            </p>
+            {(intro?.paragraphs?.length ? intro.paragraphs : introFallback.paragraphs).map((text, i) => (
+              <p key={i} className="text-lg whitespace-pre-line">
+                {text}
+              </p>
+            ))}
           </div>
         </div>
 
