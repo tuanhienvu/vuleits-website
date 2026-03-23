@@ -162,7 +162,7 @@ const messagesByLocale: Record<Locale, Messages> = {
     'admin.productGroup': 'Nhóm sản phẩm',
     'admin.contents': 'Nội dung',
     'admin.settings': 'Cài đặt',
-    'admin.permissionGroup': 'Quyền hạn',
+    'admin.permissionGroup': 'Phân Quyền',
     'admin.homeFeatures': 'Tính năng trang chủ',
     'admin.aboutStats': 'Chỉ số giới thiệu',
     'admin.aboutTeam': 'Đội ngũ',

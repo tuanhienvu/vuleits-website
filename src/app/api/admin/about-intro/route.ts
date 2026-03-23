@@ -7,6 +7,7 @@ import {
   serializeAboutIntroPayload,
   type AboutIntroPayload,
 } from '@/lib/aboutIntroSetting';
+import { sanitizeAboutIntroBodyHtml } from '@/lib/sanitizeAboutIntroHtml';
 
 export async function GET(req: Request) {
   const auth = await authorize(req, 'aboutTeam.read');
@@ -28,11 +29,13 @@ export async function PUT(req: Request) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
   const o = body as Record<string, unknown>;
+  const bodyEnRaw = typeof o.bodyEn === 'string' ? o.bodyEn.slice(0, 20000).trim() : '';
+  const bodyViRaw = typeof o.bodyVi === 'string' ? o.bodyVi.slice(0, 20000).trim() : '';
   const payload: AboutIntroPayload = {
     titleEn: typeof o.titleEn === 'string' ? o.titleEn.slice(0, 300) : '',
     titleVi: typeof o.titleVi === 'string' ? o.titleVi.slice(0, 300) : '',
-    bodyEn: typeof o.bodyEn === 'string' ? o.bodyEn.slice(0, 20000) : '',
-    bodyVi: typeof o.bodyVi === 'string' ? o.bodyVi.slice(0, 20000) : '',
+    bodyEn: bodyEnRaw ? sanitizeAboutIntroBodyHtml(bodyEnRaw) : '',
+    bodyVi: bodyViRaw ? sanitizeAboutIntroBodyHtml(bodyViRaw) : '',
     heroImageUrl: typeof o.heroImageUrl === 'string' ? o.heroImageUrl.slice(0, 2048) : '',
     heroImageAltEn: typeof o.heroImageAltEn === 'string' ? o.heroImageAltEn.slice(0, 200) : '',
     heroImageAltVi: typeof o.heroImageAltVi === 'string' ? o.heroImageAltVi.slice(0, 200) : '',

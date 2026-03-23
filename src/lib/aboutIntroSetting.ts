@@ -27,6 +27,8 @@ export type AboutIntroPayload = {
 
 export type AboutIntroPublic = {
   title: string;
+  /** Sanitized HTML when the intro body is rich text; empty when using `paragraphs` only. */
+  bodyHtml: string;
   paragraphs: string[];
   heroImageUrl: string | null;
   heroImageAlt: string;
@@ -61,6 +63,13 @@ function splitParagraphs(text: string): string[] {
     .filter(Boolean);
 }
 
+/** True when the stored body is rich text (e.g. from TinyMCE) vs plain paragraphs. */
+function introBodyLooksLikeHtml(raw: string): boolean {
+  const t = raw.trim();
+  if (!t) return false;
+  return /<[a-z][\s\S]*>/i.test(t);
+}
+
 export function parseAboutIntroJson(raw: string | null | undefined): AboutIntroPayload {
   const base = defaultAboutIntroPayload();
   if (!raw?.trim()) return base;
@@ -84,14 +93,25 @@ export function toPublicIntro(payload: AboutIntroPayload, locale: string): About
   const vi = locale === 'vi-VN';
   const title = (vi ? payload.titleVi : payload.titleEn).trim() || (vi ? DEFAULT.titleVi : DEFAULT.titleEn);
   const body = vi ? payload.bodyVi : payload.bodyEn;
-  let paragraphs = splitParagraphs(body);
-  if (paragraphs.length === 0) {
-    paragraphs = splitParagraphs(vi ? DEFAULT.bodyVi : DEFAULT.bodyEn);
+  let bodyHtml = '';
+  let paragraphs: string[] = [];
+
+  if (introBodyLooksLikeHtml(body)) {
+    bodyHtml = body.trim();
+    if (!bodyHtml) {
+      paragraphs = splitParagraphs(body.replace(/<[^>]+>/g, '\n'));
+    }
+  } else {
+    paragraphs = splitParagraphs(body);
+    if (paragraphs.length === 0) {
+      paragraphs = splitParagraphs(vi ? DEFAULT.bodyVi : DEFAULT.bodyEn);
+    }
   }
+
   const heroImageUrl = sanitizeHeroImageSrc(payload.heroImageUrl);
   const altRaw = (vi ? payload.heroImageAltVi : payload.heroImageAltEn).trim().slice(0, 200);
   const heroImageAlt = heroImageUrl ? altRaw || (vi ? 'Hình minh họa' : 'Illustration') : '';
-  return { title, paragraphs, heroImageUrl, heroImageAlt };
+  return { title, bodyHtml, paragraphs, heroImageUrl, heroImageAlt };
 }
 
 export function serializeAboutIntroPayload(p: AboutIntroPayload): string {

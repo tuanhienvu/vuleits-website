@@ -9,6 +9,7 @@ import { UI_FEATURES, type AdminUiFeatureId } from '@/lib/adminPermissionModel';
 import { getRoleRank } from '@/lib/adminRoleRank';
 import { useToast } from '@/components/providers/ToastProvider';
 import type { AboutIntroPayload } from '@/lib/aboutIntroSetting';
+import AdminTinyMceEditor from '@/components/admin/AdminTinyMceEditor';
 
 function isAdminFeatureTab(tab: string): tab is AdminUiFeatureId {
   return (UI_FEATURES as readonly string[]).includes(tab);
@@ -1569,16 +1570,17 @@ export default function DashboardClient() {
                         className="mt-1 w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-white/30 read-only:opacity-70"
                       />
                     </label>
-                    <label className="block">
-                      <span className="text-white/70 text-xs">Body (paragraphs separated by a blank line)</span>
-                      <textarea
-                        value={aboutPageIntro.bodyEn}
-                        onChange={(e) => setAboutPageIntro((x) => ({ ...x, bodyEn: e.target.value }))}
-                        readOnly={!can('aboutTeam', 'update')}
-                        rows={10}
-                        className="mt-1 w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-white/30 font-mono text-sm read-only:opacity-70"
-                      />
-                    </label>
+                    <div className="block">
+                      <span className="text-white/70 text-xs">Body (rich text)</span>
+                      <div className="mt-1 rounded-lg border border-white/20 overflow-hidden bg-[#1e1e1e]">
+                        <AdminTinyMceEditor
+                          id="about-intro-body-en"
+                          value={aboutPageIntro.bodyEn}
+                          onChange={(html) => setAboutPageIntro((x) => ({ ...x, bodyEn: html }))}
+                          disabled={!can('aboutTeam', 'update')}
+                        />
+                      </div>
+                    </div>
                   </div>
                   <div className="space-y-3">
                     <p className="text-white/80 text-sm font-medium">Tiếng Việt</p>
@@ -1591,16 +1593,17 @@ export default function DashboardClient() {
                         className="mt-1 w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-white/30 read-only:opacity-70"
                       />
                     </label>
-                    <label className="block">
-                      <span className="text-white/70 text-xs">Nội dung (đoạn cách nhau bằng một dòng trống)</span>
-                      <textarea
-                        value={aboutPageIntro.bodyVi}
-                        onChange={(e) => setAboutPageIntro((x) => ({ ...x, bodyVi: e.target.value }))}
-                        readOnly={!can('aboutTeam', 'update')}
-                        rows={10}
-                        className="mt-1 w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-white/30 font-mono text-sm read-only:opacity-70"
-                      />
-                    </label>
+                    <div className="block">
+                      <span className="text-white/70 text-xs">Nội dung (định dạng rich text)</span>
+                      <div className="mt-1 rounded-lg border border-white/20 overflow-hidden bg-[#1e1e1e]">
+                        <AdminTinyMceEditor
+                          id="about-intro-body-vi"
+                          value={aboutPageIntro.bodyVi}
+                          onChange={(html) => setAboutPageIntro((x) => ({ ...x, bodyVi: html }))}
+                          disabled={!can('aboutTeam', 'update')}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
                 </div>

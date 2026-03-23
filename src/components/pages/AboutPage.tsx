@@ -30,6 +30,7 @@ function normalizeTeam(raw: unknown): TeamRow[] {
 
 type AboutIntro = {
   title: string;
+  bodyHtml: string;
   paragraphs: string[];
   heroImageUrl: string | null;
   heroImageAlt: string;
@@ -42,13 +43,14 @@ export default function AboutPage() {
 
   function parseIntroJson(j: Record<string, unknown>): AboutIntro {
     const title = typeof j.title === 'string' ? j.title : '';
+    const bodyHtml = typeof j.bodyHtml === 'string' ? j.bodyHtml : '';
     const paragraphs = Array.isArray(j.paragraphs)
       ? j.paragraphs.map((x) => String(x ?? '').trim()).filter(Boolean)
       : [];
     const heroImageUrl =
       j.heroImageUrl != null && String(j.heroImageUrl).trim() ? String(j.heroImageUrl).trim() : null;
     const heroImageAlt = typeof j.heroImageAlt === 'string' ? j.heroImageAlt : '';
-    return { title, paragraphs, heroImageUrl, heroImageAlt };
+    return { title, bodyHtml, paragraphs, heroImageUrl, heroImageAlt };
   }
 
   const fallbackStats = [
@@ -129,12 +131,28 @@ export default function AboutPage() {
               </div>
             );
           })()}
-          <div className="space-y-4 text-white/80">
-            {(intro?.paragraphs?.length ? intro.paragraphs : introFallback.paragraphs).map((text, i) => (
-              <p key={i} className="text-lg whitespace-pre-line">
-                {text}
-              </p>
-            ))}
+          <div className="text-white/80 text-lg">
+            {(() => {
+              const html = (intro?.bodyHtml ?? introFallback.bodyHtml)?.trim() ?? '';
+              if (html) {
+                return (
+                  <div
+                    className="about-intro-rich max-w-none [&_a]:text-purple-200 [&_a]:underline [&_blockquote]:border-l-2 [&_blockquote]:border-white/25 [&_blockquote]:pl-4 [&_blockquote]:italic [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:text-white [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:text-white [&_h4]:text-lg [&_h4]:font-semibold [&_li]:my-1 [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:mb-4 [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-6"
+                    dangerouslySetInnerHTML={{ __html: html }}
+                  />
+                );
+              }
+              const paras = intro?.paragraphs?.length ? intro.paragraphs : introFallback.paragraphs;
+              return (
+                <div className="space-y-4">
+                  {paras.map((text, i) => (
+                    <p key={i} className="whitespace-pre-line">
+                      {text}
+                    </p>
+                  ))}
+                </div>
+              );
+            })()}
           </div>
         </div>
 

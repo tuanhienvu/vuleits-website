@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { ABOUT_INTRO_SETTING_KEY, parseAboutIntroJson, toPublicIntro } from '@/lib/aboutIntroSetting';
+import { sanitizeAboutIntroBodyHtml } from '@/lib/sanitizeAboutIntroHtml';
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -8,7 +9,11 @@ export async function GET(req: Request) {
 
   const row = await prisma.siteSetting.findUnique({ where: { key: ABOUT_INTRO_SETTING_KEY } });
   const payload = parseAboutIntroJson(row?.value ?? null);
-  const publicIntro = toPublicIntro(payload, locale);
+  const raw = toPublicIntro(payload, locale);
+  const publicIntro = {
+    ...raw,
+    bodyHtml: raw.bodyHtml ? sanitizeAboutIntroBodyHtml(raw.bodyHtml) : '',
+  };
 
   return NextResponse.json(publicIntro, {
     headers: {
