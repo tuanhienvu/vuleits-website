@@ -1,6 +1,33 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { safeArray } from '@/lib/safe-array';
+
+type ServiceItem = { icon: string; title: string; description: string; features: string[] };
+
+function normalizeServices(raw: unknown): ServiceItem[] {
+  const list = safeArray<unknown>(raw);
+  return list.map((item) => {
+    const s = item as Record<string, unknown>;
+    let features: string[] = [];
+    if (Array.isArray(s.features)) {
+      features = s.features.map((x) => String(x));
+    } else if (typeof s.features === 'string' && s.features.trim()) {
+      try {
+        const parsed = JSON.parse(s.features) as unknown;
+        if (Array.isArray(parsed)) features = parsed.map((x) => String(x));
+      } catch {
+        // ignore invalid JSON
+      }
+    }
+    return {
+      icon: String(s.icon ?? ''),
+      title: String(s.title ?? ''),
+      description: String(s.description ?? ''),
+      features,
+    };
+  });
+}
 
 export default function ServicesPage() {
   const fallbackServices = [
@@ -42,9 +69,7 @@ export default function ServicesPage() {
     },
   ];
 
-  const [services, setServices] = useState<
-    Array<{ icon: string; title: string; description: string; features: string[] }>
-  >(fallbackServices);
+  const [services, setServices] = useState<ServiceItem[]>(fallbackServices);
 
   useEffect(() => {
     let cancelled = false;
@@ -53,8 +78,9 @@ export default function ServicesPage() {
         const res = await fetch('/api/services');
         if (!res.ok) return;
         const data = await res.json();
-        if (!cancelled && Array.isArray(data) && data.length > 0) {
-          setServices(data);
+        const normalized = normalizeServices(data);
+        if (!cancelled && normalized.length > 0) {
+          setServices(normalized);
         }
       } catch {
         // keep fallback
@@ -88,7 +114,7 @@ export default function ServicesPage() {
 
             {/* Service Features List */}
             <ul className="space-y-2">
-              {service.features.map((feature, idx) => (
+              {(service.features ?? []).map((feature, idx) => (
                 <li key={idx} className="text-white/70 flex items-center gap-2">
                   <span className="text-purple-300">✓</span>
                   {feature}

@@ -1,8 +1,58 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
+import { safeArray } from '@/lib/safe-array';
+import { useLocale } from '@/components/providers/LocaleProvider';
+import { defaultAboutIntroPayload, toPublicIntro } from '@/lib/aboutIntroSetting';
+
+type StatRow = { number: string; label: string };
+type TeamRow = { name: string; role: string; emoji: string; bio: string };
+
+function normalizeStats(raw: unknown): StatRow[] {
+  return safeArray<unknown>(raw).map((item) => {
+    const s = item as Record<string, unknown>;
+    return { number: String(s.number ?? ''), label: String(s.label ?? '') };
+  });
+}
+
+function normalizeTeam(raw: unknown): TeamRow[] {
+  return safeArray<unknown>(raw).map((item) => {
+    const m = item as Record<string, unknown>;
+    return {
+      name: String(m.name ?? ''),
+      role: String(m.role ?? ''),
+      emoji: String(m.emoji ?? ''),
+      bio: String(m.bio ?? ''),
+    };
+  });
+}
+
+type AboutIntro = {
+  title: string;
+  bodyHtml: string;
+  paragraphs: string[];
+  heroImageUrl: string | null;
+  heroImageAlt: string;
+};
 
 export default function AboutPage() {
+  const { locale } = useLocale();
+  const [intro, setIntro] = useState<AboutIntro | null>(null);
+  const introFallback = toPublicIntro(defaultAboutIntroPayload(), locale);
+
+  function parseIntroJson(j: Record<string, unknown>): AboutIntro {
+    const title = typeof j.title === 'string' ? j.title : '';
+    const bodyHtml = typeof j.bodyHtml === 'string' ? j.bodyHtml : '';
+    const paragraphs = Array.isArray(j.paragraphs)
+      ? j.paragraphs.map((x) => String(x ?? '').trim()).filter(Boolean)
+      : [];
+    const heroImageUrl =
+      j.heroImageUrl != null && String(j.heroImageUrl).trim() ? String(j.heroImageUrl).trim() : null;
+    const heroImageAlt = typeof j.heroImageAlt === 'string' ? j.heroImageAlt : '';
+    return { title, bodyHtml, paragraphs, heroImageUrl, heroImageAlt };
+  }
+
   const fallbackStats = [
     { number: '150+', label: 'Projects Completed' },
     { number: '50+', label: 'Happy Clients' },
@@ -19,22 +69,33 @@ export default function AboutPage() {
     { name: 'Lisa Martinez', role: 'Project Manager', emoji: '👩‍💼', bio: 'Certified PMP with a track record of delivering complex projects on time and budget.' },
   ];
 
-  const [stats, setStats] = useState<Array<{ number: string; label: string }>>(fallbackStats);
-  const [team, setTeam] = useState<Array<{ name: string; role: string; emoji: string; bio: string }>>(fallbackTeam);
+  const [stats, setStats] = useState<StatRow[]>(fallbackStats);
+  const [team, setTeam] = useState<TeamRow[]>(fallbackTeam);
 
   useEffect(() => {
+    setIntro(null);
     let cancelled = false;
     (async () => {
       try {
-        const [statsRes, teamRes] = await Promise.all([fetch('/api/about/stats'), fetch('/api/about/team')]);
+        const [statsRes, teamRes, introRes] = await Promise.all([
+          fetch('/api/about/stats'),
+          fetch('/api/about/team'),
+          fetch(`/api/about/intro?locale=${encodeURIComponent(locale)}`),
+        ]);
         if (!cancelled) {
           if (statsRes.ok) {
             const s = await statsRes.json();
-            if (Array.isArray(s) && s.length > 0) setStats(s);
+            const ns = normalizeStats(s);
+            if (ns.length > 0) setStats(ns);
           }
           if (teamRes.ok) {
             const t = await teamRes.json();
-            if (Array.isArray(t) && t.length > 0) setTeam(t);
+            const nt = normalizeTeam(t);
+            if (nt.length > 0) setTeam(nt);
+          }
+          if (introRes.ok) {
+            const j = (await introRes.json()) as Record<string, unknown>;
+            setIntro(parseIntroJson(j));
           }
         }
       } catch {
@@ -44,24 +105,54 @@ export default function AboutPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [locale]);
 
   return (
     <div className="container mx-auto px-4">
       {/* ==================== ABOUT CONTENT SECTION ==================== */}
       <section className="mb-12">
         <div className="glass p-8 md:p-12 rounded-3xl mb-8">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">About Our Vision</h2>
-          <div className="space-y-4 text-white/80">
-            <p className="text-lg">
-              We believe in creating digital experiences that feel natural and intuitive. Our glass morphism design philosophy combines transparency, depth, and subtle animations to create interfaces that users love to interact with.
-            </p>
-            <p className="text-lg">
-              Founded in 2024, our team of designers and developers are passionate about pushing the boundaries of web design while maintaining accessibility and performance standards.
-            </p>
-            <p className="text-lg">
-              Every project we undertake is crafted with attention to detail, ensuring that form follows function while never compromising on aesthetic beauty.
-            </p>
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">{intro?.title || introFallback.title}</h2>
+          {(() => {
+            const heroUrl = intro?.heroImageUrl ?? introFallback.heroImageUrl;
+            const heroAlt = intro?.heroImageAlt ?? introFallback.heroImageAlt;
+            if (!heroUrl) return null;
+            const remote = /^https?:/i.test(heroUrl);
+            return (
+              <div className="relative w-full max-w-3xl mx-auto aspect-video max-h-80 mb-6 rounded-2xl overflow-hidden border border-white/15 bg-white/5">
+                <Image
+                  src={heroUrl}
+                  alt={heroAlt || (locale === 'vi-VN' ? 'Hình minh họa' : 'Illustration')}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 42rem"
+                  unoptimized={remote}
+                />
+              </div>
+            );
+          })()}
+          <div className="text-white/80 text-lg">
+            {(() => {
+              const html = (intro?.bodyHtml ?? introFallback.bodyHtml)?.trim() ?? '';
+              if (html) {
+                return (
+                  <div
+                    className="about-intro-rich max-w-none [&_a]:text-purple-200 [&_a]:underline [&_blockquote]:border-l-2 [&_blockquote]:border-white/25 [&_blockquote]:pl-4 [&_blockquote]:italic [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:text-white [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:text-white [&_h4]:text-lg [&_h4]:font-semibold [&_li]:my-1 [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:mb-4 [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-6"
+                    dangerouslySetInnerHTML={{ __html: html }}
+                  />
+                );
+              }
+              const paras = intro?.paragraphs?.length ? intro.paragraphs : introFallback.paragraphs;
+              return (
+                <div className="space-y-4">
+                  {paras.map((text, i) => (
+                    <p key={i} className="whitespace-pre-line">
+                      {text}
+                    </p>
+                  ))}
+                </div>
+              );
+            })()}
           </div>
         </div>
 

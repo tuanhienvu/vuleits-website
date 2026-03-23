@@ -15,7 +15,7 @@ export function signJWT(payload: JWTPayload, expiresIn: SignOptions['expiresIn']
 export function verifyJWT(token: string): JWTPayload | null {
   try {
     return verify(token, secret) as JWTPayload;
-  } catch (err) {
+  } catch {
     return null;
   }
 }

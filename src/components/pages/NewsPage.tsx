@@ -21,11 +21,11 @@ export default function NewsPage() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [search, setSearch] = useState('');
 
-  const allTags = [...new Set(articles.flatMap(a => a.tags))];
+  const allTags = [...new Set(articles.flatMap((a) => a.tags ?? []))];
 
   const filteredArticles = articles.filter(a =>
     a.title.toLowerCase().includes(search.toLowerCase()) &&
-    (selectedTags.length === 0 || selectedTags.some(tag => a.tags.includes(tag))) &&
+    (selectedTags.length === 0 || selectedTags.some((tag) => (a.tags ?? []).includes(tag))) &&
     a.status === 'Active'
   );
 
@@ -100,7 +100,7 @@ export default function NewsPage() {
 
                   {/* Tag Display */}
                   <div className="flex flex-wrap gap-2 mb-3">
-                    {article.tags.map(tag => (
+                    {(article.tags ?? []).map((tag) => (
                       <span key={tag} className="px-3 py-1 bg-white/20 text-white/80 rounded-full text-sm">
                         {tag}
                       </span>

@@ -24,14 +24,14 @@ export default function TermsOfServicePage() {
             <li>Using the materials for any commercial purpose or for any public display</li>
             <li>Attempting to decompile or reverse engineer any software contained on the website</li>
             <li>Removing any copyright or other proprietary notations from the materials</li>
-            <li>Transferring the materials to another person or "mirroring" the materials on any other server</li>
+            <li>Transferring the materials to another person or &quot;mirroring&quot; the materials on any other server</li>
           </ul>
         </div>
 
         <div>
           <h2 className="text-2xl font-bold text-white mb-3">3. Disclaimer</h2>
           <p className="text-white/70">
-            The materials on VULE ITS Website are provided on an 'as is' basis. VULE ITS makes no warranties, expressed or implied, and hereby disclaims and negates all other warranties including, without limitation, implied warranties or conditions of merchantability, fitness for a particular purpose, or non-infringement of intellectual property or other violation of rights.
+            The materials on VULE ITS Website are provided on an &apos;as is&apos; basis. VULE ITS makes no warranties, expressed or implied, and hereby disclaims and negates all other warranties including, without limitation, implied warranties or conditions of merchantability, fitness for a particular purpose, or non-infringement of intellectual property or other violation of rights.
           </p>
         </div>
 
@@ -52,7 +52,7 @@ export default function TermsOfServicePage() {
         <div>
           <h2 className="text-2xl font-bold text-white mb-3">6. Links</h2>
           <p className="text-white/70">
-            VULE ITS has not reviewed all of the sites linked to its website and is not responsible for the contents of any such linked site. The inclusion of any link does not imply endorsement by VULE ITS of the site. Use of any such linked website is at the user's own risk.
+            VULE ITS has not reviewed all of the sites linked to its website and is not responsible for the contents of any such linked site. The inclusion of any link does not imply endorsement by VULE ITS of the site. Use of any such linked website is at the user&apos;s own risk.
           </p>
         </div>
 
