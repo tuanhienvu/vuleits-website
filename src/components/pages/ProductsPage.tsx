@@ -17,12 +17,11 @@ export default function ProductsPage() {
   ]);
 
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('Active');
 
-  const filteredProducts = products.filter(p => 
-    p.title.toLowerCase().includes(search.toLowerCase()) &&
-    p.status === statusFilter
-  );
+  const filteredProducts = products.filter((p) => {
+    const active = p.status.trim().toLowerCase() === 'active';
+    return active && p.title.toLowerCase().includes(search.toLowerCase());
+  });
 
   return (
     <div className="container mx-auto px-4">
@@ -32,33 +31,17 @@ export default function ProductsPage() {
         <p className="text-white/80 text-lg">Discover our innovative solutions designed for your success</p>
       </section>
 
-      {/* ==================== SEARCH & FILTER AREA ==================== */}
+      {/* ==================== SEARCH ==================== */}
       <section className="glass p-6 rounded-2xl mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Search Input */}
-          <div>
-            <label className="text-white font-medium block mb-2">Search Products</label>
-            <input
-              type="text"
-              placeholder="Search by name..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full px-4 py-2 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-white/50"
-            />
-          </div>
-
-          {/* Status Filter */}
-          <div>
-            <label className="text-white font-medium block mb-2">Status</label>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-4 py-2 bg-white/20 border border-white/30 rounded-lg text-white focus:outline-none focus:border-white/50"
-            >
-              <option value="Active" className="bg-gray-900">Active</option>
-              <option value="Expired" className="bg-gray-900">Expired</option>
-            </select>
-          </div>
+        <div>
+          <label className="text-white font-medium block mb-2">Search Products</label>
+          <input
+            type="text"
+            placeholder="Search by name..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full px-4 py-2 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-white/50"
+          />
         </div>
       </section>
 
@@ -76,19 +59,17 @@ export default function ProductsPage() {
               <h3 className="text-white font-semibold text-xl mb-2">{product.title}</h3>
               <p className="text-white/70 mb-3">{product.description}</p>
 
-              {/* Product Footer */}
-              <div className="flex items-center justify-between">
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${product.status === 'Active' ? 'bg-green-500/30 text-green-200' : 'bg-red-500/30 text-red-200'}`}>
-                  {product.status}
-                </span>
-                <button className="cta-button text-sm px-4 py-2">Learn More</button>
+              <div className="flex justify-end">
+                <button type="button" className="cta-button text-sm px-4 py-2">
+                  Learn More
+                </button>
               </div>
             </div>
           ))
         ) : (
           <div className="glass p-12 rounded-2xl col-span-full text-center">
             <div className="text-5xl mb-4">🔍</div>
-            <p className="text-white/70">No products found. Try adjusting your filters.</p>
+            <p className="text-white/70">No products found. Try a different search.</p>
           </div>
         )}
       </section>

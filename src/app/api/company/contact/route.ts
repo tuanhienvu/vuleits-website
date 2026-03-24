@@ -30,6 +30,9 @@ export async function GET() {
 
   return NextResponse.json(
     {
+      companyName: profile.companyName.trim(),
+      fullNameVi: profile.fullNameVi.trim(),
+      fullNameEn: profile.fullNameEn.trim(),
       address: profile.address.trim(),
       email: profile.email.trim(),
       phone: profile.phone.trim(),

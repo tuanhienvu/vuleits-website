@@ -61,7 +61,18 @@ export default function NewsPage() {
         
         {/* Tag Filter Buttons */}
         <div>
-          <label className="text-white font-medium block mb-3">Filter by Tags</label>
+          <div className="flex flex-wrap items-baseline justify-between gap-2 mb-3">
+            <label className="text-white font-medium">Filter by Tags</label>
+            {selectedTags.length > 0 ? (
+              <button
+                type="button"
+                onClick={() => setSelectedTags([])}
+                className="text-sm text-purple-200/90 hover:text-white underline underline-offset-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 rounded"
+              >
+                Clear filters
+              </button>
+            ) : null}
+          </div>
           <div className="flex flex-wrap gap-2" role="list" aria-label="Tag filters">
             {allTags.map(tag => (
               <button

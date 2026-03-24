@@ -1,11 +1,14 @@
 'use client';
 
 import { useState, FormEvent, useEffect } from 'react';
-import { useLocale } from '@/components/providers/LocaleProvider';
+import { useLocale, type Locale } from '@/components/providers/LocaleProvider';
 import { useToast } from '@/components/providers/ToastProvider';
 import CompanySocialLinks, { type PublicSocialLink } from '@/components/CompanySocialLinks';
 
 type ContactInfo = {
+  companyName: string;
+  fullNameVi: string;
+  fullNameEn: string;
   address: string;
   email: string;
   phone: string;
@@ -14,8 +17,16 @@ type ContactInfo = {
   socialLinks: PublicSocialLink[];
 };
 
+function displayCompanyFullName(locale: Locale, info: ContactInfo): string {
+  const vi = info.fullNameVi.trim();
+  const en = info.fullNameEn.trim();
+  const short = info.companyName.trim();
+  if (locale === 'vi-VN') return vi || en || short;
+  return en || vi || short;
+}
+
 export default function ContactPage() {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const toast = useToast();
   const [formData, setFormData] = useState({
     name: '',
@@ -48,6 +59,9 @@ export default function ContactPage() {
                 .filter((x): x is PublicSocialLink => x != null)
             : [];
           setInfo({
+            companyName: typeof data.companyName === 'string' ? data.companyName : '',
+            fullNameVi: typeof data.fullNameVi === 'string' ? data.fullNameVi : '',
+            fullNameEn: typeof data.fullNameEn === 'string' ? data.fullNameEn : '',
             address: typeof data.address === 'string' ? data.address : '',
             email: typeof data.email === 'string' ? data.email : '',
             phone: typeof data.phone === 'string' ? data.phone : '',
@@ -58,7 +72,17 @@ export default function ContactPage() {
         }
       } catch {
         if (!cancelled)
-          setInfo({ address: '', email: '', phone: '', hotline: '', mapEmbedSrc: null, socialLinks: [] });
+          setInfo({
+            companyName: '',
+            fullNameVi: '',
+            fullNameEn: '',
+            address: '',
+            email: '',
+            phone: '',
+            hotline: '',
+            mapEmbedSrc: null,
+            socialLinks: [],
+          });
       } finally {
         if (!cancelled) setInfoLoading(false);
       }
@@ -167,11 +191,23 @@ export default function ContactPage() {
         </div>
 
         <div className="glass p-8 rounded-3xl">
-          <h2 className="text-3xl font-bold text-white mb-6">{t('contact.contactInfo')}</h2>
+          <h2 className="text-3xl font-bold text-white mb-6">
+            {info && !infoLoading ? displayCompanyFullName(locale, info) || t('contact.contactInfo') : t('contact.contactInfo')}
+          </h2>
           {infoLoading ? (
             <p className="text-white/50">…</p>
           ) : (
             <div className="space-y-6">
+              {addressLine ? (
+                <div className="flex gap-4">
+                  <div className="text-3xl shrink-0">📍</div>
+                  <div className="min-w-0">
+                    <h4 className="text-white font-semibold mb-1">{t('contact.address')}</h4>
+                    <p className="text-white/70 whitespace-pre-line">{addressLine}</p>
+                  </div>
+                </div>
+              ) : null}
+
               {emailLine ? (
                 <div className="flex gap-4">
                   <div className="text-3xl shrink-0">📧</div>
@@ -204,16 +240,6 @@ export default function ContactPage() {
                     <a href={`tel:${hotlineLine!.replace(/\s/g, '')}`} className="text-white/70 hover:text-white">
                       {hotlineLine}
                     </a>
-                  </div>
-                </div>
-              ) : null}
-
-              {addressLine ? (
-                <div className="flex gap-4">
-                  <div className="text-3xl shrink-0">📍</div>
-                  <div className="min-w-0">
-                    <h4 className="text-white font-semibold mb-1">{t('contact.address')}</h4>
-                    <p className="text-white/70 whitespace-pre-line">{addressLine}</p>
                   </div>
                 </div>
               ) : null}

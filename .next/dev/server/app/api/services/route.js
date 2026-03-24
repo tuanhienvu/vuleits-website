@@ -1,0 +1,6 @@
+var R=require("../../../chunks/[turbopack]_runtime.js")("server/app/api/services/route.js")
+R.c("server/chunks/dc5b7_next_8dc7dbbb._.js")
+R.c("server/chunks/[root-of-the-server]__088aa06b._.js")
+R.c("server/chunks/7f0d5_vuleits-website__next-internal_server_app_api_services_route_actions_55a20a62.js")
+R.m("[project]/WebPortal/vuleits-website/node_modules/next/dist/esm/build/templates/app-route.js { INNER_APP_ROUTE => \"[project]/WebPortal/vuleits-website/src/app/api/services/route.ts [app-route] (ecmascript)\" } [app-route] (ecmascript)")
+module.exports=R.m("[project]/WebPortal/vuleits-website/node_modules/next/dist/esm/build/templates/app-route.js { INNER_APP_ROUTE => \"[project]/WebPortal/vuleits-website/src/app/api/services/route.ts [app-route] (ecmascript)\" } [app-route] (ecmascript)").exports
