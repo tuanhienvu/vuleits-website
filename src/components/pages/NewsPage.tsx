@@ -1,39 +1,79 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { NEWS_CATEGORIES } from '@/lib/news/newsCategories';
+import NewsCarouselRow from '@/components/news/NewsCarouselRow';
 
 interface NewsArticle {
-  id: string;
+  id: number;
   title: string;
+  slug: string;
   description: string;
-  tags: string[];
-  date: string;
-  status: 'Active' | 'Expired';
+  category: string;
+  publishedAt: string;
+  authorName: string;
+  thumbnailSrc: string | null;
+  thumbnailAlt: string | null;
 }
 
 export default function NewsPage() {
-  const [articles] = useState<NewsArticle[]>([
-    { id: '1', title: 'Latest Product Updates', description: 'Discover what\'s new in our latest release', tags: ['Updates', 'Product'], date: '2025-12-13', status: 'Active' },
-    { id: '2', title: 'Industry Trends 2025', description: 'Explore emerging trends shaping the future', tags: ['Trends', 'Industry'], date: '2025-12-12', status: 'Active' },
-    { id: '3', title: 'Company Milestones', description: 'Celebrating our achievements this year', tags: ['Company', 'Milestone'], date: '2025-12-11', status: 'Active' },
-  ]);
+  const [articles, setArticles] = useState<NewsArticle[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [search, setSearch] = useState('');
+  const [category, setCategory] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
 
-  const allTags = [...new Set(articles.flatMap((a) => a.tags ?? []))];
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams();
+        if (search.trim()) params.set('q', search.trim());
+        if (category.trim()) params.set('category', category.trim());
+        if (fromDate.trim()) params.set('from', fromDate.trim());
+        if (toDate.trim()) params.set('to', toDate.trim());
+        // Fetch enough rows so each category section can exceed 3 cards
+        // (required for the carousel + auto-slide).
+        params.set('limit', '100');
 
-  const filteredArticles = articles.filter(a =>
-    a.title.toLowerCase().includes(search.toLowerCase()) &&
-    (selectedTags.length === 0 || selectedTags.some((tag) => (a.tags ?? []).includes(tag))) &&
-    a.status === 'Active'
-  );
+        const res = await fetch(`/api/news?${params.toString()}`);
+        if (!res.ok) return;
+        const data = (await res.json()) as { items?: NewsArticle[] };
+        if (!cancelled) setArticles(Array.isArray(data.items) ? data.items : []);
+      } catch {
+        if (!cancelled) setArticles([]);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [search, category, fromDate, toDate]);
 
-  const toggleTag = (tag: string) => {
-    setSelectedTags(prev => 
-      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
-    );
-  };
+  const byCategory = useMemo(() => {
+    const primary = ['Politics', 'Economy', 'Technology', 'Entertainment'] as const;
+    const primarySet = new Set<string>(primary as unknown as string[]);
+    const out: Record<string, NewsArticle[]> = {
+      Politics: [],
+      Economy: [],
+      Technology: [],
+      Entertainment: [],
+      Other: [],
+    };
+
+    for (const a of articles) {
+      if (primarySet.has(a.category)) out[a.category]?.push(a);
+      else out.Other.push(a);
+    }
+    return out;
+  }, [articles]);
+
+  const categories = NEWS_CATEGORIES.filter((c) => c !== 'Other');
+  const primaryCategories = ['Politics', 'Economy', 'Technology', 'Entertainment'] as const;
 
   return (
     <div className="container mx-auto px-4">
@@ -43,83 +83,98 @@ export default function NewsPage() {
         <p className="text-white/80 text-lg">Stay informed with our latest articles and announcements</p>
       </section>
 
-      {/* ==================== SEARCH & TAG FILTER AREA ==================== */}
+      {/* ==================== SEARCH & FILTER AREA ==================== */}
       <section className="glass p-6 rounded-2xl mb-8" aria-labelledby="news-search-heading">
-        {/* Search Input */}
-        <div className="mb-4">
-          <label id="news-search-heading" htmlFor="news-search" className="text-white font-medium block mb-2">Search Articles</label>
-          <input
-            id="news-search"
-            aria-label="Search articles by title"
-            type="text"
-            placeholder="Search by title..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-white/50"
-          />
-        </div>
-        
-        {/* Tag Filter Buttons */}
-        <div>
-          <label className="text-white font-medium block mb-3">Filter by Tags</label>
-          <div className="flex flex-wrap gap-2" role="list" aria-label="Tag filters">
-            {allTags.map(tag => (
-              <button
-                key={tag}
-                onClick={() => toggleTag(tag)}
-                aria-pressed={selectedTags.includes(tag)}
-                className={`px-4 py-3 min-h-[44px] rounded-full transition-all duration-300 ${
-                  selectedTags.includes(tag)
-                    ? 'bg-purple-500 text-white'
-                    : 'bg-white/20 text-white/80 hover:bg-white/30'
-                }`}
-              >
-                {tag}
-              </button>
-            ))}
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          <label>
+            <span className="text-white/70 text-sm block mb-2">Keyword</span>
+            <input
+              type="text"
+              placeholder="Search by keyword..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-white/50"
+            />
+          </label>
+
+          <label>
+            <span className="text-white/70 text-sm block mb-2">Category</span>
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white focus:outline-none focus:border-white/50"
+            >
+              <option value="">All</option>
+              {categories.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label>
+            <span className="text-white/70 text-sm block mb-2">From</span>
+            <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white" />
+          </label>
+
+          <label>
+            <span className="text-white/70 text-sm block mb-2">To</span>
+            <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white" />
+          </label>
         </div>
       </section>
 
       {/* ==================== ARTICLES LIST SECTION ==================== */}
-      <section className="space-y-6 mb-12" aria-label="Articles list">
-        {filteredArticles.length > 0 ? (
-          filteredArticles.map((article) => (
-            <div key={article.id} role="listitem" className="glass p-6 rounded-2xl hover:shadow-xl transition-all duration-300 cursor-pointer hover:bg-white/15">
-              {/* Article Card Layout */}
-              <div className="flex flex-col md:flex-row gap-6">
-                {/* Article Icon */}
-                <div className="md:w-48 md:h-48 w-32 h-32 bg-white/10 rounded-lg flex-shrink-0 flex items-center justify-center">
-                  <div className="text-3xl md:text-4xl">📰</div>
-                </div>
-
-                {/* Article Content */}
-                <div className="flex-1">
-                  <h3 className="text-white font-semibold text-xl md:text-2xl mb-2">{article.title}</h3>
-                  <p className="text-white/70 mb-3">{article.description}</p>
-
-                  {/* Tag Display */}
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    {(article.tags ?? []).map((tag) => (
-                      <span key={tag} className="px-3 py-1 bg-white/20 text-white/80 rounded-full text-sm">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-
-                  {/* Article Date */}
-                  <p className="text-white/50 text-sm">{new Date(article.date).toLocaleDateString()}</p>
-                </div>
-              </div>
+      {loading ? (
+        <div className="text-white/80 mb-12">Loading news...</div>
+      ) : (
+        <section className="space-y-10 mb-12" aria-label="Articles list">
+          {primaryCategories.map((cat, idx) => (
+            <div key={`${cat}-row`}>
+              <h2 className="text-2xl font-bold text-white mb-4">{cat}</h2>
+              {byCategory[cat].length ? (
+                <NewsCarouselRow
+                  autoStartDelayMs={idx * 750}
+                  items={byCategory[cat].map((a) => ({
+                    id: a.id,
+                    slug: a.slug,
+                    title: a.title,
+                    description: a.description,
+                    authorName: a.authorName,
+                    publishedAt: a.publishedAt,
+                    thumbnailSrc: a.thumbnailSrc,
+                    thumbnailAlt: a.thumbnailAlt,
+                  }))}
+                />
+              ) : (
+                <div className="glass p-6 rounded-2xl text-white/70">No articles found.</div>
+              )}
             </div>
-          ))
-        ) : (
-          <div className="glass p-12 rounded-2xl text-center">
-            <div className="text-5xl mb-4">📭</div>
-            <p className="text-white/70">No articles found. Try adjusting your search or filters.</p>
+          ))}
+
+          <div>
+            <h2 className="text-2xl font-bold text-white mb-4">Other</h2>
+            {byCategory.Other.length ? (
+              <NewsCarouselRow
+                autoStartDelayMs={primaryCategories.length * 750}
+                items={byCategory.Other.map((a) => ({
+                  id: a.id,
+                  slug: a.slug,
+                  title: a.title,
+                  description: a.description,
+                  authorName: a.authorName,
+                  publishedAt: a.publishedAt,
+                  thumbnailSrc: a.thumbnailSrc,
+                  thumbnailAlt: a.thumbnailAlt,
+                }))}
+              />
+            ) : (
+              <div className="glass p-6 rounded-2xl text-white/70">No articles found.</div>
+            )}
           </div>
-        )}
-      </section>
+        </section>
+      )}
     </div>
   );
 }

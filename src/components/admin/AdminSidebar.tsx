@@ -28,7 +28,7 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
   const { logoSrc, companyName, slogan } = useCompanyBranding();
   const brandSubtitle = slogan || t('admin.panel');
   const { can, loading: permsLoading } = useAdminPermissions();
-  const allowTab = (id: AdminUiFeatureId) => permsLoading || can(id, 'read');
+  const allowTab = useCallback((id: AdminUiFeatureId) => permsLoading || can(id, 'read'), [permsLoading, can]);
   const [showCompanyProfileNav, setShowCompanyProfileNav] = useState(false);
 
   const activeTab = useMemo(() => searchParams.get('tab') || 'overview', [searchParams]);
@@ -53,48 +53,55 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
 
   const menuGroups: { id: string; label: string; items: SidebarNavItem[] }[] = useMemo(
     () => [
-    {
-      id: 'product',
-      label: t('admin.productGroup'),
-      items: [
-        { kind: 'tab', id: 'services', label: t('admin.services'), icon: '🧩', path: '/admin/dashboard?tab=services' },
-        { kind: 'tab', id: 'products', label: t('admin.products'), icon: '📦', path: '/admin/dashboard?tab=products' },
-      ],
-    },
-    {
-      id: 'communication',
-      label: t('admin.contents'),
-      items: [
-        { kind: 'tab', id: 'news', label: t('admin.news'), icon: '📰', path: '/admin/dashboard?tab=news' },
-        { kind: 'tab', id: 'media', label: t('admin.media'), icon: '🖼️', path: '/admin/dashboard?tab=media' },
-        { kind: 'tab', id: 'banners', label: t('admin.banners'), icon: '🎬', path: '/admin/dashboard?tab=banners' },
-      ],
-    },
-    {
-      id: 'settings',
-      label: t('admin.settings'),
-      items: [
-        {
-          kind: 'page',
-          id: 'companyProfile',
-          label: t('admin.companyProfile'),
-          icon: '🏢',
-          path: '/admin/company-profile',
-        },
-        { kind: 'tab', id: 'homeFeatures', label: t('admin.homeFeatures'), icon: '🏠', path: '/admin/dashboard?tab=homeFeatures' },
-        { kind: 'tab', id: 'contacts', label: t('admin.contacts'), icon: '💬', path: '/admin/dashboard?tab=contacts' },
-        { kind: 'tab', id: 'aboutTeam', label: t('admin.aboutTeam'), icon: '👤', path: '/admin/dashboard?tab=aboutTeam' },
-        { kind: 'tab', id: 'aboutStats', label: t('admin.aboutStats'), icon: '📈', path: '/admin/dashboard?tab=aboutStats' },
-      ],
-    },
-    {
-      id: 'permission',
-      label: t('admin.permissionGroup'),
-      items: [
-        { kind: 'tab', id: 'users', label: t('admin.users'), icon: '👥', path: '/admin/dashboard?tab=users' },
-        { kind: 'tab', id: 'permissions', label: t('admin.permissions'), icon: '🔐', path: '/admin/dashboard?tab=permissions' },
-      ],
-    },
+      {
+        id: 'overview',
+        label: t('admin.overview'),
+        items: [
+          { kind: 'tab', id: 'overview', label: t('admin.overview'), icon: '📊', path: '/admin/dashboard?tab=overview' },
+        ],
+      },
+      {
+        id: 'contents',
+        label: t('admin.contents'),
+        items: [
+          { kind: 'tab', id: 'news', label: t('admin.news'), icon: '📰', path: '/admin/dashboard?tab=news' },
+          { kind: 'tab', id: 'media', label: t('admin.media'), icon: '🖼️', path: '/admin/dashboard?tab=media' },
+          { kind: 'tab', id: 'banners', label: t('admin.banners'), icon: '🎬', path: '/admin/dashboard?tab=banners' },
+        ],
+      },
+      {
+        id: 'products',
+        label: t('admin.productGroup'),
+        items: [
+          { kind: 'tab', id: 'services', label: t('admin.services'), icon: '🧩', path: '/admin/dashboard?tab=services' },
+          { kind: 'tab', id: 'products', label: t('admin.products'), icon: '📦', path: '/admin/dashboard?tab=products' },
+        ],
+      },
+      {
+        id: 'authority',
+        label: t('admin.permissionGroup'),
+        items: [
+          { kind: 'tab', id: 'users', label: t('admin.users'), icon: '👥', path: '/admin/dashboard?tab=users' },
+          { kind: 'tab', id: 'permissions', label: t('admin.permissions'), icon: '🔐', path: '/admin/dashboard?tab=permissions' },
+        ],
+      },
+      {
+        id: 'settings',
+        label: t('admin.settings'),
+        items: [
+          {
+            kind: 'page',
+            id: 'companyProfile',
+            label: t('admin.companyProfile'),
+            icon: '🏢',
+            path: '/admin/company-profile',
+          },
+          { kind: 'tab', id: 'homeFeatures', label: t('admin.homeFeatures'), icon: '🏠', path: '/admin/dashboard?tab=homeFeatures' },
+          { kind: 'tab', id: 'contacts', label: t('admin.contacts'), icon: '💬', path: '/admin/dashboard?tab=contacts' },
+          { kind: 'tab', id: 'aboutTeam', label: t('admin.aboutTeam'), icon: '👤', path: '/admin/dashboard?tab=aboutTeam' },
+          { kind: 'tab', id: 'aboutStats', label: t('admin.aboutStats'), icon: '📈', path: '/admin/dashboard?tab=aboutStats' },
+        ],
+      },
     ],
     [t],
   );
@@ -111,7 +118,7 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
           }),
         }))
         .filter((g) => g.items.length > 0),
-    [menuGroups, showCompanyProfileNav, permsLoading, can],
+    [menuGroups, showCompanyProfileNav, allowTab],
   );
 
   const activeGroupId = useMemo(() => {
@@ -157,13 +164,15 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
       >
         <div className="flex flex-col h-full">
           {/* Logo/Brand Section */}
-          <div className={`border-b border-white/10 ${isOpen ? 'p-4' : 'px-2 py-3'}`}>
+          <div className={`border-b border-white/10 h-21 flex items-center ${isOpen ? 'px-4' : 'px-2'}`}>
             <Link
               href="/"
               onClick={() => {
                 if (mobileOpen) onMobileToggle();
               }}
-              className={`flex items-center rounded-lg outline-none transition-colors hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-white/30 ${isOpen ? 'gap-3 p-1 -m-1' : 'justify-center p-1 -m-1'}`}
+              className={`flex items-center w-full h-full rounded-lg outline-none transition-colors hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-white/30 ${
+                isOpen ? 'gap-3 px-1' : 'justify-center'
+              }`}
               aria-label={t('nav.home')}
             >
               <BrandingLogo
@@ -186,30 +195,6 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
           <nav
             className={`admin-sidebar-scroll flex-1 overflow-y-auto overflow-x-hidden space-y-2 ${isOpen ? 'p-4' : 'px-2 py-3'}`}
           >
-            {allowTab('overview') &&
-              (() => {
-                const item = { id: 'overview', label: t('admin.overview'), icon: '📊', path: '/admin/dashboard?tab=overview' };
-                const isActive = activeTab === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => handleNavigation(item.path)}
-                    className={`w-full flex items-center py-2.5 rounded-lg transition-all duration-200 ${
-                      isOpen ? 'gap-3 px-3' : 'justify-center px-1.5'
-                    } ${
-                      isActive
-                        ? 'bg-white/20 text-white border-b-2 border-white'
-                        : 'text-white/70 hover:bg-white/10 hover:text-white hover:border-b hover:border-white focus:border-b focus:border-white focus:outline-none'
-                    }`}
-                    title={!isOpen ? item.label : undefined}
-                  >
-                    <span className={`shrink-0 ${isOpen ? 'text-xl' : 'text-2xl leading-none'}`}>{item.icon}</span>
-                    {isOpen && <span className="text-sm font-medium truncate">{item.label}</span>}
-                  </button>
-                );
-              })()}
-
             {visibleGroups.map((group) => {
               const expanded = expandedGroupId === group.id;
               return (
@@ -340,13 +325,13 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
       >
         <div className="flex flex-col h-full">
           {/* Logo/Brand Section */}
-          <div className="p-4 border-b border-white/10">
+          <div className="h-20 px-4 border-b border-white/10 flex items-center">
             <Link
               href="/"
               onClick={() => {
                 if (mobileOpen) onMobileToggle();
               }}
-              className="flex items-center gap-3 rounded-lg p-1 -m-1 outline-none transition-colors hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-white/30"
+              className="flex items-center gap-3 w-full h-full rounded-lg outline-none transition-colors hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-white/30"
               aria-label={t('nav.home')}
             >
               <BrandingLogo
@@ -365,27 +350,6 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
 
           {/* Navigation Menu */}
           <nav className="admin-sidebar-scroll flex-1 overflow-y-auto p-4 space-y-2">
-            {allowTab('overview') &&
-              (() => {
-                const item = { id: 'overview', label: t('admin.overview'), icon: '📊', path: '/admin/dashboard?tab=overview' };
-                const isActive = activeTab === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => handleNavigation(item.path)}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${
-                      isActive
-                        ? 'bg-white/20 text-white border-b-2 border-white'
-                        : 'text-white/70 hover:bg-white/10 hover:text-white hover:border-b hover:border-white focus:border-b focus:border-white focus:outline-none'
-                    }`}
-                  >
-                    <span className="text-xl shrink-0">{item.icon}</span>
-                    <span className="text-sm font-medium">{item.label}</span>
-                  </button>
-                );
-              })()}
-
             {visibleGroups.map((group) => {
               const expanded = expandedGroupId === group.id;
               return (

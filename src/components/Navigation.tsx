@@ -68,7 +68,7 @@ export default function Navigation({ currentPage, setCurrentPage }: NavigationPr
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
               aria-label={t('nav.toggleMenu')}
-              className="p-2 rounded-md bg-white/10 text-white"
+              className="pt-2 pb-2 px-4 pr-4 rounded-md bg-white/10 text-white"
             >
               {mobileOpen ? '✕' : '☰'}
             </button>
@@ -105,7 +105,7 @@ export default function Navigation({ currentPage, setCurrentPage }: NavigationPr
               {t('nav.admin')}
             </button>
 
-            <LocaleSwitcher className="bg-white/10 border border-white/30 text-white px-2 py-1.5 rounded-lg text-sm" />
+            <LocaleSwitcher className="text-white px-2 py-1.5 rounded-lg text-sm hover:bg-white/10" />
           </div>
 
           {/* ==================== MOBILE MENU PANEL [SEARCH: MOBILE, MENU, DROPDOWN] ==================== */}
@@ -140,7 +140,7 @@ export default function Navigation({ currentPage, setCurrentPage }: NavigationPr
                 >
                   {t('nav.admin')}
                 </button>
-                <LocaleSwitcher className="w-full bg-white/10 border border-white/30 text-white px-3 py-2 rounded-lg text-sm" />
+                <LocaleSwitcher className="w-full text-white px-3 py-2 rounded-lg text-sm hover:bg-white/10 justify-start" />
               </div>
             </div>
           )}

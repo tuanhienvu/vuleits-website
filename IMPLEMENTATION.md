@@ -289,16 +289,21 @@ Home (/)
 
 ### 1. Environment Setup
 ```bash
-DATABASE_URL="mysql://username:password@host:port/vuleits"
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=vuleits
+DB_USER=your_mysql_user
+DB_PASSWORD=your_mysql_password
 NEXTAUTH_SECRET="your-secret-key"
 NEXTAUTH_URL="https://yourdomain.com"
 ```
 
 ### 2. Database Setup
 ```bash
-npx prisma migrate dev --name init
-npx prisma db seed (optional)
-npx prisma studio
+npm run db:generate
+npm run db:push
+npm run seed # optional
+node scripts/prisma-with-db-env.js studio
 ```
 
 ### 3. Build & Deploy

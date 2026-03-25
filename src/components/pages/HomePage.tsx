@@ -144,7 +144,11 @@ export default function HomePage({ setCurrentPage }: HomePageProps) {
             <div key={index} className="glass p-6 rounded-2xl hover:shadow-xl transition-all duration-300">
               <div className="text-4xl mb-3">{feature.icon}</div>
               <h3 className="text-white font-semibold text-xl mb-2">{feature.title}</h3>
-              <p className="text-white/70">{feature.description}</p>
+              <div
+                className="text-white/70"
+                // Allow embedded HTML/CSS/JS snippets pasted from the admin textarea.
+                dangerouslySetInnerHTML={{ __html: feature.description || '' }}
+              />
             </div>
           ))}
         </div>

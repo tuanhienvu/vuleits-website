@@ -13,12 +13,8 @@
 # testing
 /coverage
 
-# next.js
-/.next/
-/out/
-
-# production
-/build
+# next.js/build artifacts are committed for deployment snapshots
+# (requested by repository owner)
 
 # User uploads under public (keep only **/.gitkeep tracked)
 /public/uploads/**

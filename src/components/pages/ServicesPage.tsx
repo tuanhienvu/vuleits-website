@@ -110,14 +110,18 @@ export default function ServicesPage() {
             </div>
 
             {/* Service Description */}
-            <p className="text-white/80 mb-4">{service.description}</p>
+            <div
+              className="text-white/80 mb-4"
+              // Allow embedded HTML/CSS/JS snippets pasted from the admin textarea.
+              dangerouslySetInnerHTML={{ __html: service.description || '' }}
+            />
 
             {/* Service Features List */}
             <ul className="space-y-2">
               {(service.features ?? []).map((feature, idx) => (
                 <li key={idx} className="text-white/70 flex items-center gap-2">
                   <span className="text-purple-300">✓</span>
-                  {feature}
+                  <span dangerouslySetInnerHTML={{ __html: feature || '' }} />
                 </li>
               ))}
             </ul>

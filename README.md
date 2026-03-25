@@ -76,10 +76,17 @@ Models: User, Role, Product, News, BannerSlider, Media, Contact, AboutSection, P
 npm install
 
 # Setup .env
-DATABASE_URL="mysql://user:password@localhost:3306/vuleits"
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=vuleits
+DB_USER=your_mysql_user
+DB_PASSWORD=your_mysql_password
 
-# Migrate
-npx prisma migrate dev --name init
+# Generate Prisma client
+npm run db:generate
+
+# Sync schema
+npm run db:push
 
 # Run
 npm run dev
