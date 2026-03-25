@@ -77,6 +77,13 @@ model News {
   content         String  @db.LongText
   tags            String? // JSON array
   status          String  @default("Active")
+
+  // Used for filtering/search sections (Politics, Economy, Technology, Entertainment...)
+  category        String  @db.VarChar(60) @default("General")
+  // Thumbnail (stored in Media table)
+  imageId         Int?
+  image           Media?  @relation(fields: [imageId], references: [id])
+
   startDate       DateTime?
   endDate         DateTime?
   publishedAt     DateTime?
@@ -128,6 +135,7 @@ model Media {
   productImages   ProductImage[]
   bannerItems     BannerItem[]
   aboutSections   AboutSection[]
+  news            News[]
 
   @@unique([filename, folder])
 }

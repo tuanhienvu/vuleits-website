@@ -22,7 +22,10 @@
   "/api/admin/me-permissions/route": "app/api/admin/me-permissions/route.js",
   "/api/admin/me/password/route": "app/api/admin/me/password/route.js",
   "/api/admin/me/route": "app/api/admin/me/route.js",
+  "/api/admin/media/[id]/route": "app/api/admin/media/[id]/route.js",
   "/api/admin/media/route": "app/api/admin/media/route.js",
+  "/api/admin/news/[id]/route": "app/api/admin/news/[id]/route.js",
+  "/api/admin/news/route": "app/api/admin/news/route.js",
   "/api/admin/permissions/[userId]/route": "app/api/admin/permissions/[userId]/route.js",
   "/api/admin/roles/route": "app/api/admin/roles/route.js",
   "/api/admin/services/[id]/route": "app/api/admin/services/[id]/route.js",
@@ -32,7 +35,12 @@
   "/api/company/branding/route": "app/api/company/branding/route.js",
   "/api/company/contact/route": "app/api/company/contact/route.js",
   "/api/home/features/route": "app/api/home/features/route.js",
+  "/api/news/[slug]/route": "app/api/news/[slug]/route.js",
+  "/api/news/route": "app/api/news/route.js",
+  "/api/news/rss.xml/route": "app/api/news/rss.xml/route.js",
   "/api/services/route": "app/api/services/route.js",
   "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/news/[slug]/page": "app/news/[slug]/page.js",
+  "/news/page": "app/news/page.js",
   "/page": "app/page.js"
 }

@@ -23,13 +23,11 @@ function avatarInitials(displayName: string | null, email: string): string {
   const d = (displayName ?? '').trim();
   if (d) {
     const parts = d.split(/\s+/).filter(Boolean);
-    if (parts.length >= 2) {
-      return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
-    }
-    return d.slice(0, 2).toUpperCase();
+    // Return exactly 1 character to fit the circular avatar.
+    return (parts[0]?.charAt(0) || d.charAt(0) || '?').toUpperCase();
   }
   const local = email.split('@')[0] || email;
-  return local.slice(0, 2).toUpperCase();
+  return (local.charAt(0) || '?').toUpperCase();
 }
 
 export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
@@ -160,7 +158,7 @@ export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
             <button
               type="button"
               onClick={() => setMenuOpen((o) => !o)}
-              className="flex items-center gap-2 rounded-xl pl-3 pr-1 py-1 border border-white/20 bg-white/10 hover:bg-white/15 transition-colors"
+              className="flex items-center gap-2 rounded-xl px-3 sm:px-1 py-1 hover:bg-white/15 transition-colors"
               aria-expanded={menuOpen}
               aria-haspopup="menu"
               aria-label={t('admin.openUserMenu')}
@@ -171,7 +169,7 @@ export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
                   <span className="text-white/50 text-xs truncate max-w-full">{me.role.name}</span>
                 ) : null}
               </span>
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-linear-to-br from-[#a0616a] to-[#4a3f55] text-sm font-bold text-white shadow-inner">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-linear-to-br from-[#a0616a] to-[#4a3f55] text-base leading-none font-bold text-white shadow-inner select-none">
                 {label}
               </span>
               <span className="text-white/60 text-xs hidden sm:inline shrink-0 pr-1">{menuOpen ? '▴' : '▾'}</span>
@@ -211,10 +209,7 @@ export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
             )}
           </div>
 
-          <LocaleSwitcher
-            alignWithProfileAvatar
-            className="hidden sm:flex items-center bg-white/10 border border-white/30 text-white px-2 py-1 rounded-lg text-sm min-h-10"
-          />
+          <LocaleSwitcher className="flex items-center text-white bg-transparent border-0 px-2 py-1.5 rounded-lg text-sm hover:bg-white/10" />
         </div>
       </div>
 

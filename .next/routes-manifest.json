@@ -45,6 +45,22 @@
       "namedRegex": "^/api/admin/home\\-features/(?<nxtPid>[^/]+?)(?:/)?$"
     },
     {
+      "page": "/api/admin/media/[id]",
+      "regex": "^/api/admin/media/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/admin/media/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/admin/news/[id]",
+      "regex": "^/api/admin/news/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/admin/news/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
       "page": "/api/admin/permissions/[userId]",
       "regex": "^/api/admin/permissions/([^/]+?)(?:/)?$",
       "routeKeys": {
@@ -67,6 +83,22 @@
         "nxtPid": "nxtPid"
       },
       "namedRegex": "^/api/admin/users/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/news/[slug]",
+      "regex": "^/api/news/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPslug": "nxtPslug"
+      },
+      "namedRegex": "^/api/news/(?<nxtPslug>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/news/[slug]",
+      "regex": "^/news/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPslug": "nxtPslug"
+      },
+      "namedRegex": "^/news/(?<nxtPslug>[^/]+?)(?:/)?$"
     }
   ],
   "staticRoutes": [
@@ -203,6 +235,12 @@
       "namedRegex": "^/api/admin/media(?:/)?$"
     },
     {
+      "page": "/api/admin/news",
+      "regex": "^/api/admin/news(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/news(?:/)?$"
+    },
+    {
       "page": "/api/admin/roles",
       "regex": "^/api/admin/roles(?:/)?$",
       "routeKeys": {},
@@ -239,6 +277,18 @@
       "namedRegex": "^/api/home/features(?:/)?$"
     },
     {
+      "page": "/api/news",
+      "regex": "^/api/news(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/news(?:/)?$"
+    },
+    {
+      "page": "/api/news/rss.xml",
+      "regex": "^/api/news/rss\\.xml(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/news/rss\\.xml(?:/)?$"
+    },
+    {
       "page": "/api/services",
       "regex": "^/api/services(?:/)?$",
       "routeKeys": {},
@@ -249,6 +299,12 @@
       "regex": "^/favicon\\.ico(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/favicon\\.ico(?:/)?$"
+    },
+    {
+      "page": "/news",
+      "regex": "^/news(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/news(?:/)?$"
     }
   ],
   "dataRoutes": [],

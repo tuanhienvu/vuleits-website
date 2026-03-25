@@ -28,7 +28,7 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
   const { logoSrc, companyName, slogan } = useCompanyBranding();
   const brandSubtitle = slogan || t('admin.panel');
   const { can, loading: permsLoading } = useAdminPermissions();
-  const allowTab = (id: AdminUiFeatureId) => permsLoading || can(id, 'read');
+  const allowTab = useCallback((id: AdminUiFeatureId) => permsLoading || can(id, 'read'), [permsLoading, can]);
   const [showCompanyProfileNav, setShowCompanyProfileNav] = useState(false);
 
   const activeTab = useMemo(() => searchParams.get('tab') || 'overview', [searchParams]);
@@ -118,7 +118,7 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
           }),
         }))
         .filter((g) => g.items.length > 0),
-    [menuGroups, showCompanyProfileNav, permsLoading, can],
+    [menuGroups, showCompanyProfileNav, allowTab],
   );
 
   const activeGroupId = useMemo(() => {
@@ -164,13 +164,15 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
       >
         <div className="flex flex-col h-full">
           {/* Logo/Brand Section */}
-          <div className={`border-b border-white/10 ${isOpen ? 'p-4' : 'px-2 py-3'}`}>
+          <div className={`border-b border-white/10 h-21 flex items-center ${isOpen ? 'px-4' : 'px-2'}`}>
             <Link
               href="/"
               onClick={() => {
                 if (mobileOpen) onMobileToggle();
               }}
-              className={`flex items-center rounded-lg outline-none transition-colors hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-white/30 ${isOpen ? 'gap-3 p-1 -m-1' : 'justify-center p-1 -m-1'}`}
+              className={`flex items-center w-full h-full rounded-lg outline-none transition-colors hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-white/30 ${
+                isOpen ? 'gap-3 px-1' : 'justify-center'
+              }`}
               aria-label={t('nav.home')}
             >
               <BrandingLogo
@@ -323,13 +325,13 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
       >
         <div className="flex flex-col h-full">
           {/* Logo/Brand Section */}
-          <div className="p-4 border-b border-white/10">
+          <div className="h-20 px-4 border-b border-white/10 flex items-center">
             <Link
               href="/"
               onClick={() => {
                 if (mobileOpen) onMobileToggle();
               }}
-              className="flex items-center gap-3 rounded-lg p-1 -m-1 outline-none transition-colors hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-white/30"
+              className="flex items-center gap-3 w-full h-full rounded-lg outline-none transition-colors hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-white/30"
               aria-label={t('nav.home')}
             >
               <BrandingLogo

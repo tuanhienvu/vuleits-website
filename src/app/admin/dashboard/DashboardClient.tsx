@@ -10,6 +10,7 @@ import { getRoleRank } from '@/lib/adminRoleRank';
 import { useToast } from '@/components/providers/ToastProvider';
 import type { AboutIntroPayload } from '@/lib/aboutIntroSetting';
 import AdminTinyMceEditor from '@/components/admin/AdminTinyMceEditor';
+import NewsAdminPanel from '@/components/admin/NewsAdminPanel';
 
 function isAdminFeatureTab(tab: string): tab is AdminUiFeatureId {
   return (UI_FEATURES as readonly string[]).includes(tab);
@@ -99,22 +100,47 @@ export default function DashboardClient() {
 
   // Sync activeTab with URL parameter
   useEffect(() => {
-    const tab = searchParams.get('tab') || 'overview';
-    setActiveTab(tab);
+    const urlTab = searchParams.get('tab');
+    if (urlTab) {
+      setActiveTab(urlTab);
+      return;
+    }
+
+    // If query param is missing (can happen on reloads), restore the last tab.
+    try {
+      const stored = window.localStorage.getItem('admin_dashboard_tab');
+      if (stored && isAdminFeatureTab(stored)) {
+        setActiveTab(stored);
+      } else {
+        setActiveTab('overview');
+      }
+    } catch {
+      setActiveTab('overview');
+    }
   }, [searchParams]);
 
   useEffect(() => {
     if (permsLoading) return;
-    const tab = searchParams.get('tab') || 'overview';
-    if (!isAdminFeatureTab(tab)) return;
-    if (can(tab, 'read')) return;
+    if (!isAdminFeatureTab(activeTab)) return;
+    if (can(activeTab, 'read')) return;
+
+    // Keep existing navigation behavior for unauthorized tabs:
+    // redirect to the first permitted feature (or login).
     const fallback = UI_FEATURES.find((f) => can(f, 'read'));
     if (fallback) {
       router.replace(`/admin/dashboard?tab=${fallback}`);
     } else {
       router.replace('/admin/login');
     }
-  }, [permsLoading, searchParams, can, router]);
+  }, [permsLoading, activeTab, can, router]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem('admin_dashboard_tab', activeTab);
+    } catch {
+      // ignore
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     if (activeTab !== 'media' || permsLoading || !can('media', 'read')) return;
@@ -1196,15 +1222,41 @@ export default function DashboardClient() {
                               Order: {f.order}
                             </span>
                           </div>
-                          <p className="text-white/70 text-sm mt-1">{f.description}</p>
+                          <div
+                            className="text-white/70 text-sm mt-1"
+                            // Preview embedded HTML/CSS/JS snippets (same behavior as public pages).
+                            dangerouslySetInnerHTML={{ __html: f.description || '' }}
+                          />
                         </div>
                       </div>
-                      <div className="flex gap-2 md:justify-end">
-                        <button onClick={() => openEditHomeFeature(f)} className="bg-white/20 text-white px-4 py-2 rounded hover:bg-white/30">
-                          Edit
+                      <div className="flex gap-1 md:justify-end">
+                        <button
+                          type="button"
+                          onClick={() => openEditHomeFeature(f)}
+                          aria-label={`Edit ${f.title}`}
+                          className="bg-transparent border border-white/30 text-white px-3 py-2 rounded hover:bg-white/10 hover:text-white/90 inline-flex items-center justify-center transition-colors transform-gpu"
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.animation = 'zoom-in-zoom-out-120 1s ease infinite';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.animation = '';
+                          }}
+                        >
+                          <span aria-hidden>✏️</span>
                         </button>
-                        <button onClick={() => deleteHomeFeature(f.id)} className="bg-red-500/20 text-red-200 px-4 py-2 rounded hover:bg-red-500/30">
-                          Delete
+                        <button
+                          type="button"
+                          onClick={() => deleteHomeFeature(f.id)}
+                          aria-label={`Delete ${f.title}`}
+                          className="bg-transparent border border-red-400/35 text-red-300 px-3 py-2 rounded hover:bg-red-400/15 hover:border-red-400/55 hover:text-red-400/95 inline-flex items-center justify-center transition-colors transform-gpu"
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.animation = 'zoom-in-zoom-out-120 1s ease infinite';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.animation = '';
+                          }}
+                        >
+                          <span aria-hidden>🗑️</span>
                         </button>
                       </div>
                     </div>
@@ -1342,12 +1394,34 @@ export default function DashboardClient() {
                           </span>
                         </div>
                       </div>
-                      <div className="flex gap-2">
-                        <button onClick={() => openEditAboutStat(s)} className="bg-white/20 text-white px-4 py-2 rounded hover:bg-white/30">
-                          Edit
+                      <div className="flex gap-1">
+                        <button
+                          type="button"
+                          onClick={() => openEditAboutStat(s)}
+                          aria-label={`Edit ${s.label}`}
+                          className="bg-transparent border border-white/30 text-white px-3 py-2 rounded hover:bg-white/10 hover:text-white/90 inline-flex items-center justify-center transition-colors transform-gpu"
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.animation = 'zoom-in-zoom-out-120 1s ease infinite';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.animation = '';
+                          }}
+                        >
+                          <span aria-hidden>✏️</span>
                         </button>
-                        <button onClick={() => deleteAboutStat(s.id)} className="bg-red-500/20 text-red-200 px-4 py-2 rounded hover:bg-red-500/30">
-                          Delete
+                        <button
+                          type="button"
+                          onClick={() => deleteAboutStat(s.id)}
+                          aria-label={`Delete ${s.label}`}
+                          className="bg-transparent border border-red-400/35 text-red-300 px-3 py-2 rounded hover:bg-red-400/15 hover:border-red-400/55 hover:text-red-400/95 inline-flex items-center justify-center transition-colors transform-gpu"
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.animation = 'zoom-in-zoom-out-120 1s ease infinite';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.animation = '';
+                          }}
+                        >
+                          <span aria-hidden>🗑️</span>
                         </button>
                       </div>
                     </div>
@@ -1490,7 +1564,7 @@ export default function DashboardClient() {
                         <div className="w-full h-full flex items-center justify-center text-white/35 text-2xl">🎨</div>
                       )}
                     </div>
-                    <div className="flex-1 min-w-[12rem] space-y-2">
+                    <div className="flex-1 min-w-48 space-y-2">
                       <label className="block">
                         <span className="text-white/70 text-xs">Image URL</span>
                         <input
@@ -1637,12 +1711,34 @@ export default function DashboardClient() {
                           <p className="text-white/70 text-sm mt-1">{m.bio}</p>
                         </div>
                       </div>
-                      <div className="flex gap-2 md:justify-end">
-                        <button onClick={() => openEditAboutTeam(m)} className="bg-white/20 text-white px-4 py-2 rounded hover:bg-white/30">
-                          Edit
+                      <div className="flex gap-1 md:justify-end">
+                        <button
+                          type="button"
+                          onClick={() => openEditAboutTeam(m)}
+                          aria-label={`Edit ${m.name}`}
+                          className="bg-transparent border border-white/30 text-white px-3 py-2 rounded hover:bg-white/10 hover:text-white/90 inline-flex items-center justify-center transition-colors transform-gpu"
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.animation = 'zoom-in-zoom-out-120 1s ease infinite';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.animation = '';
+                          }}
+                        >
+                          <span aria-hidden>✏️</span>
                         </button>
-                        <button onClick={() => deleteAboutTeam(m.id)} className="bg-red-500/20 text-red-200 px-4 py-2 rounded hover:bg-red-500/30">
-                          Delete
+                        <button
+                          type="button"
+                          onClick={() => deleteAboutTeam(m.id)}
+                          aria-label={`Delete ${m.name}`}
+                          className="bg-transparent border border-red-400/35 text-red-300 px-3 py-2 rounded hover:bg-red-400/15 hover:border-red-400/55 hover:text-red-400/95 inline-flex items-center justify-center transition-colors transform-gpu"
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.animation = 'zoom-in-zoom-out-120 1s ease infinite';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.animation = '';
+                          }}
+                        >
+                          <span aria-hidden>🗑️</span>
                         </button>
                       </div>
                     </div>
@@ -1742,7 +1838,7 @@ export default function DashboardClient() {
               typeof document !== 'undefined' &&
               createPortal(
                 <div
-                  className="fixed inset-0 z-[100] flex min-h-dvh w-full items-center justify-center p-4 sm:p-6"
+                  className="fixed inset-0 z-100 flex min-h-dvh w-full items-center justify-center p-4 sm:p-6"
                   role="dialog"
                   aria-modal="true"
                   aria-labelledby="hero-intro-picker-title"
@@ -1843,18 +1939,44 @@ export default function DashboardClient() {
                               Order: {s.order}
                             </span>
                           </div>
-                          <p className="text-white/70 text-sm mt-1">{s.description}</p>
+                          <div
+                            className="text-white/70 text-sm mt-1"
+                            // Preview embedded HTML/CSS/JS snippets (same behavior as public pages).
+                            dangerouslySetInnerHTML={{ __html: s.description || '' }}
+                          />
                           {stringifyFeatures(s.features).trim() && (
                             <p className="text-white/50 text-sm mt-2 whitespace-pre-line">{stringifyFeatures(s.features)}</p>
                           )}
                         </div>
                       </div>
-                      <div className="flex gap-2 md:justify-end">
-                        <button onClick={() => openEditService(s)} className="bg-white/20 text-white px-4 py-2 rounded hover:bg-white/30">
-                          Edit
+                      <div className="flex gap-1 md:justify-end">
+                        <button
+                          type="button"
+                          onClick={() => openEditService(s)}
+                          aria-label={`Edit ${s.title}`}
+                          className="bg-transparent border border-white/30 text-white px-3 py-2 rounded hover:bg-white/10 hover:text-white/90 inline-flex items-center justify-center transition-colors transform-gpu"
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.animation = 'zoom-in-zoom-out-120 1s ease infinite';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.animation = '';
+                          }}
+                        >
+                          <span aria-hidden>✏️</span>
                         </button>
-                        <button onClick={() => deleteService(s.id)} className="bg-red-500/20 text-red-200 px-4 py-2 rounded hover:bg-red-500/30">
-                          Delete
+                        <button
+                          type="button"
+                          onClick={() => deleteService(s.id)}
+                          aria-label={`Delete ${s.title}`}
+                          className="bg-transparent border border-red-400/35 text-red-300 px-3 py-2 rounded hover:bg-red-400/15 hover:border-red-400/55 hover:text-red-400/95 inline-flex items-center justify-center transition-colors transform-gpu"
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.animation = 'zoom-in-zoom-out-120 1s ease infinite';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.animation = '';
+                          }}
+                        >
+                          <span aria-hidden>🗑️</span>
                         </button>
                       </div>
                     </div>
@@ -2656,9 +2778,33 @@ export default function DashboardClient() {
                     <p className="text-white font-medium">Product {i}</p>
                     <p className="text-white/50 text-sm">Status: Active</p>
                   </div>
-                  <div className="flex gap-2">
-                    <button className="bg-white/20 text-white px-4 py-2 rounded hover:bg-white/30">Edit</button>
-                    <button className="bg-red-500/20 text-red-200 px-4 py-2 rounded hover:bg-red-500/30">Delete</button>
+                  <div className="flex gap-1">
+                    <button
+                      type="button"
+                      className="bg-transparent border border-white/30 text-white px-3 py-2 rounded hover:bg-white/10 hover:text-white/90 inline-flex items-center justify-center transition-colors transform-gpu"
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.animation = 'zoom-in-zoom-out-120 1s ease infinite';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.animation = '';
+                      }}
+                      aria-label="Edit Product"
+                    >
+                      <span aria-hidden>✏️</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="bg-transparent border border-red-400/35 text-red-300 px-3 py-2 rounded hover:bg-red-400/15 hover:border-red-400/55 hover:text-red-400/95 inline-flex items-center justify-center transition-colors transform-gpu"
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.animation = 'zoom-in-zoom-out-120 1s ease infinite';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.animation = '';
+                      }}
+                      aria-label="Delete Product"
+                    >
+                      <span aria-hidden>🗑️</span>
+                    </button>
                   </div>
                 </div>
               ))}
@@ -2667,26 +2813,7 @@ export default function DashboardClient() {
         )}
 
         {activeTab === 'news' && (
-          <div>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-white">News Management</h2>
-              <button className="cta-button px-6 py-2">+ Add News</button>
-            </div>
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="bg-white/10 p-4 rounded-lg flex justify-between items-center">
-                  <div>
-                    <p className="text-white font-medium">News Article {i}</p>
-                    <p className="text-white/50 text-sm">Tags: Updates, News</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button className="bg-white/20 text-white px-4 py-2 rounded hover:bg-white/30">Edit</button>
-                    <button className="bg-red-500/20 text-red-200 px-4 py-2 rounded hover:bg-red-500/30">Delete</button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <NewsAdminPanel />
         )}
 
         {activeTab === 'media' && (
@@ -2729,7 +2856,73 @@ export default function DashboardClient() {
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {mediaList.map((m) => (
-                  <div key={m.id} className="bg-white/10 p-3 rounded-lg text-center overflow-hidden">
+                  <div
+                    key={m.id}
+                    className="relative bg-white/10 p-3 rounded-lg text-center overflow-hidden group"
+                  >
+                    {(can('media', 'update') || can('media', 'delete')) && (
+                      <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                        {can('media', 'update') && (
+                          <button
+                            type="button"
+                            aria-label={`Edit media ${m.filename}`}
+                            className="bg-transparent border border-white/30 text-white px-3 py-2 rounded hover:bg-white/10 hover:text-white/90 inline-flex items-center justify-center transition-colors transform-gpu"
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.animation = 'zoom-in-zoom-out-120 1s ease infinite';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.animation = '';
+                            }}
+                            onClick={() => window.open(m.url, '_blank', 'noopener,noreferrer')}
+                          >
+                            <span aria-hidden>✏️</span>
+                          </button>
+                        )}
+                        {can('media', 'delete') && (
+                          <button
+                            type="button"
+                            aria-label={`Delete media ${m.filename}`}
+                            className="bg-transparent border border-red-400/35 text-red-300 px-3 py-2 rounded hover:bg-red-400/15 hover:border-red-400/55 hover:text-red-400/95 inline-flex items-center justify-center transition-colors transform-gpu"
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.animation = 'zoom-in-zoom-out-120 1s ease infinite';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.animation = '';
+                            }}
+                            onClick={async () => {
+                              const ok = window.confirm('Delete this media item?');
+                              if (!ok) return;
+                              setMediaLoading(true);
+                              try {
+                                const res = await fetch(`/api/admin/media/${m.id}`, {
+                                  method: 'DELETE',
+                                  credentials: 'include',
+                                });
+                                if (!res.ok) {
+                                  if (res.status === 401 || res.status === 403) window.location.href = '/admin/login';
+                                  const data = await res.json().catch(() => ({}));
+                                  throw new Error(data?.error || 'Delete failed');
+                                }
+                                toast.success('Deleted');
+
+                                const ref = await fetch('/api/admin/media?take=100&imagesOnly=0', {
+                                  credentials: 'include',
+                                });
+                                const refData = await ref.json().catch(() => null);
+                                if (Array.isArray(refData)) setMediaList(refData as MediaLibraryRow[]);
+                              } catch (e: unknown) {
+                                const msg = e instanceof Error ? e.message : 'Delete failed';
+                                toast.error(msg);
+                              } finally {
+                                setMediaLoading(false);
+                              }
+                            }}
+                          >
+                            <span aria-hidden>🗑️</span>
+                          </button>
+                        )}
+                      </div>
+                    )}
                     <div
                       className={`aspect-square relative mb-2 bg-black/20 rounded overflow-hidden ${
                         m.mimeType.startsWith('image/') ? '' : 'flex items-center justify-center'
@@ -2778,9 +2971,33 @@ export default function DashboardClient() {
                     <p className="text-white font-medium">Banner Slider {i}</p>
                     <p className="text-white/50 text-sm">3 slides</p>
                   </div>
-                  <div className="flex gap-2">
-                    <button className="bg-white/20 text-white px-4 py-2 rounded hover:bg-white/30">Edit</button>
-                    <button className="bg-red-500/20 text-red-200 px-4 py-2 rounded hover:bg-red-500/30">Delete</button>
+                  <div className="flex gap-1">
+                    <button
+                      type="button"
+                      className="bg-transparent border border-white/30 text-white px-3 py-2 rounded hover:bg-white/10 hover:text-white/90 inline-flex items-center justify-center transition-colors transform-gpu"
+                      aria-label={`Edit Banner Slider ${i}`}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.animation = 'zoom-in-zoom-out-120 1s ease infinite';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.animation = '';
+                      }}
+                    >
+                      <span aria-hidden>✏️</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="bg-transparent border border-red-400/35 text-red-300 px-3 py-2 rounded hover:bg-red-400/15 hover:border-red-400/55 hover:text-red-400/95 inline-flex items-center justify-center transition-colors transform-gpu"
+                      aria-label={`Delete Banner Slider ${i}`}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.animation = 'zoom-in-zoom-out-120 1s ease infinite';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.animation = '';
+                      }}
+                    >
+                      <span aria-hidden>🗑️</span>
+                    </button>
                   </div>
                 </div>
               ))}

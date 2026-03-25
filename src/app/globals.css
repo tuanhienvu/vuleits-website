@@ -11,6 +11,38 @@
   }
 }
 
+.zoom-in-zoom-out-200 {
+  transform-origin: center;
+}
+
+@keyframes zoom-in-zoom-out-120 {
+  0% {
+    transform: scale(1, 1);
+  }
+
+  50% {
+    transform: scale(1.2, 1.2);
+  }
+
+  100% {
+    transform: scale(1, 1);
+  }
+}
+
+@keyframes zoom-in-zoom-out-200 {
+  0% {
+    transform: scale(1, 1);
+  }
+
+  50% {
+    transform: scale(2, 2);
+  }
+
+  100% {
+    transform: scale(1, 1);
+  }
+}
+
 .toast-pop {
   animation: toast-slide-in 0.28s ease-out;
 }
@@ -36,7 +68,7 @@
   }
 
   .cta-button {
-    @apply inline-block px-8 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-full hover:shadow-lg transform hover:scale-105 transition-all duration-300 cursor-pointer;
+    @apply inline-block px-8 py-3 bg-linear-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-full hover:shadow-lg transform hover:scale-105 transition-all duration-300 cursor-pointer;
   }
 
   /* Admin sidebar: slim scrollbar (esp. collapsed rail) */
@@ -87,6 +119,11 @@
 @layer utilities {
   .font-zcool {
     font-family: "ZCOOL XiaoWei", ui-serif, Georgia, "Times New Roman", serif;
+  }
+
+  /* Utility used by admin sidebar to match header height precisely */
+  .h-21 {
+    height: calc(var(--spacing) * 21.2);
   }
 }
 

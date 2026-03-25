@@ -22,7 +22,10 @@
   "/api/admin/me-permissions/route": "/api/admin/me-permissions",
   "/api/admin/me/password/route": "/api/admin/me/password",
   "/api/admin/me/route": "/api/admin/me",
+  "/api/admin/media/[id]/route": "/api/admin/media/[id]",
   "/api/admin/media/route": "/api/admin/media",
+  "/api/admin/news/[id]/route": "/api/admin/news/[id]",
+  "/api/admin/news/route": "/api/admin/news",
   "/api/admin/permissions/[userId]/route": "/api/admin/permissions/[userId]",
   "/api/admin/roles/route": "/api/admin/roles",
   "/api/admin/services/[id]/route": "/api/admin/services/[id]",
@@ -32,7 +35,12 @@
   "/api/company/branding/route": "/api/company/branding",
   "/api/company/contact/route": "/api/company/contact",
   "/api/home/features/route": "/api/home/features",
+  "/api/news/[slug]/route": "/api/news/[slug]",
+  "/api/news/route": "/api/news",
+  "/api/news/rss.xml/route": "/api/news/rss.xml",
   "/api/services/route": "/api/services",
   "/favicon.ico/route": "/favicon.ico",
+  "/news/[slug]/page": "/news/[slug]",
+  "/news/page": "/news",
   "/page": "/"
 }

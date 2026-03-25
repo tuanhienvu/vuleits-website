@@ -182,6 +182,31 @@
         "x-next-revalidate-tag-token"
       ]
     },
+    "/news": {
+      "experimentalBypassFor": [
+        {
+          "type": "header",
+          "key": "next-action"
+        },
+        {
+          "type": "header",
+          "key": "content-type",
+          "value": "multipart/form-data;.*"
+        }
+      ],
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/news",
+      "dataRoute": "/news.rsc",
+      "prefetchDataRoute": null,
+      "allowHeader": [
+        "host",
+        "x-matched-path",
+        "x-prerender-revalidate",
+        "x-prerender-revalidate-if-generated",
+        "x-next-revalidated-tags",
+        "x-next-revalidate-tag-token"
+      ]
+    },
     "/": {
       "experimentalBypassFor": [
         {
@@ -211,8 +236,8 @@
   "dynamicRoutes": {},
   "notFoundRoutes": [],
   "preview": {
-    "previewModeId": "c1bc026d8044d1bd830a9bb5a09add94",
-    "previewModeSigningKey": "98a3cbd51257c92aff749d9b55f0bca7bc0849dd2654a7c0ddf05e6bdda4999d",
-    "previewModeEncryptionKey": "2c2baa93541eaddb3d489bc784768667ec48bc8b5f9db81e979c5d682943571b"
+    "previewModeId": "2f4d56304c0ec29f679afbded61f540d",
+    "previewModeSigningKey": "747cfc5ab7a50382670b780d8ccc869b7f1b8865d4ee147bd014303be90a1416",
+    "previewModeEncryptionKey": "3e0164e4c907bbb5d7f79f4453a202d0651bed3554a2269e32787a8930014cc6"
   }
 }
