@@ -1,0 +1,214 @@
+@import "tailwindcss";
+@source "../**/*.{js,ts,jsx,tsx,mdx}";
+@source "../../components/**/*.{js,ts,jsx,tsx,mdx}";
+@source "../../hooks/**/*.{js,ts,jsx,tsx,mdx}";
+
+@keyframes toast-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(1.25rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.zoom-in-zoom-out-200 {
+  transform-origin: center;
+}
+
+@keyframes zoom-in-zoom-out-120 {
+  0% {
+    transform: scale(1, 1);
+  }
+
+  50% {
+    transform: scale(1.2, 1.2);
+  }
+
+  100% {
+    transform: scale(1, 1);
+  }
+}
+
+@keyframes zoom-in-zoom-out-200 {
+  0% {
+    transform: scale(1, 1);
+  }
+
+  50% {
+    transform: scale(2, 2);
+  }
+
+  100% {
+    transform: scale(1, 1);
+  }
+}
+
+@keyframes news-edit-modal-zoom-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.18);
+    filter: blur(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes news-edit-modal-zoom-out {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.18);
+    filter: blur(2px);
+  }
+}
+
+.toast-pop {
+  animation: toast-slide-in 0.28s ease-out;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) translateX(0px);
+  }
+  25% {
+    transform: translateY(-10px) translateX(5px);
+  }
+  50% {
+    transform: translateY(-20px) translateX(-5px);
+  }
+  75% {
+    transform: translateY(-10px) translateX(5px);
+  }
+}
+
+@layer components {
+  .glass {
+    @apply backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-lg hover:bg-white/15 transition-all duration-300;
+  }
+
+  .cta-button {
+    @apply inline-block px-8 py-3 bg-linear-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-full hover:shadow-lg transform hover:scale-105 transition-all duration-300 cursor-pointer;
+  }
+
+  .btn-admin-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 min-h-11 text-sm font-semibold text-white bg-linear-to-r from-violet-500 to-fuchsia-500 border border-white/20 shadow-md shadow-violet-900/25 hover:from-violet-400 hover:to-fuchsia-400 hover:shadow-lg hover:shadow-violet-700/35 disabled:opacity-50 disabled:pointer-events-none transition-all duration-200;
+  }
+
+  .btn-admin-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 min-h-11 text-sm font-medium text-white bg-white/10 border border-white/20 hover:bg-white/20 hover:border-white/35 disabled:opacity-50 disabled:pointer-events-none transition-all duration-200;
+  }
+
+  .btn-admin-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 min-h-11 text-sm font-medium text-red-100 bg-red-500/20 border border-red-400/45 hover:bg-red-500/30 hover:border-red-300/60 disabled:opacity-50 disabled:pointer-events-none transition-all duration-200;
+  }
+
+  .btn-admin-icon {
+    @apply inline-flex items-center justify-center rounded-lg border border-white/30 text-white px-3 py-2 hover:bg-white/10 hover:text-white/90 transition-all duration-200 transform-gpu;
+  }
+
+  .btn-admin-icon-danger {
+    @apply inline-flex items-center justify-center rounded-lg border border-red-400/35 text-red-300 px-3 py-2 hover:bg-red-400/15 hover:border-red-400/55 hover:text-red-400/95 transition-all duration-200 transform-gpu;
+  }
+
+  .btn-admin-pager {
+    @apply inline-flex items-center justify-center rounded-xl px-3 py-2 text-white bg-white/5 border border-white/10 hover:bg-white/10 disabled:opacity-40 disabled:pointer-events-none transition-colors;
+  }
+
+  /* Admin sidebar: slim scrollbar (esp. collapsed rail) */
+  .admin-sidebar-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+  }
+
+  .admin-sidebar-scroll::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  .admin-sidebar-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .admin-sidebar-scroll::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 9999px;
+  }
+
+  .admin-sidebar-scroll::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.35);
+  }
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  /*
+   * Tailwind v4 maps --font-{name} → utility `font-{name}`.
+   * Use --font-zcool (not --font-zcool-xiaowei) so `font-zcool` is generated.
+   * @fontsource/zcool-xiaowei in root layout registers the "ZCOOL XiaoWei" family.
+   */
+  --font-zcool: "ZCOOL XiaoWei", ui-serif, Georgia, "Times New Roman", serif;
+  /* Desktop / mobile split: below 1080px use compact (mobile) layouts for all `lg:` utilities */
+  --breakpoint-lg: 67.5rem;
+}
+
+/* Explicit rule: ensures `font-zcool` works even if v4 theme token alone does not emit the utility */
+@layer utilities {
+  .font-zcool {
+    font-family: "ZCOOL XiaoWei", ui-serif, Georgia, "Times New Roman", serif;
+  }
+
+  /* Utility used by admin sidebar to match header height precisely */
+  .h-21 {
+    height: calc(var(--spacing) * 21.2);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Admin Dashboard Select Dropdown Styling */
+select {
+  color-scheme: dark;
+}
+
+select option {
+  background-color: #1a1a2e;
+  color: #ffffff;
+  padding: 8px;
+}
+
