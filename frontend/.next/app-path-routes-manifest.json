@@ -1,0 +1,15 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/admin/company-profile/page": "/admin/company-profile",
+  "/admin/dashboard/page": "/admin/dashboard",
+  "/admin/login/page": "/admin/login",
+  "/admin/profile/page": "/admin/profile",
+  "/news/[slug]/page": "/news/[slug]",
+  "/news/page": "/news",
+  "/page": "/",
+  "/products/[slug]/page": "/products/[slug]",
+  "/products/page": "/products",
+  "/services/[id]/page": "/services/[id]",
+  "/services/page": "/services"
+}

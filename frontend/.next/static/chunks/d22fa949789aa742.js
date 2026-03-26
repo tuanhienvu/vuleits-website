@@ -1,0 +1,1 @@
+(globalThis.TURBOPACK||(globalThis.TURBOPACK=[])).push(["object"==typeof document?document.currentScript:void 0,29910,t=>{"use strict";t.s(["NEWS_CATEGORIES",0,["Politics","Economy","Technology","Entertainment","Science","Sports","Health","Other"]])},68442,t=>{t.v(c=>Promise.all(["static/chunks/5af4b4cbf48c785a.js"].map(c=>t.l(c))).then(()=>c(69340)))}]);

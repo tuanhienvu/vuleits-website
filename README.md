@@ -14,27 +14,18 @@ A modern, responsive website portal built with Next.js, React, and Tailwind CSS 
 ## 🏗️ Project Structure
 
 ```
-src/
-├── app/
-│   ├── page.tsx                 # Main portal with page routing
-│   ├── globals.css              # Global styles & animations
-│   └── admin/
-│       ├── login/page.tsx       # Admin login
-│       └── dashboard/page.tsx   # Admin dashboard
-├── components/
-│   ├── Navigation.tsx           # Navigation bar
-│   ├── Footer.tsx               # Footer
-│   └── pages/
-│       ├── HomePage.tsx
-│       ├── AboutPage.tsx
-│       ├── ProductsPage.tsx
-│       ├── NewsPage.tsx
-│       ├── ServicesPage.tsx
-│       ├── ContactPage.tsx
-│       ├── PrivacyPolicyPage.tsx
-│       └── TermsOfServicePage.tsx
+frontend/
+├── app/            # Next.js routes/pages
+├── components/     # Shared UI components
+├── hooks/          # Frontend hooks
+├── lib/            # Frontend utilities/types
+└── public/         # Static assets
+backend/
+├── app/api/        # Backend API routes
+├── src/lib/        # Backend business/data modules
+└── public/uploads/ # Uploaded assets
 prisma/
-└── schema.prisma               # Database models
+└── schema.prisma       # Database models
 ```
 
 ## 📄 Public Portal Pages
@@ -75,12 +66,10 @@ Models: User, Role, Product, News, BannerSlider, Media, Contact, AboutSection, P
 # Install
 npm install
 
-# Setup .env
-DB_HOST=localhost
-DB_PORT=3306
-DB_NAME=vuleits
-DB_USER=your_mysql_user
-DB_PASSWORD=your_mysql_password
+# Setup env files
+# backend/.env (copy from backend/.env.example)
+# frontend/.env.local
+#   NEXT_PUBLIC_API_BASE_URL=http://localhost:5000
 
 # Generate Prisma client
 npm run db:generate
@@ -88,8 +77,9 @@ npm run db:generate
 # Sync schema
 npm run db:push
 
-# Run
-npm run dev
+# Run (in separate terminals)
+npm run dev:backend
+npm run dev:frontend
 ```
 
 ## 📝 Tech Stack
@@ -107,8 +97,8 @@ npm run dev
 
 The repository now supports two deployable Next.js apps:
 
-- `apps/frontend` -> deploy to `https://vuleits.com`
-- `apps/backend` -> deploy to `https://portal.vuleits.com`
+- `frontend` -> deploy to `https://vuleits.com`
+- `backend` -> deploy to `https://portal.vuleits.com`
 
 ### Local Development
 
@@ -120,10 +110,10 @@ npm install
 
 2. Configure env files:
 
-- `apps/frontend/.env.local`
-  - `NEXT_PUBLIC_API_BASE_URL=http://localhost:4000`
-- `apps/backend/.env.local`
-  - Copy from `apps/backend/.env.example`
+- `frontend/.env.local`
+  - `NEXT_PUBLIC_API_BASE_URL=http://localhost:5000`
+- `backend/.env.local`
+  - Copy from `backend/.env.example`
 
 3. Start backend:
 
@@ -150,9 +140,9 @@ npm run start:frontend
 ### Integration Notes
 
 - Frontend rewrites `/api/*` to `NEXT_PUBLIC_API_BASE_URL/api/*`.
-- Backend includes a unified API dispatcher that reuses existing route handlers under `src/app/api`.
+- Backend owns API routes under `backend/app/api/**` with a fallback dispatcher only for unknown paths.
 - CORS/security headers are set in backend dispatcher for cross-subdomain requests.
-- Backend now has localized core server modules under `apps/backend/src/lib` (`prisma`, `jwt`, `adminAuth`, `adminEmail`) and locally migrated APIs for:
+- Backend now has localized core server modules under `backend/src/lib` (`prisma`, `jwt`, `adminAuth`, `adminEmail`) and locally migrated APIs for:
   - `/api/products`
   - `/api/products/[slug]`
   - `/api/products/analytics`

@@ -1,0 +1,37 @@
+import type { Metadata } from 'next';
+import ProductDetailClient from '@/components/products/ProductDetailClient';
+import type { PublicProductDetail } from '@/lib/products/types';
+
+type Props = { params: Promise<{ slug: string }> };
+
+function backendBaseUrl() {
+  return process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:5000';
+}
+
+async function fetchProduct(slug: string): Promise<PublicProductDetail | null> {
+  const res = await fetch(`${backendBaseUrl()}/api/products/${encodeURIComponent(slug)}`, { cache: 'no-store' });
+  if (!res.ok) return null;
+  return (await res.json()) as PublicProductDetail;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const p = await fetchProduct(slug);
+  if (!p) return { title: 'Product - VULE ITS' };
+  const title = p.seoTitle ?? `${p.productName} - VULE ITS`;
+  const desc = p.seoDescription ?? p.shortDescription;
+  return {
+    title,
+    description: desc,
+    openGraph: { title: p.productName, description: desc },
+  };
+}
+
+export default async function ProductDetailPage({ params }: Props) {
+  const { slug } = await params;
+  const initial = await fetchProduct(slug);
+  if (!initial) {
+    return <div className="container mx-auto px-4 py-12 text-white">Product not found.</div>;
+  }
+  return <ProductDetailClient initial={initial} />;
+}

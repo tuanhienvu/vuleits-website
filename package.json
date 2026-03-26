@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "workspaces": [
-    "apps/frontend",
-    "apps/backend"
+    "frontend",
+    "backend"
   ],
   "scripts": {
     "dev:frontend": "npm run dev --workspace @vuleits/frontend",
@@ -13,14 +13,14 @@
     "build:backend": "npm run build --workspace @vuleits/backend",
     "start:frontend": "npm run start --workspace @vuleits/frontend",
     "start:backend": "npm run start --workspace @vuleits/backend",
-    "postinstall": "node scripts/prisma-with-db-env.js generate",
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "postinstall": "node backend/scripts/prisma-with-db-env.js generate",
+    "dev": "npm run dev:frontend",
+    "build": "npm run build:frontend && npm run build:backend",
+    "start": "npm run start:frontend",
     "lint": "eslint",
-    "db:generate": "node scripts/prisma-with-db-env.js generate",
-    "db:push": "node scripts/prisma-with-db-env.js db push",
-    "db:reset": "node scripts/prisma-with-db-env.js db push --force-reset --accept-data-loss",
+    "db:generate": "node backend/scripts/prisma-with-db-env.js generate",
+    "db:push": "node backend/scripts/prisma-with-db-env.js db push",
+    "db:reset": "node backend/scripts/prisma-with-db-env.js db push --force-reset --accept-data-loss",
     "seed": "node prisma/seed.js",
     "db:ensure-user-display-name": "node prisma/scripts/ensure-user-display-name.js"
   },
