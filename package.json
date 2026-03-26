@@ -2,7 +2,17 @@
   "name": "vuleits-website",
   "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    "apps/frontend",
+    "apps/backend"
+  ],
   "scripts": {
+    "dev:frontend": "npm run dev --workspace @vuleits/frontend",
+    "dev:backend": "npm run dev --workspace @vuleits/backend",
+    "build:frontend": "npm run build --workspace @vuleits/frontend",
+    "build:backend": "npm run build --workspace @vuleits/backend",
+    "start:frontend": "npm run start --workspace @vuleits/frontend",
+    "start:backend": "npm run start --workspace @vuleits/backend",
     "postinstall": "node scripts/prisma-with-db-env.js generate",
     "dev": "next dev",
     "build": "next build",

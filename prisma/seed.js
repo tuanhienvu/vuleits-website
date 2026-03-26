@@ -959,6 +959,200 @@ async function main() {
         )
       `;
     }
+
+  // --- Products catalog (categories, technologies, sample products, analytics-ready) ---
+  try {
+    const productAuthor = await prisma.user.findFirst({ where: { email: 'vuleitsolution@gmail.com' } });
+    if (productAuthor) {
+      const catRows = [
+        { slug: 'new', name: 'New Products', sortOrder: 0 },
+        { slug: 'featured', name: 'Featured Products', sortOrder: 1 },
+        { slug: 'trending', name: 'Trending Products', sortOrder: 2 },
+      ];
+      for (const c of catRows) {
+        await prisma.productCategory.upsert({
+          where: { slug: c.slug },
+          create: c,
+          update: { name: c.name, sortOrder: c.sortOrder },
+        });
+      }
+
+      const techDefs = [
+        {
+          techName: 'Next.js',
+          techLogo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nextjs/nextjs-original.svg',
+          description: 'React framework for production',
+        },
+        {
+          techName: 'TypeScript',
+          techLogo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg',
+          description: 'Typed JavaScript',
+        },
+        {
+          techName: 'Prisma',
+          techLogo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/prisma/prisma-original.svg',
+          description: 'Database ORM',
+        },
+        {
+          techName: 'MySQL',
+          techLogo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg',
+          description: 'Relational database',
+        },
+      ];
+      const techIds = [];
+      for (const t of techDefs) {
+        const row = await prisma.technology.upsert({
+          where: { techName: t.techName },
+          create: t,
+          update: { techLogo: t.techLogo, description: t.description },
+        });
+        techIds.push(row.id);
+      }
+
+      const cat = async (slug) => {
+        const r = await prisma.productCategory.findUnique({ where: { slug } });
+        if (!r) throw new Error(`Missing category ${slug}`);
+        return r.id;
+      };
+
+      const products = [
+        {
+          productName: 'VULE Commerce Hub',
+          slug: 'vule-commerce-hub',
+          shortDescription: 'Headless storefront with real-time inventory and analytics.',
+          fullDescription:
+            '<h2>Overview</h2><p>Commerce Hub unifies catalog, orders, and customer insights in one elegant dashboard.</p><h3>Highlights</h3><ul><li>Real-time stock</li><li>Role-based admin</li><li>Export-ready reports</li></ul>',
+          imageUrls: [
+            'https://picsum.photos/seed/vch1/1200/675',
+            'https://picsum.photos/seed/vch2/900/500',
+          ],
+          videoUrls: ['https://www.youtube.com/watch?v=dQw4w9WgXcQ'],
+          demoLink: 'https://example.com/demo',
+          landingPageLink: 'https://example.com/vule-commerce-hub',
+          embedDemoUrl: 'https://codesandbox.io/embed/new?fontsize=14&hidenavigation=1&theme=dark',
+          categorySlug: 'featured',
+          isFeatured: true,
+          viewsCount: 420,
+          demoClickCount: 88,
+          techIdx: [0, 1, 2],
+        },
+        {
+          productName: 'Insight Analytics Suite',
+          slug: 'insight-analytics-suite',
+          shortDescription: 'Minimal dashboards for product teams—events, funnels, retention.',
+          fullDescription: '<h2>Built for clarity</h2><p>Ship faster with opinionated charts and shareable snapshots.</p>',
+          imageUrls: ['https://picsum.photos/seed/ias1/1200/675'],
+          videoUrls: [],
+          demoLink: 'https://example.com/insight-demo',
+          landingPageLink: null,
+          embedDemoUrl: null,
+          categorySlug: 'trending',
+          isFeatured: false,
+          viewsCount: 980,
+          demoClickCount: 210,
+          techIdx: [0, 1, 3],
+        },
+        {
+          productName: 'Nova Mobile Shell',
+          slug: 'nova-mobile-shell',
+          shortDescription: 'Opinionated mobile shell with auth, deep links, and offline cache.',
+          fullDescription: '<h2>Ship mobile faster</h2><p>Pre-wired navigation, secure storage, and release tooling.</p>',
+          imageUrls: ['https://picsum.photos/seed/nms1/1200/675', 'https://picsum.photos/seed/nms2/800/500'],
+          videoUrls: [],
+          demoLink: null,
+          landingPageLink: 'https://example.com/nova',
+          embedDemoUrl: null,
+          categorySlug: 'new',
+          isFeatured: true,
+          viewsCount: 120,
+          demoClickCount: 34,
+          techIdx: [1, 2],
+        },
+        {
+          productName: 'Ledger API Gateway',
+          slug: 'ledger-api-gateway',
+          shortDescription: 'Policy-aware API gateway with audit trails and rate limits.',
+          fullDescription: '<h2>Secure by default</h2><p>JWT validation, mTLS hooks, and structured audit events.</p>',
+          imageUrls: ['https://picsum.photos/seed/lag1/1200/675'],
+          videoUrls: [],
+          demoLink: 'https://example.com/ledger-demo',
+          landingPageLink: 'https://example.com/ledger',
+          embedDemoUrl: null,
+          categorySlug: 'trending',
+          isFeatured: false,
+          viewsCount: 760,
+          demoClickCount: 120,
+          techIdx: [2, 3],
+        },
+        {
+          productName: 'Atlas Design Kit',
+          slug: 'atlas-design-kit',
+          shortDescription: 'Tokens, components, and motion presets for premium interfaces.',
+          fullDescription: '<h2>Design systems</h2><p>Composable tokens with dark-mode aware palettes.</p>',
+          imageUrls: ['https://picsum.photos/seed/adk1/1200/675'],
+          videoUrls: [],
+          demoLink: null,
+          landingPageLink: null,
+          embedDemoUrl: null,
+          categorySlug: 'new',
+          isFeatured: false,
+          viewsCount: 55,
+          demoClickCount: 12,
+          techIdx: [0, 1],
+        },
+        {
+          productName: 'Pulse Support Desk',
+          slug: 'pulse-support-desk',
+          shortDescription: 'Lightweight ticketing with SLA timers and customer health scores.',
+          fullDescription: '<h2>Support that scales</h2><p>Queues, macros, and satisfaction surveys out of the box.</p>',
+          imageUrls: ['https://picsum.photos/seed/psd1/1200/675'],
+          videoUrls: [],
+          demoLink: 'https://example.com/pulse-demo',
+          landingPageLink: 'https://example.com/pulse',
+          embedDemoUrl: null,
+          categorySlug: 'featured',
+          isFeatured: false,
+          viewsCount: 310,
+          demoClickCount: 64,
+          techIdx: [1, 2, 3],
+        },
+      ];
+
+      for (const p of products) {
+        const existing = await prisma.product.findUnique({ where: { slug: p.slug } });
+        if (existing) continue;
+
+        const categoryId = await cat(p.categorySlug);
+        await prisma.product.create({
+          data: {
+            productName: p.productName,
+            slug: p.slug,
+            shortDescription: p.shortDescription,
+            fullDescription: p.fullDescription,
+            imageUrls: p.imageUrls,
+            videoUrls: p.videoUrls,
+            demoLink: p.demoLink,
+            landingPageLink: p.landingPageLink,
+            embedDemoUrl: p.embedDemoUrl,
+            categoryId,
+            viewsCount: p.viewsCount,
+            demoClickCount: p.demoClickCount,
+            isFeatured: p.isFeatured,
+            status: 'Active',
+            authorId: productAuthor.id,
+            seoTitle: p.productName,
+            seoDescription: p.shortDescription,
+            technologies: {
+              create: p.techIdx.map((i) => ({ technologyId: techIds[i] })),
+            },
+          },
+        });
+      }
+    }
+  } catch (e) {
+    console.warn('Products seed skipped:', e?.message || e);
+  }
+
   console.log('Seeding completed.');
 }
 

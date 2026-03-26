@@ -93,12 +93,28 @@
       "namedRegex": "^/api/news/(?<nxtPslug>[^/]+?)(?:/)?$"
     },
     {
+      "page": "/api/products/[slug]",
+      "regex": "^/api/products/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPslug": "nxtPslug"
+      },
+      "namedRegex": "^/api/products/(?<nxtPslug>[^/]+?)(?:/)?$"
+    },
+    {
       "page": "/news/[slug]",
       "regex": "^/news/([^/]+?)(?:/)?$",
       "routeKeys": {
         "nxtPslug": "nxtPslug"
       },
       "namedRegex": "^/news/(?<nxtPslug>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/products/[slug]",
+      "regex": "^/products/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPslug": "nxtPslug"
+      },
+      "namedRegex": "^/products/(?<nxtPslug>[^/]+?)(?:/)?$"
     }
   ],
   "staticRoutes": [
@@ -289,6 +305,18 @@
       "namedRegex": "^/api/news/rss\\.xml(?:/)?$"
     },
     {
+      "page": "/api/products",
+      "regex": "^/api/products(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/products(?:/)?$"
+    },
+    {
+      "page": "/api/products/analytics",
+      "regex": "^/api/products/analytics(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/products/analytics(?:/)?$"
+    },
+    {
       "page": "/api/services",
       "regex": "^/api/services(?:/)?$",
       "routeKeys": {},
@@ -305,6 +333,12 @@
       "regex": "^/news(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/news(?:/)?$"
+    },
+    {
+      "page": "/products",
+      "regex": "^/products(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/products(?:/)?$"
     }
   ],
   "dataRoutes": [],
