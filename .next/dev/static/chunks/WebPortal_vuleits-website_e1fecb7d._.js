@@ -1,0 +1,715 @@
+(globalThis.TURBOPACK || (globalThis.TURBOPACK = [])).push([typeof document === "object" ? document.currentScript : undefined,
+"[project]/WebPortal/vuleits-website/src/components/providers/LocaleProvider.tsx [app-client] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "LocaleProvider",
+    ()=>LocaleProvider,
+    "useLocale",
+    ()=>useLocale
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$WebPortal$2f$vuleits$2d$website$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/WebPortal/vuleits-website/node_modules/next/dist/compiled/react/jsx-dev-runtime.js [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$WebPortal$2f$vuleits$2d$website$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/WebPortal/vuleits-website/node_modules/next/dist/compiled/react/index.js [app-client] (ecmascript)");
+;
+var _s = __turbopack_context__.k.signature(), _s1 = __turbopack_context__.k.signature();
+'use client';
+;
+const messagesByLocale = {
+    'en-US': {
+        'lang.english': 'English (US)',
+        'lang.vietnamese': 'Vietnamese',
+        'lang.switchLanguage': 'Switch language',
+        'lang.toggleToVietnamese': 'Switch to Vietnamese',
+        'lang.toggleToEnglish': 'Switch to English',
+        // Public nav
+        'nav.home': 'Home',
+        'nav.about': 'About',
+        'nav.products': 'Products',
+        'nav.news': 'News',
+        'nav.services': 'Services',
+        'nav.contact': 'Contact',
+        'nav.admin': 'Login',
+        'nav.tagline': 'Bring Your Success',
+        'nav.toggleMenu': 'Toggle menu',
+        // Public home
+        'home.heroIntro': 'With the motto "High efficiency, low cost, and sustainable development," we are striving every day to prove ourselves and maintain the trust and confidence of our customers.',
+        // Admin common
+        'admin.panel': 'Admin Panel',
+        'admin.overview': 'Overview',
+        'admin.users': 'Users',
+        'admin.permissions': 'Permissions',
+        'admin.productGroup': 'Products',
+        'admin.contents': 'Contents',
+        'admin.settings': 'Settings',
+        'admin.permissionGroup': 'Authority',
+        'admin.homeFeatures': 'Home Features',
+        'admin.aboutStats': 'About Stats',
+        'admin.aboutTeam': 'About Team',
+        'admin.services': 'Services',
+        'admin.products': 'Products',
+        'admin.news': 'News',
+        'admin.media': 'Media',
+        'admin.banners': 'Banners',
+        'admin.contacts': 'Contacts',
+        'admin.collapse': 'Collapse',
+        'admin.expand': 'Expand',
+        'admin.expandSidebar': 'Expand sidebar',
+        'admin.collapseSidebar': 'Collapse sidebar',
+        // Admin header
+        'admin.dashboardTitle': 'Admin Dashboard',
+        'admin.dashboardWelcome': 'Welcome back! Manage your VULE ITS content.',
+        'admin.logout': 'Logout',
+        'admin.userProfile': 'User profile',
+        'admin.changePassword': 'Change password',
+        'admin.openUserMenu': 'Open user menu',
+        'admin.changePasswordTitle': 'Change password',
+        'admin.currentPassword': 'Current password',
+        'admin.newPassword': 'New password',
+        'admin.confirmPassword': 'Confirm new password',
+        'admin.cancel': 'Cancel',
+        'admin.updatePassword': 'Update password',
+        'admin.passwordChanged': 'Password updated successfully.',
+        'admin.passwordMismatch': 'New passwords do not match.',
+        'admin.passwordChangeError': 'Could not update password.',
+        'admin.profileTitle': 'Your profile',
+        'admin.profileSubtitle': 'Email and role are read-only. You can update how your name appears in the admin area.',
+        'admin.profileEmail': 'Email',
+        'admin.profileRole': 'Role',
+        'admin.profileDisplayName': 'Display name',
+        'admin.profileDisplayNamePlaceholder': 'Optional',
+        'admin.saveChanges': 'Save changes',
+        'admin.saving': 'Saving…',
+        'admin.profileLoading': 'Loading profile…',
+        'admin.profileLoadError': 'Could not load profile.',
+        'admin.profileSaved': 'Profile updated.',
+        'admin.profileSaveError': 'Could not save profile.',
+        'admin.companyProfile': 'Company profile',
+        'admin.companyProfileDesc': 'Organization details, logo, contacts, and social links (Administrators only).',
+        'admin.companyName': 'Company name',
+        'admin.companyFullNameVi': 'Full name (Vietnamese)',
+        'admin.companyFullNameEn': 'Full name (English)',
+        'admin.companySlogan': 'Slogan',
+        'admin.companyAddress': 'Address',
+        'admin.companyLogo': 'Logo',
+        'admin.logoUrlHint': 'Image URL (https://… or /path)',
+        'admin.logoFromLibrary': 'Choose from uploaded',
+        'admin.logoUploadFile': 'Upload image',
+        'admin.contactEmail': 'Email',
+        'admin.contactPhone': 'Phone',
+        'admin.contactHotline': 'Hotline',
+        'admin.mapEmbedUrl': 'Google Maps (embed URL)',
+        'admin.mapEmbedHint': 'Optional. In Google Maps: Share → Embed a map → copy only the iframe src URL. If empty, the Contact page map uses your Address.',
+        'admin.socialLinks': 'Social links',
+        'admin.socialAdd': 'Add link',
+        'admin.socialType': 'Type',
+        'admin.socialUrl': 'URL',
+        'admin.saveCompanyProfile': 'Save company profile',
+        'admin.companyLoadError': 'Could not load company profile.',
+        'admin.companySaveError': 'Could not save.',
+        'admin.companySaved': 'Company profile saved.',
+        'admin.uploading': 'Uploading…',
+        'admin.logoUploadSuccess': 'Logo uploaded',
+        'admin.pickLogoTitle': 'Choose logo from library',
+        'admin.close': 'Close',
+        'admin.noImagesInLibrary': 'No images in media library yet. Upload a logo file above.',
+        // Public contact page
+        'contact.heroTitle': 'Get In Touch',
+        'contact.heroSubtitle': "Have questions? We'd love to hear from you. Send us a message!",
+        'contact.sendMessage': 'Send us a Message',
+        'contact.contactInfo': 'Contact Information',
+        'contact.findUs': 'Find Us',
+        'contact.email': 'Email',
+        'contact.phone': 'Phone',
+        'contact.hotline': 'Hotline',
+        'contact.address': 'Address',
+        'contact.mapPlaceholder': 'Add your address or an embed URL in Company profile to show the map.',
+        'contact.fullName': 'Full Name',
+        'contact.yourEmail': 'Email Address',
+        'contact.subject': 'Subject',
+        'contact.message': 'Message',
+        'contact.send': 'Send Message',
+        'contact.thanks': 'Thank you for your message! We will get back to you soon.',
+        'contact.followUs': 'Follow us',
+        'contact.socialNavAria': 'Social media links',
+        'contact.visitOurSocial': 'Visit our {{name}} (opens in new tab)'
+    },
+    'vi-VN': {
+        'lang.english': 'Tiếng Anh (Mỹ)',
+        'lang.vietnamese': 'Tiếng Việt',
+        'lang.switchLanguage': 'Đổi ngôn ngữ',
+        'lang.toggleToVietnamese': 'Chuyển sang Tiếng Việt',
+        'lang.toggleToEnglish': 'Chuyển sang Tiếng Anh',
+        // Public nav
+        'nav.home': 'Trang chủ',
+        'nav.about': 'Giới thiệu',
+        'nav.products': 'Sản phẩm',
+        'nav.news': 'Tin tức',
+        'nav.services': 'Dịch vụ',
+        'nav.contact': 'Liên hệ',
+        'nav.admin': 'Đăng nhập',
+        'nav.tagline': 'Đưa bạn đến thành công',
+        'nav.toggleMenu': 'Mở/đóng menu',
+        // Public home
+        'home.heroIntro': 'Với phương châm "Hiệu quả cao, chi phí thấp và phát triển bền vững", chúng tôi mỗi ngày đều nỗ lực để khẳng định năng lực và giữ vững niềm tin của khách hàng.',
+        // Admin common
+        'admin.panel': 'Bảng điều khiển',
+        'admin.overview': 'Tổng quan',
+        'admin.users': 'Người dùng',
+        'admin.permissions': 'Phân quyền',
+        'admin.productGroup': 'Sản phẩm & Dịch vụ',
+        'admin.contents': 'Nội dung',
+        'admin.settings': 'Cài đặt',
+        'admin.permissionGroup': 'Phân quyền',
+        'admin.homeFeatures': 'Tính năng trang chủ',
+        'admin.aboutStats': 'Chỉ số giới thiệu',
+        'admin.aboutTeam': 'Đội ngũ',
+        'admin.services': 'Dịch vụ',
+        'admin.products': 'Sản phẩm',
+        'admin.news': 'Tin tức',
+        'admin.media': 'Thư viện',
+        'admin.banners': 'Banner',
+        'admin.contacts': 'Liên hệ',
+        'admin.collapse': 'Thu gọn',
+        'admin.expand': 'Mở rộng',
+        'admin.expandSidebar': 'Mở rộng thanh bên',
+        'admin.collapseSidebar': 'Thu gọn thanh bên',
+        // Admin header
+        'admin.dashboardTitle': 'Bảng điều khiển',
+        'admin.dashboardWelcome': 'Chào mừng trở lại! Quản lý nội dung VULE ITS.',
+        'admin.logout': 'Đăng xuất',
+        'admin.userProfile': 'Hồ sơ người dùng',
+        'admin.changePassword': 'Đổi mật khẩu',
+        'admin.openUserMenu': 'Mở menu người dùng',
+        'admin.changePasswordTitle': 'Đổi mật khẩu',
+        'admin.currentPassword': 'Mật khẩu hiện tại',
+        'admin.newPassword': 'Mật khẩu mới',
+        'admin.confirmPassword': 'Xác nhận mật khẩu mới',
+        'admin.cancel': 'Hủy',
+        'admin.updatePassword': 'Cập nhật mật khẩu',
+        'admin.passwordChanged': 'Đã cập nhật mật khẩu.',
+        'admin.passwordMismatch': 'Mật khẩu mới không khớp.',
+        'admin.passwordChangeError': 'Không thể đổi mật khẩu.',
+        'admin.profileTitle': 'Hồ sơ của bạn',
+        'admin.profileSubtitle': 'Email và vai trò chỉ xem. Bạn có thể đổi tên hiển thị trong khu vực quản trị.',
+        'admin.profileEmail': 'Email',
+        'admin.profileRole': 'Vai trò',
+        'admin.profileDisplayName': 'Tên hiển thị',
+        'admin.profileDisplayNamePlaceholder': 'Tùy chọn',
+        'admin.saveChanges': 'Lưu thay đổi',
+        'admin.saving': 'Đang lưu…',
+        'admin.profileLoading': 'Đang tải hồ sơ…',
+        'admin.profileLoadError': 'Không tải được hồ sơ.',
+        'admin.profileSaved': 'Đã cập nhật hồ sơ.',
+        'admin.profileSaveError': 'Không lưu được hồ sơ.',
+        'admin.companyProfile': 'Hồ sơ công ty',
+        'admin.companyProfileDesc': 'Thông tin tổ chức, logo, liên hệ và mạng xã hội (chỉ Quản trị viên).',
+        'admin.companyName': 'Tên công ty',
+        'admin.companyFullNameVi': 'Tên đầy đủ (Tiếng Việt)',
+        'admin.companyFullNameEn': 'Tên đầy đủ (Tiếng Anh)',
+        'admin.companySlogan': 'Khẩu hiệu',
+        'admin.companyAddress': 'Địa chỉ',
+        'admin.companyLogo': 'Logo',
+        'admin.logoUrlHint': 'URL ảnh (https://… hoặc /đường/dẫn)',
+        'admin.logoFromLibrary': 'Chọn từ thư viện',
+        'admin.logoUploadFile': 'Tải ảnh lên',
+        'admin.contactEmail': 'Email',
+        'admin.contactPhone': 'Điện thoại',
+        'admin.contactHotline': 'Hotline',
+        'admin.mapEmbedUrl': 'Google Maps (URL nhúng)',
+        'admin.mapEmbedHint': 'Tùy chọn. Trên Google Maps: Chia sẻ → Nhúng bản đồ → chỉ sao chép URL trong thuộc tính src của iframe. Để trống thì trang Liên hệ dùng Địa chỉ để hiển thị bản đồ.',
+        'admin.socialLinks': 'Liên kết mạng xã hội',
+        'admin.socialAdd': 'Thêm liên kết',
+        'admin.socialType': 'Loại',
+        'admin.socialUrl': 'URL',
+        'admin.saveCompanyProfile': 'Lưu hồ sơ công ty',
+        'admin.companyLoadError': 'Không tải được hồ sơ công ty.',
+        'admin.companySaveError': 'Không lưu được.',
+        'admin.companySaved': 'Đã lưu hồ sơ công ty.',
+        'admin.uploading': 'Đang tải lên…',
+        'admin.logoUploadSuccess': 'Đã tải logo lên',
+        'admin.pickLogoTitle': 'Chọn logo từ thư viện',
+        'admin.close': 'Đóng',
+        'admin.noImagesInLibrary': 'Chưa có ảnh trong thư viện. Hãy tải logo lên phía trên.',
+        'contact.heroTitle': 'Liên hệ',
+        'contact.heroSubtitle': 'Bạn có câu hỏi? Chúng tôi rất muốn lắng nghe. Hãy gửi tin nhắn!',
+        'contact.sendMessage': 'Gửi tin nhắn',
+        'contact.contactInfo': 'Thông tin liên hệ',
+        'contact.findUs': 'Tìm chúng tôi',
+        'contact.email': 'Email',
+        'contact.phone': 'Điện thoại',
+        'contact.hotline': 'Hotline',
+        'contact.address': 'Địa chỉ',
+        'contact.mapPlaceholder': 'Thêm địa chỉ hoặc URL nhúng trong Hồ sơ công ty để hiển thị bản đồ.',
+        'contact.fullName': 'Họ và tên',
+        'contact.yourEmail': 'Địa chỉ email',
+        'contact.subject': 'Chủ đề',
+        'contact.message': 'Nội dung',
+        'contact.send': 'Gửi',
+        'contact.thanks': 'Cảm ơn bạn! Chúng tôi sẽ phản hồi sớm.',
+        'contact.followUs': 'Theo dõi chúng tôi',
+        'contact.socialNavAria': 'Liên kết mạng xã hội',
+        'contact.visitOurSocial': 'Mở {{name}} (tab mới)'
+    }
+};
+const LocaleContext = /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$WebPortal$2f$vuleits$2d$website$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["createContext"])(null);
+const STORAGE_KEY = 'app_locale';
+function LocaleProvider({ children }) {
+    _s();
+    const [locale, setLocaleState] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$WebPortal$2f$vuleits$2d$website$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])('en-US');
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$WebPortal$2f$vuleits$2d$website$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
+        "LocaleProvider.useEffect": ()=>{
+            const saved = ("TURBOPACK compile-time truthy", 1) ? window.localStorage.getItem(STORAGE_KEY) : "TURBOPACK unreachable";
+            if (saved === 'en-US' || saved === 'vi-VN') {
+                // Persisted locale is only available after mount; avoids SSR/localStorage mismatch.
+                // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate from localStorage after first paint
+                setLocaleState(saved);
+            }
+        }
+    }["LocaleProvider.useEffect"], []);
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$WebPortal$2f$vuleits$2d$website$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
+        "LocaleProvider.useEffect": ()=>{
+            if ("TURBOPACK compile-time truthy", 1) window.localStorage.setItem(STORAGE_KEY, locale);
+            if (typeof document !== 'undefined') document.documentElement.lang = locale;
+        }
+    }["LocaleProvider.useEffect"], [
+        locale
+    ]);
+    const value = (0, __TURBOPACK__imported__module__$5b$project$5d2f$WebPortal$2f$vuleits$2d$website$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMemo"])({
+        "LocaleProvider.useMemo[value]": ()=>({
+                locale,
+                setLocale: ({
+                    "LocaleProvider.useMemo[value]": (next)=>setLocaleState(next)
+                })["LocaleProvider.useMemo[value]"],
+                t: ({
+                    "LocaleProvider.useMemo[value]": (key, vars)=>{
+                        const table = messagesByLocale[locale] ?? messagesByLocale['en-US'];
+                        let s = table[key] ?? messagesByLocale['en-US'][key] ?? key;
+                        if (vars) {
+                            for (const [k, v] of Object.entries(vars)){
+                                s = s.split(`{{${k}}}`).join(v);
+                            }
+                        }
+                        return s;
+                    }
+                })["LocaleProvider.useMemo[value]"]
+            })
+    }["LocaleProvider.useMemo[value]"], [
+        locale
+    ]);
+    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$WebPortal$2f$vuleits$2d$website$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(LocaleContext.Provider, {
+        value: value,
+        children: children
+    }, void 0, false, {
+        fileName: "[project]/WebPortal/vuleits-website/src/components/providers/LocaleProvider.tsx",
+        lineNumber: 306,
+        columnNumber: 10
+    }, this);
+}
+_s(LocaleProvider, "541Hl7DFO7W5eE8sgIB3V0mLWss=");
+_c = LocaleProvider;
+function useLocale() {
+    _s1();
+    const ctx = (0, __TURBOPACK__imported__module__$5b$project$5d2f$WebPortal$2f$vuleits$2d$website$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useContext"])(LocaleContext);
+    if (!ctx) {
+        throw new Error('useLocale must be used inside LocaleProvider');
+    }
+    return ctx;
+}
+_s1(useLocale, "/dMy7t63NXD4eYACoT93CePwGrg=");
+var _c;
+__turbopack_context__.k.register(_c, "LocaleProvider");
+if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
+    __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
+}
+}),
+"[project]/WebPortal/vuleits-website/src/components/providers/ToastProvider.tsx [app-client] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "ToastProvider",
+    ()=>ToastProvider,
+    "useToast",
+    ()=>useToast
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$WebPortal$2f$vuleits$2d$website$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/WebPortal/vuleits-website/node_modules/next/dist/compiled/react/jsx-dev-runtime.js [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$WebPortal$2f$vuleits$2d$website$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/WebPortal/vuleits-website/node_modules/next/dist/compiled/react/index.js [app-client] (ecmascript)");
+;
+var _s = __turbopack_context__.k.signature(), _s1 = __turbopack_context__.k.signature();
+'use client';
+;
+const ToastContext = /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$WebPortal$2f$vuleits$2d$website$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["createContext"])(null);
+const DEFAULT_DURATION_MS = 5000;
+function ToastProvider({ children }) {
+    _s();
+    const [toasts, setToasts] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$WebPortal$2f$vuleits$2d$website$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])([]);
+    const idRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$WebPortal$2f$vuleits$2d$website$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(0);
+    const timersRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$WebPortal$2f$vuleits$2d$website$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(new Map());
+    const remove = (0, __TURBOPACK__imported__module__$5b$project$5d2f$WebPortal$2f$vuleits$2d$website$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCallback"])({
+        "ToastProvider.useCallback[remove]": (id)=>{
+            setToasts({
+                "ToastProvider.useCallback[remove]": (prev)=>prev.filter({
+                        "ToastProvider.useCallback[remove]": (t)=>t.id !== id
+                    }["ToastProvider.useCallback[remove]"])
+            }["ToastProvider.useCallback[remove]"]);
+            const timer = timersRef.current.get(id);
+            if (timer) clearTimeout(timer);
+            timersRef.current.delete(id);
+        }
+    }["ToastProvider.useCallback[remove]"], []);
+    const push = (0, __TURBOPACK__imported__module__$5b$project$5d2f$WebPortal$2f$vuleits$2d$website$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCallback"])({
+        "ToastProvider.useCallback[push]": (message, opts)=>{
+            const text = (message || '').trim() || '—';
+            const id = ++idRef.current;
+            const variant = opts?.variant ?? 'info';
+            const duration = opts?.duration ?? DEFAULT_DURATION_MS;
+            setToasts({
+                "ToastProvider.useCallback[push]": (prev)=>[
+                        ...prev,
+                        {
+                            id,
+                            message: text,
+                            variant
+                        }
+                    ]
+            }["ToastProvider.useCallback[push]"]);
+            if (duration > 0) {
+                const timer = setTimeout({
+                    "ToastProvider.useCallback[push].timer": ()=>remove(id)
+                }["ToastProvider.useCallback[push].timer"], duration);
+                timersRef.current.set(id, timer);
+            }
+        }
+    }["ToastProvider.useCallback[push]"], [
+        remove
+    ]);
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$WebPortal$2f$vuleits$2d$website$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
+        "ToastProvider.useEffect": ()=>{
+            return ({
+                "ToastProvider.useEffect": ()=>{
+                    timersRef.current.forEach({
+                        "ToastProvider.useEffect": (t)=>clearTimeout(t)
+                    }["ToastProvider.useEffect"]);
+                }
+            })["ToastProvider.useEffect"];
+        }
+    }["ToastProvider.useEffect"], []);
+    const value = (0, __TURBOPACK__imported__module__$5b$project$5d2f$WebPortal$2f$vuleits$2d$website$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMemo"])({
+        "ToastProvider.useMemo[value]": ()=>({
+                push,
+                success: ({
+                    "ToastProvider.useMemo[value]": (m, d)=>push(m, {
+                            variant: 'success',
+                            duration: d ?? DEFAULT_DURATION_MS
+                        })
+                })["ToastProvider.useMemo[value]"],
+                error: ({
+                    "ToastProvider.useMemo[value]": (m, d)=>push(m, {
+                            variant: 'error',
+                            duration: d ?? DEFAULT_DURATION_MS
+                        })
+                })["ToastProvider.useMemo[value]"],
+                info: ({
+                    "ToastProvider.useMemo[value]": (m, d)=>push(m, {
+                            variant: 'info',
+                            duration: d ?? DEFAULT_DURATION_MS
+                        })
+                })["ToastProvider.useMemo[value]"]
+            })
+    }["ToastProvider.useMemo[value]"], [
+        push
+    ]);
+    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$WebPortal$2f$vuleits$2d$website$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(ToastContext.Provider, {
+        value: value,
+        children: [
+            children,
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$WebPortal$2f$vuleits$2d$website$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: "fixed top-4 right-4 z-[10000] flex flex-col gap-2 items-end pointer-events-none max-w-[min(420px,calc(100vw-2rem))]",
+                "aria-live": "polite",
+                children: toasts.map((t)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$WebPortal$2f$vuleits$2d$website$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        role: "status",
+                        className: `toast-pop pointer-events-auto flex items-start gap-3 rounded-xl border px-4 py-3 shadow-xl backdrop-blur-md text-sm font-medium ${t.variant === 'success' ? 'bg-emerald-950/92 border-emerald-500/45 text-emerald-50' : t.variant === 'error' ? 'bg-red-950/92 border-red-500/45 text-red-50' : 'bg-[#14141c]/95 border-white/20 text-white'}`,
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$WebPortal$2f$vuleits$2d$website$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                className: "flex-1 break-words text-left",
+                                children: t.message
+                            }, void 0, false, {
+                                fileName: "[project]/WebPortal/vuleits-website/src/components/providers/ToastProvider.tsx",
+                                lineNumber: 100,
+                                columnNumber: 13
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$WebPortal$2f$vuleits$2d$website$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                type: "button",
+                                onClick: ()=>remove(t.id),
+                                className: "shrink-0 opacity-70 hover:opacity-100 -mr-1 -mt-0.5 px-1 leading-none text-lg",
+                                "aria-label": "Dismiss",
+                                children: "×"
+                            }, void 0, false, {
+                                fileName: "[project]/WebPortal/vuleits-website/src/components/providers/ToastProvider.tsx",
+                                lineNumber: 101,
+                                columnNumber: 13
+                            }, this)
+                        ]
+                    }, t.id, true, {
+                        fileName: "[project]/WebPortal/vuleits-website/src/components/providers/ToastProvider.tsx",
+                        lineNumber: 89,
+                        columnNumber: 11
+                    }, this))
+            }, void 0, false, {
+                fileName: "[project]/WebPortal/vuleits-website/src/components/providers/ToastProvider.tsx",
+                lineNumber: 84,
+                columnNumber: 7
+            }, this)
+        ]
+    }, void 0, true, {
+        fileName: "[project]/WebPortal/vuleits-website/src/components/providers/ToastProvider.tsx",
+        lineNumber: 82,
+        columnNumber: 5
+    }, this);
+}
+_s(ToastProvider, "JY8V23hqYn2Ve3+0M2Qre3XlqE4=");
+_c = ToastProvider;
+function useToast() {
+    _s1();
+    const ctx = (0, __TURBOPACK__imported__module__$5b$project$5d2f$WebPortal$2f$vuleits$2d$website$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useContext"])(ToastContext);
+    if (!ctx) {
+        throw new Error('useToast must be used within ToastProvider');
+    }
+    return ctx;
+}
+_s1(useToast, "/dMy7t63NXD4eYACoT93CePwGrg=");
+var _c;
+__turbopack_context__.k.register(_c, "ToastProvider");
+if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
+    __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
+}
+}),
+"[project]/WebPortal/vuleits-website/node_modules/next/dist/compiled/react/cjs/react-jsx-dev-runtime.development.js [app-client] (ecmascript)", ((__turbopack_context__, module, exports) => {
+"use strict";
+
+/**
+ * @license React
+ * react-jsx-dev-runtime.development.js
+ *
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */ var __TURBOPACK__imported__module__$5b$project$5d2f$WebPortal$2f$vuleits$2d$website$2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = /*#__PURE__*/ __turbopack_context__.i("[project]/WebPortal/vuleits-website/node_modules/next/dist/build/polyfills/process.js [app-client] (ecmascript)");
+"use strict";
+"production" !== ("TURBOPACK compile-time value", "development") && function() {
+    function getComponentNameFromType(type) {
+        if (null == type) return null;
+        if ("function" === typeof type) return type.$$typeof === REACT_CLIENT_REFERENCE ? null : type.displayName || type.name || null;
+        if ("string" === typeof type) return type;
+        switch(type){
+            case REACT_FRAGMENT_TYPE:
+                return "Fragment";
+            case REACT_PROFILER_TYPE:
+                return "Profiler";
+            case REACT_STRICT_MODE_TYPE:
+                return "StrictMode";
+            case REACT_SUSPENSE_TYPE:
+                return "Suspense";
+            case REACT_SUSPENSE_LIST_TYPE:
+                return "SuspenseList";
+            case REACT_ACTIVITY_TYPE:
+                return "Activity";
+            case REACT_VIEW_TRANSITION_TYPE:
+                return "ViewTransition";
+        }
+        if ("object" === typeof type) switch("number" === typeof type.tag && console.error("Received an unexpected object in getComponentNameFromType(). This is likely a bug in React. Please file an issue."), type.$$typeof){
+            case REACT_PORTAL_TYPE:
+                return "Portal";
+            case REACT_CONTEXT_TYPE:
+                return type.displayName || "Context";
+            case REACT_CONSUMER_TYPE:
+                return (type._context.displayName || "Context") + ".Consumer";
+            case REACT_FORWARD_REF_TYPE:
+                var innerType = type.render;
+                type = type.displayName;
+                type || (type = innerType.displayName || innerType.name || "", type = "" !== type ? "ForwardRef(" + type + ")" : "ForwardRef");
+                return type;
+            case REACT_MEMO_TYPE:
+                return innerType = type.displayName || null, null !== innerType ? innerType : getComponentNameFromType(type.type) || "Memo";
+            case REACT_LAZY_TYPE:
+                innerType = type._payload;
+                type = type._init;
+                try {
+                    return getComponentNameFromType(type(innerType));
+                } catch (x) {}
+        }
+        return null;
+    }
+    function testStringCoercion(value) {
+        return "" + value;
+    }
+    function checkKeyStringCoercion(value) {
+        try {
+            testStringCoercion(value);
+            var JSCompiler_inline_result = !1;
+        } catch (e) {
+            JSCompiler_inline_result = !0;
+        }
+        if (JSCompiler_inline_result) {
+            JSCompiler_inline_result = console;
+            var JSCompiler_temp_const = JSCompiler_inline_result.error;
+            var JSCompiler_inline_result$jscomp$0 = "function" === typeof Symbol && Symbol.toStringTag && value[Symbol.toStringTag] || value.constructor.name || "Object";
+            JSCompiler_temp_const.call(JSCompiler_inline_result, "The provided key is an unsupported type %s. This value must be coerced to a string before using it here.", JSCompiler_inline_result$jscomp$0);
+            return testStringCoercion(value);
+        }
+    }
+    function getTaskName(type) {
+        if (type === REACT_FRAGMENT_TYPE) return "<>";
+        if ("object" === typeof type && null !== type && type.$$typeof === REACT_LAZY_TYPE) return "<...>";
+        try {
+            var name = getComponentNameFromType(type);
+            return name ? "<" + name + ">" : "<...>";
+        } catch (x) {
+            return "<...>";
+        }
+    }
+    function getOwner() {
+        var dispatcher = ReactSharedInternals.A;
+        return null === dispatcher ? null : dispatcher.getOwner();
+    }
+    function UnknownOwner() {
+        return Error("react-stack-top-frame");
+    }
+    function hasValidKey(config) {
+        if (hasOwnProperty.call(config, "key")) {
+            var getter = Object.getOwnPropertyDescriptor(config, "key").get;
+            if (getter && getter.isReactWarning) return !1;
+        }
+        return void 0 !== config.key;
+    }
+    function defineKeyPropWarningGetter(props, displayName) {
+        function warnAboutAccessingKey() {
+            specialPropKeyWarningShown || (specialPropKeyWarningShown = !0, console.error("%s: `key` is not a prop. Trying to access it will result in `undefined` being returned. If you need to access the same value within the child component, you should pass it as a different prop. (https://react.dev/link/special-props)", displayName));
+        }
+        warnAboutAccessingKey.isReactWarning = !0;
+        Object.defineProperty(props, "key", {
+            get: warnAboutAccessingKey,
+            configurable: !0
+        });
+    }
+    function elementRefGetterWithDeprecationWarning() {
+        var componentName = getComponentNameFromType(this.type);
+        didWarnAboutElementRef[componentName] || (didWarnAboutElementRef[componentName] = !0, console.error("Accessing element.ref was removed in React 19. ref is now a regular prop. It will be removed from the JSX Element type in a future release."));
+        componentName = this.props.ref;
+        return void 0 !== componentName ? componentName : null;
+    }
+    function ReactElement(type, key, props, owner, debugStack, debugTask) {
+        var refProp = props.ref;
+        type = {
+            $$typeof: REACT_ELEMENT_TYPE,
+            type: type,
+            key: key,
+            props: props,
+            _owner: owner
+        };
+        null !== (void 0 !== refProp ? refProp : null) ? Object.defineProperty(type, "ref", {
+            enumerable: !1,
+            get: elementRefGetterWithDeprecationWarning
+        }) : Object.defineProperty(type, "ref", {
+            enumerable: !1,
+            value: null
+        });
+        type._store = {};
+        Object.defineProperty(type._store, "validated", {
+            configurable: !1,
+            enumerable: !1,
+            writable: !0,
+            value: 0
+        });
+        Object.defineProperty(type, "_debugInfo", {
+            configurable: !1,
+            enumerable: !1,
+            writable: !0,
+            value: null
+        });
+        Object.defineProperty(type, "_debugStack", {
+            configurable: !1,
+            enumerable: !1,
+            writable: !0,
+            value: debugStack
+        });
+        Object.defineProperty(type, "_debugTask", {
+            configurable: !1,
+            enumerable: !1,
+            writable: !0,
+            value: debugTask
+        });
+        Object.freeze && (Object.freeze(type.props), Object.freeze(type));
+        return type;
+    }
+    function jsxDEVImpl(type, config, maybeKey, isStaticChildren, debugStack, debugTask) {
+        var children = config.children;
+        if (void 0 !== children) if (isStaticChildren) if (isArrayImpl(children)) {
+            for(isStaticChildren = 0; isStaticChildren < children.length; isStaticChildren++)validateChildKeys(children[isStaticChildren]);
+            Object.freeze && Object.freeze(children);
+        } else console.error("React.jsx: Static children should always be an array. You are likely explicitly calling React.jsxs or React.jsxDEV. Use the Babel transform instead.");
+        else validateChildKeys(children);
+        if (hasOwnProperty.call(config, "key")) {
+            children = getComponentNameFromType(type);
+            var keys = Object.keys(config).filter(function(k) {
+                return "key" !== k;
+            });
+            isStaticChildren = 0 < keys.length ? "{key: someKey, " + keys.join(": ..., ") + ": ...}" : "{key: someKey}";
+            didWarnAboutKeySpread[children + isStaticChildren] || (keys = 0 < keys.length ? "{" + keys.join(": ..., ") + ": ...}" : "{}", console.error('A props object containing a "key" prop is being spread into JSX:\n  let props = %s;\n  <%s {...props} />\nReact keys must be passed directly to JSX without using spread:\n  let props = %s;\n  <%s key={someKey} {...props} />', isStaticChildren, children, keys, children), didWarnAboutKeySpread[children + isStaticChildren] = !0);
+        }
+        children = null;
+        void 0 !== maybeKey && (checkKeyStringCoercion(maybeKey), children = "" + maybeKey);
+        hasValidKey(config) && (checkKeyStringCoercion(config.key), children = "" + config.key);
+        if ("key" in config) {
+            maybeKey = {};
+            for(var propName in config)"key" !== propName && (maybeKey[propName] = config[propName]);
+        } else maybeKey = config;
+        children && defineKeyPropWarningGetter(maybeKey, "function" === typeof type ? type.displayName || type.name || "Unknown" : type);
+        return ReactElement(type, children, maybeKey, getOwner(), debugStack, debugTask);
+    }
+    function validateChildKeys(node) {
+        isValidElement(node) ? node._store && (node._store.validated = 1) : "object" === typeof node && null !== node && node.$$typeof === REACT_LAZY_TYPE && ("fulfilled" === node._payload.status ? isValidElement(node._payload.value) && node._payload.value._store && (node._payload.value._store.validated = 1) : node._store && (node._store.validated = 1));
+    }
+    function isValidElement(object) {
+        return "object" === typeof object && null !== object && object.$$typeof === REACT_ELEMENT_TYPE;
+    }
+    var React = __turbopack_context__.r("[project]/WebPortal/vuleits-website/node_modules/next/dist/compiled/react/index.js [app-client] (ecmascript)"), REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"), REACT_PORTAL_TYPE = Symbol.for("react.portal"), REACT_FRAGMENT_TYPE = Symbol.for("react.fragment"), REACT_STRICT_MODE_TYPE = Symbol.for("react.strict_mode"), REACT_PROFILER_TYPE = Symbol.for("react.profiler"), REACT_CONSUMER_TYPE = Symbol.for("react.consumer"), REACT_CONTEXT_TYPE = Symbol.for("react.context"), REACT_FORWARD_REF_TYPE = Symbol.for("react.forward_ref"), REACT_SUSPENSE_TYPE = Symbol.for("react.suspense"), REACT_SUSPENSE_LIST_TYPE = Symbol.for("react.suspense_list"), REACT_MEMO_TYPE = Symbol.for("react.memo"), REACT_LAZY_TYPE = Symbol.for("react.lazy"), REACT_ACTIVITY_TYPE = Symbol.for("react.activity"), REACT_VIEW_TRANSITION_TYPE = Symbol.for("react.view_transition"), REACT_CLIENT_REFERENCE = Symbol.for("react.client.reference"), ReactSharedInternals = React.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, hasOwnProperty = Object.prototype.hasOwnProperty, isArrayImpl = Array.isArray, createTask = console.createTask ? console.createTask : function() {
+        return null;
+    };
+    React = {
+        react_stack_bottom_frame: function(callStackForError) {
+            return callStackForError();
+        }
+    };
+    var specialPropKeyWarningShown;
+    var didWarnAboutElementRef = {};
+    var unknownOwnerDebugStack = React.react_stack_bottom_frame.bind(React, UnknownOwner)();
+    var unknownOwnerDebugTask = createTask(getTaskName(UnknownOwner));
+    var didWarnAboutKeySpread = {};
+    exports.Fragment = REACT_FRAGMENT_TYPE;
+    exports.jsxDEV = function(type, config, maybeKey, isStaticChildren) {
+        var trackActualOwner = 1e4 > ReactSharedInternals.recentlyCreatedOwnerStacks++;
+        if (trackActualOwner) {
+            var previousStackTraceLimit = Error.stackTraceLimit;
+            Error.stackTraceLimit = 10;
+            var debugStackDEV = Error("react-stack-top-frame");
+            Error.stackTraceLimit = previousStackTraceLimit;
+        } else debugStackDEV = unknownOwnerDebugStack;
+        return jsxDEVImpl(type, config, maybeKey, isStaticChildren, debugStackDEV, trackActualOwner ? createTask(getTaskName(type)) : unknownOwnerDebugTask);
+    };
+}();
+}),
+"[project]/WebPortal/vuleits-website/node_modules/next/dist/compiled/react/jsx-dev-runtime.js [app-client] (ecmascript)", ((__turbopack_context__, module, exports) => {
+"use strict";
+
+var __TURBOPACK__imported__module__$5b$project$5d2f$WebPortal$2f$vuleits$2d$website$2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = /*#__PURE__*/ __turbopack_context__.i("[project]/WebPortal/vuleits-website/node_modules/next/dist/build/polyfills/process.js [app-client] (ecmascript)");
+'use strict';
+if ("TURBOPACK compile-time falsy", 0) //TURBOPACK unreachable
+;
+else {
+    module.exports = __turbopack_context__.r("[project]/WebPortal/vuleits-website/node_modules/next/dist/compiled/react/cjs/react-jsx-dev-runtime.development.js [app-client] (ecmascript)");
+}
+}),
+]);
+
+//# sourceMappingURL=WebPortal_vuleits-website_e1fecb7d._.js.map

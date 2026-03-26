@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { NEWS_CATEGORIES } from '@/lib/news/newsCategories';
 import NewsCarouselRow from '@/components/news/NewsCarouselRow';
 
@@ -75,6 +75,25 @@ export default function NewsPage() {
   const categories = NEWS_CATEGORIES.filter((c) => c !== 'Other');
   const primaryCategories = ['Politics', 'Economy', 'Technology', 'Entertainment'] as const;
 
+  const categoryFilter = category.trim();
+  const showAllCategories = !categoryFilter;
+
+  const clearCategoryFilter = useCallback(() => {
+    setCategory('');
+  }, []);
+
+  const mapToCarouselItems = (list: NewsArticle[]) =>
+    list.map((a) => ({
+      id: a.id,
+      slug: a.slug,
+      title: a.title,
+      description: a.description,
+      authorName: a.authorName,
+      publishedAt: a.publishedAt,
+      thumbnailSrc: a.thumbnailSrc,
+      thumbnailAlt: a.thumbnailAlt,
+    }));
+
   return (
     <div className="container mx-auto px-4">
       {/* ==================== HERO SECTION ==================== */}
@@ -97,8 +116,19 @@ export default function NewsPage() {
             />
           </label>
 
-          <label>
-            <span className="text-white/70 text-sm block mb-2">Category</span>
+          <label className="min-w-0">
+            <span className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-2">
+              <span className="text-white/70 text-sm">Category</span>
+              {categoryFilter ? (
+                <button
+                  type="button"
+                  onClick={clearCategoryFilter}
+                  className="text-sm text-red-400 hover:text-red-300 underline underline-offset-2"
+                >
+                  Clear filter
+                </button>
+              ) : null}
+            </span>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
@@ -128,25 +158,13 @@ export default function NewsPage() {
       {/* ==================== ARTICLES LIST SECTION ==================== */}
       {loading ? (
         <div className="text-white/80 mb-12">Loading news...</div>
-      ) : (
+      ) : showAllCategories ? (
         <section className="space-y-10 mb-12" aria-label="Articles list">
           {primaryCategories.map((cat, idx) => (
             <div key={`${cat}-row`}>
               <h2 className="text-2xl font-bold text-white mb-4">{cat}</h2>
               {byCategory[cat].length ? (
-                <NewsCarouselRow
-                  autoStartDelayMs={idx * 750}
-                  items={byCategory[cat].map((a) => ({
-                    id: a.id,
-                    slug: a.slug,
-                    title: a.title,
-                    description: a.description,
-                    authorName: a.authorName,
-                    publishedAt: a.publishedAt,
-                    thumbnailSrc: a.thumbnailSrc,
-                    thumbnailAlt: a.thumbnailAlt,
-                  }))}
-                />
+                <NewsCarouselRow autoStartDelayMs={idx * 750} items={mapToCarouselItems(byCategory[cat])} />
               ) : (
                 <div className="glass p-6 rounded-2xl text-white/70">No articles found.</div>
               )}
@@ -158,17 +176,19 @@ export default function NewsPage() {
             {byCategory.Other.length ? (
               <NewsCarouselRow
                 autoStartDelayMs={primaryCategories.length * 750}
-                items={byCategory.Other.map((a) => ({
-                  id: a.id,
-                  slug: a.slug,
-                  title: a.title,
-                  description: a.description,
-                  authorName: a.authorName,
-                  publishedAt: a.publishedAt,
-                  thumbnailSrc: a.thumbnailSrc,
-                  thumbnailAlt: a.thumbnailAlt,
-                }))}
+                items={mapToCarouselItems(byCategory.Other)}
               />
+            ) : (
+              <div className="glass p-6 rounded-2xl text-white/70">No articles found.</div>
+            )}
+          </div>
+        </section>
+      ) : (
+        <section className="space-y-10 mb-12" aria-label="Filtered articles">
+          <div>
+            <h2 className="text-2xl font-bold text-white mb-4">{categoryFilter}</h2>
+            {articles.length ? (
+              <NewsCarouselRow autoStartDelayMs={0} items={mapToCarouselItems(articles)} />
             ) : (
               <div className="glass p-6 rounded-2xl text-white/70">No articles found.</div>
             )}

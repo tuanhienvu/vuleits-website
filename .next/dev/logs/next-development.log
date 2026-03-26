@@ -1,0 +1,6 @@
+[00:00:01.480] Server  LOG      ✓ Ready in 1105ms
+[00:00:05.459] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:09.115] Browser ERROR   uncaughtError: TypeError: Cannot read properties of undefined (reading 'slice')
+[00:02:03.675] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[00:02:03.691] Server  LOG      ✓ Compiled in 177ms
+[00:02:04.052] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold

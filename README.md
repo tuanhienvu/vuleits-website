@@ -100,3 +100,61 @@ npm run dev
 - Glass Morphism UI
 
 ## Version: 1.0 | Status: In Development | Updated: Dec 13, 2025
+
+---
+
+## Monorepo Split (Frontend + Backend)
+
+The repository now supports two deployable Next.js apps:
+
+- `apps/frontend` -> deploy to `https://vuleits.com`
+- `apps/backend` -> deploy to `https://portal.vuleits.com`
+
+### Local Development
+
+1. Install dependencies at repo root:
+
+```bash
+npm install
+```
+
+2. Configure env files:
+
+- `apps/frontend/.env.local`
+  - `NEXT_PUBLIC_API_BASE_URL=http://localhost:4000`
+- `apps/backend/.env.local`
+  - Copy from `apps/backend/.env.example`
+
+3. Start backend:
+
+```bash
+npm run dev:backend
+```
+
+4. Start frontend (new terminal):
+
+```bash
+npm run dev:frontend
+```
+
+### Build/Run Separately
+
+```bash
+npm run build:backend
+npm run start:backend
+
+npm run build:frontend
+npm run start:frontend
+```
+
+### Integration Notes
+
+- Frontend rewrites `/api/*` to `NEXT_PUBLIC_API_BASE_URL/api/*`.
+- Backend includes a unified API dispatcher that reuses existing route handlers under `src/app/api`.
+- CORS/security headers are set in backend dispatcher for cross-subdomain requests.
+- Backend now has localized core server modules under `apps/backend/src/lib` (`prisma`, `jwt`, `adminAuth`, `adminEmail`) and locally migrated APIs for:
+  - `/api/products`
+  - `/api/products/[slug]`
+  - `/api/products/analytics`
+  - `/api/admin/login`
+  - `/api/admin/logout`

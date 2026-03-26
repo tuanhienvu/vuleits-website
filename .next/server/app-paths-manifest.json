@@ -38,9 +38,14 @@
   "/api/news/[slug]/route": "app/api/news/[slug]/route.js",
   "/api/news/route": "app/api/news/route.js",
   "/api/news/rss.xml/route": "app/api/news/rss.xml/route.js",
+  "/api/products/[slug]/route": "app/api/products/[slug]/route.js",
+  "/api/products/analytics/route": "app/api/products/analytics/route.js",
+  "/api/products/route": "app/api/products/route.js",
   "/api/services/route": "app/api/services/route.js",
   "/favicon.ico/route": "app/favicon.ico/route.js",
   "/news/[slug]/page": "app/news/[slug]/page.js",
   "/news/page": "app/news/page.js",
-  "/page": "app/page.js"
+  "/page": "app/page.js",
+  "/products/[slug]/page": "app/products/[slug]/page.js",
+  "/products/page": "app/products/page.js"
 }

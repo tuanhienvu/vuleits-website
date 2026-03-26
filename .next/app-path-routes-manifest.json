@@ -38,9 +38,14 @@
   "/api/news/[slug]/route": "/api/news/[slug]",
   "/api/news/route": "/api/news",
   "/api/news/rss.xml/route": "/api/news/rss.xml",
+  "/api/products/[slug]/route": "/api/products/[slug]",
+  "/api/products/analytics/route": "/api/products/analytics",
+  "/api/products/route": "/api/products",
   "/api/services/route": "/api/services",
   "/favicon.ico/route": "/favicon.ico",
   "/news/[slug]/page": "/news/[slug]",
   "/news/page": "/news",
-  "/page": "/"
+  "/page": "/",
+  "/products/[slug]/page": "/products/[slug]",
+  "/products/page": "/products"
 }
