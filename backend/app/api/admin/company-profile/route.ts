@@ -42,6 +42,7 @@ function bodyToProfile(body: Record<string, unknown>): CompanyProfileData {
     logoUrl: typeof body.logoUrl === 'string' ? body.logoUrl.trim().slice(0, 2048) : base.logoUrl,
     logoMediaId,
     email: typeof body.email === 'string' ? body.email.trim().slice(0, 320) : base.email,
+    email2: typeof body.email2 === 'string' ? body.email2.trim().slice(0, 320) : base.email2,
     phone: typeof body.phone === 'string' ? body.phone.trim().slice(0, 64) : base.phone,
     hotline: typeof body.hotline === 'string' ? body.hotline.trim().slice(0, 64) : base.hotline,
     mapEmbedUrl: typeof body.mapEmbedUrl === 'string' ? body.mapEmbedUrl.trim().slice(0, 2048) : base.mapEmbedUrl,

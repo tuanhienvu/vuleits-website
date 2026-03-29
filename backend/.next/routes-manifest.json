@@ -69,6 +69,22 @@
       "namedRegex": "^/api/admin/permissions/(?<nxtPuserId>[^/]+?)(?:/)?$"
     },
     {
+      "page": "/api/admin/products/[id]",
+      "regex": "^/api/admin/products/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/admin/products/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/admin/roles/[roleId]/permissions",
+      "regex": "^/api/admin/roles/([^/]+?)/permissions(?:/)?$",
+      "routeKeys": {
+        "nxtProleId": "nxtProleId"
+      },
+      "namedRegex": "^/api/admin/roles/(?<nxtProleId>[^/]+?)/permissions(?:/)?$"
+    },
+    {
       "page": "/api/admin/services/[id]",
       "regex": "^/api/admin/services/([^/]+?)(?:/)?$",
       "routeKeys": {
@@ -231,6 +247,12 @@
       "regex": "^/api/admin/news(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/api/admin/news(?:/)?$"
+    },
+    {
+      "page": "/api/admin/products",
+      "regex": "^/api/admin/products(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/products(?:/)?$"
     },
     {
       "page": "/api/admin/roles",

@@ -29,6 +29,8 @@ export interface CompanyProfileData {
   logoUrl: string;
   logoMediaId: number | null;
   email: string;
+  /** Secondary contact email (optional) */
+  email2: string;
   phone: string;
   hotline: string;
   /** Optional iframe src from Google Maps → Share → Embed a map (https://www.google.com/maps/embed?...) */
@@ -46,6 +48,7 @@ export function defaultCompanyProfile(): CompanyProfileData {
     logoUrl: '',
     logoMediaId: null,
     email: '',
+    email2: '',
     phone: '',
     hotline: '',
     mapEmbedUrl: '',
@@ -93,6 +96,7 @@ export function parseCompanyProfileJson(raw: string | null | undefined): Company
             ? null
             : base.logoMediaId,
       email: typeof o.email === 'string' ? o.email.slice(0, 320) : base.email,
+      email2: typeof o.email2 === 'string' ? o.email2.slice(0, 320) : base.email2,
       phone: typeof o.phone === 'string' ? o.phone.slice(0, 64) : base.phone,
       hotline: typeof o.hotline === 'string' ? o.hotline.slice(0, 64) : base.hotline,
       mapEmbedUrl: typeof o.mapEmbedUrl === 'string' ? o.mapEmbedUrl.trim().slice(0, 2048) : base.mapEmbedUrl,

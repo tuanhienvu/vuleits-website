@@ -4,6 +4,8 @@ import type { PublicProductDetail } from '@/lib/products/types';
 
 type Props = { params: Promise<{ slug: string }> };
 
+// --- Product detail: SSR fetch + ProductDetailClient ---
+
 function backendBaseUrl() {
   return process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:5000';
 }

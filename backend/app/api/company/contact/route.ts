@@ -28,6 +28,7 @@ export async function GET() {
       fullNameEn: profile.fullNameEn.trim(),
       address: profile.address.trim(),
       email: profile.email.trim(),
+      email2: profile.email2.trim(),
       phone: profile.phone.trim(),
       hotline: profile.hotline.trim(),
       mapEmbedSrc,

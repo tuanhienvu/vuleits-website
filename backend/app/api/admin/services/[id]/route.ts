@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { authorize } from '@/lib/adminAuth';
+import { jsonObjectBody } from '@/lib/jsonBody';
 
 type ServiceRow = {
   id: number;
@@ -70,7 +71,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const id = Number(idParam);
   if (!Number.isFinite(id)) return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
 
-  const body = await req.json();
+  const body = jsonObjectBody(await req.json());
   const data: {
     icon?: string;
     title?: string;
@@ -80,12 +81,12 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     isActive?: boolean;
   } = {};
 
-  if ((body as any).icon !== undefined) data.icon = String((body as any).icon || '').trim();
-  if ((body as any).title !== undefined) data.title = String((body as any).title || '').trim();
-  if ((body as any).description !== undefined) data.description = String((body as any).description || '').trim();
-  if ((body as any).features !== undefined) data.features = normalizeFeatures((body as any).features);
-  if ((body as any).order !== undefined) data.order = Number((body as any).order);
-  if ((body as any).isActive !== undefined) data.isActive = Boolean((body as any).isActive);
+  if (body.icon !== undefined) data.icon = String(body.icon ?? '').trim();
+  if (body.title !== undefined) data.title = String(body.title ?? '').trim();
+  if (body.description !== undefined) data.description = String(body.description ?? '').trim();
+  if (body.features !== undefined) data.features = normalizeFeatures(body.features);
+  if (body.order !== undefined) data.order = Number(body.order);
+  if (body.isActive !== undefined) data.isActive = Boolean(body.isActive);
 
   if (data.icon !== undefined && !data.icon) return NextResponse.json({ error: 'Icon is required' }, { status: 400 });
   if (data.title !== undefined && !data.title) return NextResponse.json({ error: 'Title is required' }, { status: 400 });

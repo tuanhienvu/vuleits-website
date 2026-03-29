@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { authorize } from '@/lib/adminAuth';
+import { jsonObjectBody } from '@/lib/jsonBody';
 
 type ServiceRow = {
   id: number;
@@ -39,21 +40,22 @@ export async function POST(req: Request) {
   const auth = await authorize(req, 'services.create');
   if (auth.error) return auth.error;
 
-  const body = await req.json();
-  const icon = String((body as any).icon || '').trim();
-  const title = String((body as any).title || '').trim();
-  const description = String((body as any).description || '').trim();
-  const order = (body as any).order === undefined || (body as any).order === null ? 0 : Number((body as any).order);
-  const isActive = (body as any).isActive === undefined ? true : Boolean((body as any).isActive);
+  const body = jsonObjectBody(await req.json());
+  const icon = String(body.icon ?? '').trim();
+  const title = String(body.title ?? '').trim();
+  const description = String(body.description ?? '').trim();
+  const order = body.order === undefined || body.order === null ? 0 : Number(body.order);
+  const isActive = body.isActive === undefined ? true : Boolean(body.isActive);
 
   let features: string | null = null;
-  if ((body as any).features !== undefined && (body as any).features !== null) {
-    if (Array.isArray((body as any).features)) {
-      features = JSON.stringify(((body as any).features as unknown[]).map((x) => String(x)));
-    } else if (typeof (body as any).features === 'string') {
-      features = String((body as any).features);
+  const rawFeatures = body.features;
+  if (rawFeatures !== undefined && rawFeatures !== null) {
+    if (Array.isArray(rawFeatures)) {
+      features = JSON.stringify(rawFeatures.map((x) => String(x)));
+    } else if (typeof rawFeatures === 'string') {
+      features = String(rawFeatures);
     } else {
-      features = JSON.stringify((body as any).features);
+      features = JSON.stringify(rawFeatures);
     }
   }
 

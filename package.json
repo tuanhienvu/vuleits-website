@@ -8,6 +8,7 @@
   ],
   "scripts": {
     "dev:frontend": "npm run dev --workspace @vuleits/frontend",
+    "dev:frontend:3010": "npm run dev:3010 --workspace @vuleits/frontend",
     "dev:backend": "npm run dev --workspace @vuleits/backend",
     "build:frontend": "npm run build --workspace @vuleits/frontend",
     "build:backend": "npm run build --workspace @vuleits/backend",
@@ -30,6 +31,7 @@
     "@tinymce/tinymce-react": "^6.3.0",
     "bcryptjs": "^2.4.3",
     "dotenv": "^17.2.3",
+    "framer-motion": "^12.38.0",
     "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.15.3",
     "next": "16.0.10",
@@ -47,6 +49,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/sanitize-html": "^2.16.1",
+    "baseline-browser-mapping": "^2.10.12",
     "eslint": "^9",
     "eslint-config-next": "16.0.10",
     "tailwindcss": "^4",

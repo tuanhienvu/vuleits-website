@@ -1,5 +1,7 @@
 import NewsPage from '@/components/pages/NewsPage';
 
+// --- Public news listing (full-bleed background wrapper) ---
+
 export const metadata = {
   title: 'News - VULE ITS',
   description: 'Latest news and updates',

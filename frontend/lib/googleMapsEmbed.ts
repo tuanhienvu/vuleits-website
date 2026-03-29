@@ -1,6 +1,5 @@
-/**
- * Only allow iframe src pointing at Google Maps hosts (defense-in-depth for stored URLs).
- */
+/** Client-side map preview (aligned with backend `resolvePublicMapEmbedSrc`). */
+
 export function isAllowedGoogleMapsEmbedUrl(url: string): boolean {
   const trimmed = url.trim();
   if (!trimmed) return false;
@@ -9,24 +8,16 @@ export function isAllowedGoogleMapsEmbedUrl(url: string): boolean {
     if (u.protocol !== 'https:') return false;
     const host = u.hostname.toLowerCase();
     if (host === 'google.com' || host === 'www.google.com') {
-      return (
-        u.pathname.startsWith('/maps/embed') ||
-        (u.pathname.startsWith('/maps') && u.search.includes('output=embed'))
-      );
+      return u.pathname.startsWith('/maps/embed') || (u.pathname.startsWith('/maps') && u.search.includes('output=embed'));
     }
-    if (host === 'maps.google.com') {
-      return u.pathname.startsWith('/maps');
-    }
+    if (host === 'maps.google.com') return u.pathname.startsWith('/maps');
     return false;
   } catch {
     return false;
   }
 }
 
-/**
- * Prefer a validated custom embed URL; otherwise build a simple embed from the address.
- */
-export function resolvePublicMapEmbedSrc(mapEmbedUrl: string, address: string): string | null {
+export function resolveMapPreviewSrc(mapEmbedUrl: string, address: string): string | null {
   const custom = mapEmbedUrl.trim();
   if (custom && isAllowedGoogleMapsEmbedUrl(custom)) return custom;
   const addr = address.trim();

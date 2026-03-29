@@ -9,8 +9,11 @@ function navPageFromPath(pathname: string | null): string {
   if (!pathname || pathname === '/') return 'home';
   if (pathname.startsWith('/products')) return 'products';
   if (pathname.startsWith('/news')) return 'news';
+  if (pathname.startsWith('/services')) return 'services';
   return 'home';
 }
+
+// --- Public route shell: nav synced to path | main | footer ---
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -21,9 +24,12 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
   }, [pathname]);
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-[#0c0c0c] via-[#1a1a2e] to-[#a0616a]">
+    <div className="flex min-h-screen flex-col bg-linear-to-br from-[#0c0c0c] via-[#1a1a2e] to-[#a0616a]">
+      {/* ==================== PUBLIC NAVIGATION ==================== */}
       <Navigation currentPage={currentPage} setCurrentPage={setCurrentPage} />
-      <main className="relative z-10">{children}</main>
+      {/* ==================== PAGE CONTENT (`flex-1` keeps footer at bottom when main has no in-flow height, e.g. fixed product shell) ==================== */}
+      <main className="relative z-10 flex min-h-0 flex-1 flex-col">{children}</main>
+      {/* ==================== FOOTER ==================== */}
       <Footer setCurrentPage={setCurrentPage} />
     </div>
   );

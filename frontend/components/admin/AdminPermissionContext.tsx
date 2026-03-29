@@ -24,6 +24,8 @@ type AdminPermissionContextValue = {
 
 const AdminPermissionContext = createContext<AdminPermissionContextValue | null>(null);
 
+// --- Admin permissions: fetch /api/admin/me-permissions, matrix + can() ---
+
 export function AdminPermissionProvider({ children }: { children: ReactNode }) {
   const [matrix, setMatrix] = useState<AdminCrudMatrix>(() => makeEmptyAdminMatrix());
   const [loading, setLoading] = useState(true);

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
-import '@fontsource/zcool-xiaowei';
+/** Latin subset only (~one woff2) — full `index.css` pulls 60+ unicode slices. Vietnamese diacritics fall back to Geist. */
+import '@fontsource/zcool-xiaowei/latin-400.css';
 import '@/app/globals.css';
 import { LocaleProvider } from '@/components/providers/LocaleProvider';
 import { ToastProvider } from '@/components/providers/ToastProvider';
@@ -32,6 +33,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      {/* ==================== ROOT: FONTS, LOCALE & TOAST PROVIDERS ==================== */}
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <LocaleProvider>
           <ToastProvider>{children}</ToastProvider>

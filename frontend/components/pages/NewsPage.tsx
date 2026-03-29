@@ -16,6 +16,8 @@ interface NewsArticle {
   thumbnailAlt: string | null;
 }
 
+// --- Sections: Data + filters | Hero | Search/filters | List + carousel rows (see JSX) ---
+
 export default function NewsPage() {
   const [articles, setArticles] = useState<NewsArticle[]>([]);
   const [loading, setLoading] = useState(false);

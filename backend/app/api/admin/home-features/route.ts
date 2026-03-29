@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { authorize } from '@/lib/adminAuth';
+import { authorizeAny } from '@/lib/adminAuth';
+import { jsonObjectBody } from '@/lib/jsonBody';
 
 export async function GET(req: Request) {
-  const auth = await authorize(req, 'homeFeatures.read');
-  if (auth.error) return auth.error;
+  const auth = await authorizeAny(req, ['homeFeatures.read', 'banners.read']);
+  if ('error' in auth) return auth.error;
 
   const list = await prisma.homeFeature.findMany({
     orderBy: [{ order: 'asc' }, { id: 'asc' }],
@@ -14,15 +15,15 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const auth = await authorize(req, 'homeFeatures.create');
-  if (auth.error) return auth.error;
+  const auth = await authorizeAny(req, ['homeFeatures.create', 'banners.create']);
+  if ('error' in auth) return auth.error;
 
-  const body = await req.json();
-  const icon = String((body as any).icon || '').trim();
-  const title = String((body as any).title || '').trim();
-  const description = String((body as any).description || '').trim();
-  const order = (body as any).order === undefined || (body as any).order === null ? 0 : Number((body as any).order);
-  const isActive = (body as any).isActive === undefined ? true : Boolean((body as any).isActive);
+  const body = jsonObjectBody(await req.json());
+  const icon = String(body.icon ?? '').trim();
+  const title = String(body.title ?? '').trim();
+  const description = String(body.description ?? '').trim();
+  const order = body.order === undefined || body.order === null ? 0 : Number(body.order);
+  const isActive = body.isActive === undefined ? true : Boolean(body.isActive);
 
   if (!icon || !title || !description) {
     return NextResponse.json({ error: 'Missing fields' }, { status: 400 });

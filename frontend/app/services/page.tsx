@@ -1,5 +1,7 @@
 import ServicesListingExperience from '@/components/services/ServicesListingExperience';
 
+// --- /services route: intro + listing client ---
+
 export const metadata = {
   title: 'Services - VULE ITS',
   description: 'Explore our service portfolio, capabilities, and detailed offerings.',
@@ -14,6 +16,7 @@ export default function ServicesRoutePage() {
           Browse service offerings, search by needs, and open service detail pages for full scope and related services.
         </p>
       </section>
+      {/* ==================== LISTING ==================== */}
       <ServicesListingExperience />
     </div>
   );

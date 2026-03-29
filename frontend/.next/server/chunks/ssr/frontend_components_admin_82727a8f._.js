@@ -1,0 +1,3 @@
+module.exports=[13180,a=>{"use strict";var b=a.i(72131);function c(a,c){let d=(0,b.useRef)(c);(0,b.useEffect)(()=>{d.current=c},[c]),(0,b.useEffect)(()=>{if(!a)return;let b=a=>{"Escape"===a.key&&(a.preventDefault(),Promise.resolve(d.current()))};return document.addEventListener("keydown",b),()=>document.removeEventListener("keydown",b)},[a])}a.s(["useEscapeToClose",()=>c])},53154,a=>{a.n(a.i(55492))}];
+
+//# sourceMappingURL=frontend_components_admin_82727a8f._.js.map

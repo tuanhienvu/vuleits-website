@@ -2,6 +2,8 @@
 
 import Image from 'next/image';
 
+// --- Section: company logo (Next/Image, remote unoptimized when http(s)) ---
+
 type BrandingLogoProps = {
   src: string;
   alt: string;

@@ -11,6 +11,7 @@ type ContactInfo = {
   fullNameEn: string;
   address: string;
   email: string;
+  email2: string;
   phone: string;
   hotline: string;
   mapEmbedSrc: string | null;
@@ -24,6 +25,8 @@ function displayCompanyFullName(locale: Locale, info: ContactInfo): string {
   if (locale === 'vi-VN') return vi || en || short;
   return en || vi || short;
 }
+
+// --- Sections: Hero | Form + contact details | Map embed ---
 
 export default function ContactPage() {
   const { t, locale } = useLocale();
@@ -64,6 +67,7 @@ export default function ContactPage() {
             fullNameEn: typeof data.fullNameEn === 'string' ? data.fullNameEn : '',
             address: typeof data.address === 'string' ? data.address : '',
             email: typeof data.email === 'string' ? data.email : '',
+            email2: typeof data.email2 === 'string' ? data.email2 : '',
             phone: typeof data.phone === 'string' ? data.phone : '',
             hotline: typeof data.hotline === 'string' ? data.hotline : '',
             mapEmbedSrc: typeof src === 'string' && src ? src : null,
@@ -78,6 +82,7 @@ export default function ContactPage() {
             fullNameEn: '',
             address: '',
             email: '',
+            email2: '',
             phone: '',
             hotline: '',
             mapEmbedSrc: null,
@@ -105,6 +110,7 @@ export default function ContactPage() {
   };
 
   const emailLine = info?.email?.trim();
+  const email2Line = info?.email2?.trim();
   const phoneLine = info?.phone?.trim();
   const hotlineLine = info?.hotline?.trim();
   const addressLine = info?.address?.trim();
@@ -112,11 +118,13 @@ export default function ContactPage() {
 
   return (
     <div className="container mx-auto px-4">
+      {/* ==================== CONTACT HERO ==================== */}
       <section className="glass p-8 md:p-12 rounded-3xl mb-12 text-center">
         <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">{t('contact.heroTitle')}</h1>
         <p className="text-white/80 text-lg">{t('contact.heroSubtitle')}</p>
       </section>
 
+      {/* ==================== MESSAGE FORM & COMPANY INFO ==================== */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
         <div className="glass p-8 rounded-3xl">
           <h2 className="text-3xl font-bold text-white mb-6">{t('contact.sendMessage')}</h2>
@@ -220,6 +228,18 @@ export default function ContactPage() {
                 </div>
               ) : null}
 
+              {email2Line && email2Line !== emailLine ? (
+                <div className="flex gap-4">
+                  <div className="text-3xl shrink-0">📧</div>
+                  <div className="min-w-0">
+                    <h4 className="text-white font-semibold mb-1">Secondary email</h4>
+                    <a href={`mailto:${email2Line}`} className="text-white/70 hover:text-white break-all">
+                      {email2Line}
+                    </a>
+                  </div>
+                </div>
+              ) : null}
+
               {phoneLine ? (
                 <div className="flex gap-4">
                   <div className="text-3xl shrink-0">📞</div>
@@ -248,7 +268,7 @@ export default function ContactPage() {
                 <CompanySocialLinks links={info.socialLinks} showHeading className="pt-2 border-t border-white/10" />
               ) : null}
 
-              {!emailLine && !phoneLine && !addressLine && !info?.socialLinks?.length ? (
+              {!emailLine && !email2Line && !phoneLine && !addressLine && !info?.socialLinks?.length ? (
                 <p className="text-white/50 text-sm">{t('contact.mapPlaceholder')}</p>
               ) : null}
             </div>
@@ -256,6 +276,7 @@ export default function ContactPage() {
         </div>
       </section>
 
+      {/* ==================== MAP / FIND US ==================== */}
       <section className="mb-12">
         <div className="glass p-8 rounded-3xl">
           <h2 className="text-3xl font-bold text-white mb-6">{t('contact.findUs')}</h2>

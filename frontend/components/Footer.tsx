@@ -1,8 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import CompanySocialLinks, { type PublicSocialLink } from '@/components/CompanySocialLinks';
 import { useCompanyBranding } from '@/hooks/useCompanyBranding';
+import { navigateToPublicSection } from '@/lib/navigation/navigateToPublicSection';
 
 interface FooterProps {
   setCurrentPage: (page: string) => void;
@@ -10,6 +12,8 @@ interface FooterProps {
 
 export default function Footer({ setCurrentPage }: FooterProps) {
   const { companyName } = useCompanyBranding();
+  const router = useRouter();
+  const pathname = usePathname() ?? '/';
   const [socialLinks, setSocialLinks] = useState<PublicSocialLink[]>([]);
 
   useEffect(() => {
@@ -48,11 +52,47 @@ export default function Footer({ setCurrentPage }: FooterProps) {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             {/* ==================== FOOTER LINKS AREA ==================== */}
             <div className="flex gap-6 flex-wrap justify-center md:justify-start text-sm">
-              <a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('about'); }} className="text-white hover:text-white/80 transition-colors">About</a>
-              <a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('privacy'); }} className="text-white hover:text-white/80 transition-colors">Privacy</a>
-              <a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('terms'); }} className="text-white hover:text-white/80 transition-colors">Terms</a>
+              <a
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigateToPublicSection('about', pathname, setCurrentPage, router);
+                }}
+                className="text-white hover:text-white/80 transition-colors"
+              >
+                About
+              </a>
+              <a
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigateToPublicSection('privacy', pathname, setCurrentPage, router);
+                }}
+                className="text-white hover:text-white/80 transition-colors"
+              >
+                Privacy
+              </a>
+              <a
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigateToPublicSection('terms', pathname, setCurrentPage, router);
+                }}
+                className="text-white hover:text-white/80 transition-colors"
+              >
+                Terms
+              </a>
               <a href="#" className="text-white hover:text-white/80 transition-colors">Sitemap</a>
-              <a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('contact'); }} className="text-white hover:text-white/80 transition-colors">Contact</a>
+              <a
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigateToPublicSection('contact', pathname, setCurrentPage, router);
+                }}
+                className="text-white hover:text-white/80 transition-colors"
+              >
+                Contact
+              </a>
             </div>
 
             {socialLinks.length > 0 ? (

@@ -11,7 +11,7 @@ import type { AdminUiFeatureId } from '@/lib/adminPermissionModel';
 
 type SidebarNavItem =
   | { kind: 'tab'; id: AdminUiFeatureId; label: string; icon: string; path: string }
-  | { kind: 'page'; id: 'companyProfile'; label: string; icon: string; path: string };
+  | { kind: 'page'; id: 'companyProfile' | 'permissionsPage' | 'aboutUs'; label: string; icon: string; path: string };
 
 interface AdminSidebarProps {
   isOpen: boolean;
@@ -19,6 +19,8 @@ interface AdminSidebarProps {
   mobileOpen: boolean;
   onMobileToggle: () => void;
 }
+
+// --- Sections: Desktop sidebar (brand, nav, collapse) | Mobile drawer | Shared nav groups ---
 
 export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileToggle }: AdminSidebarProps) {
   const router = useRouter();
@@ -31,7 +33,11 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
   const allowTab = useCallback((id: AdminUiFeatureId) => permsLoading || can(id, 'read'), [permsLoading, can]);
   const [showCompanyProfileNav, setShowCompanyProfileNav] = useState(false);
 
-  const activeTab = useMemo(() => searchParams.get('tab') || 'overview', [searchParams]);
+  /** Only meaningful on `/admin/dashboard`; null elsewhere so tab items are not matched against default `overview`. */
+  const activeTab = useMemo(() => {
+    if (pathname !== '/admin/dashboard') return null;
+    return searchParams.get('tab') || 'overview';
+  }, [pathname, searchParams]);
 
   useEffect(() => {
     let cancelled = false;
@@ -82,7 +88,7 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
         label: t('admin.permissionGroup'),
         items: [
           { kind: 'tab', id: 'users', label: t('admin.users'), icon: '👥', path: '/admin/dashboard?tab=users' },
-          { kind: 'tab', id: 'permissions', label: t('admin.permissions'), icon: '🔐', path: '/admin/dashboard?tab=permissions' },
+          { kind: 'page', id: 'permissionsPage', label: t('admin.permissions'), icon: '🔐', path: '/admin/permissions' },
         ],
       },
       {
@@ -96,8 +102,13 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
             icon: '🏢',
             path: '/admin/company-profile',
           },
-          { kind: 'tab', id: 'homeFeatures', label: t('admin.homeFeatures'), icon: '🏠', path: '/admin/dashboard?tab=homeFeatures' },
-          { kind: 'tab', id: 'contacts', label: t('admin.contacts'), icon: '💬', path: '/admin/dashboard?tab=contacts' },
+          {
+            kind: 'page',
+            id: 'aboutUs',
+            label: t('admin.aboutUs'),
+            icon: '🎯',
+            path: '/admin/about-us',
+          },
           { kind: 'tab', id: 'aboutTeam', label: t('admin.aboutTeam'), icon: '👤', path: '/admin/dashboard?tab=aboutTeam' },
           { kind: 'tab', id: 'aboutStats', label: t('admin.aboutStats'), icon: '📈', path: '/admin/dashboard?tab=aboutStats' },
         ],
@@ -113,6 +124,8 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
           ...group,
           items: group.items.filter((item) => {
             if (item.kind === 'page' && item.id === 'companyProfile') return showCompanyProfileNav;
+            if (item.kind === 'page' && item.id === 'permissionsPage') return allowTab('permissions');
+            if (item.kind === 'page' && item.id === 'aboutUs') return allowTab('aboutTeam');
             if (item.kind === 'tab') return allowTab(item.id);
             return false;
           }),
@@ -124,7 +137,8 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
   const activeGroupId = useMemo(() => {
     for (const g of visibleGroups) {
       for (const item of g.items) {
-        const isActive = item.kind === 'page' ? pathname === item.path : activeTab === item.id;
+        const isActive =
+          item.kind === 'page' ? pathname === item.path : activeTab != null && activeTab === item.id;
         if (isActive) return g.id;
       }
     }
@@ -156,14 +170,14 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
 
   return (
     <>
-      {/* Desktop Sidebar */}
+      {/* ==================== DESKTOP SIDEBAR RAIL ==================== */}
       <aside
         className={`fixed left-0 top-0 h-full bg-[#0a0a0a]/95 backdrop-blur-lg border-r border-white/10 z-50 transition-[width] duration-300 ease-out ${
           isOpen ? 'w-64' : 'w-24'
         } hidden lg:block`}
       >
         <div className="flex flex-col h-full">
-          {/* Logo/Brand Section */}
+          {/* ==================== BRAND / LOGO (DESKTOP) ==================== */}
           <div className={`border-b border-white/10 h-21 flex items-center ${isOpen ? 'px-4' : 'px-2'}`}>
             <Link
               href="/"
@@ -191,7 +205,7 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
             </Link>
           </div>
 
-          {/* Navigation Menu */}
+          {/* ==================== NAVIGATION GROUPS (DESKTOP) ==================== */}
           <nav
             className={`admin-sidebar-scroll flex-1 overflow-y-auto overflow-x-hidden space-y-2 ${isOpen ? 'p-4' : 'px-2 py-3'}`}
           >
@@ -233,7 +247,9 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
                           <div className="space-y-2 pt-1">
                             {group.items.map((item) => {
                               const isActive =
-                                item.kind === 'page' ? pathname === item.path : activeTab === item.id;
+                                item.kind === 'page'
+                                  ? pathname === item.path
+                                  : activeTab != null && activeTab === item.id;
                               return (
                                 <button
                                   key={`${item.kind}-${item.id}`}
@@ -258,7 +274,9 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
                     <div className="space-y-1.5">
                       {group.items.map((item) => {
                         const isActive =
-                          item.kind === 'page' ? pathname === item.path : activeTab === item.id;
+                          item.kind === 'page'
+                            ? pathname === item.path
+                            : activeTab != null && activeTab === item.id;
                         return (
                           <button
                             key={`${item.kind}-${item.id}`}
@@ -282,7 +300,7 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
             })}
           </nav>
 
-          {/* Toggle: collapse (wide rail) / expand (icon rail) */}
+          {/* ==================== COLLAPSE / EXPAND RAIL TOGGLE ==================== */}
           <div className={`border-t border-white/10 shrink-0 ${isOpen ? 'p-3' : 'p-2'}`}>
             <button
               type="button"
@@ -317,14 +335,14 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
         </div>
       </aside>
 
-      {/* Mobile Sidebar */}
+      {/* ==================== MOBILE SIDEBAR DRAWER ==================== */}
       <aside
         className={`fixed left-0 top-0 h-full bg-[#0a0a0a]/95 backdrop-blur-lg border-r border-white/10 z-50 transition-transform duration-300 w-64 ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         } lg:hidden`}
       >
         <div className="flex flex-col h-full">
-          {/* Logo/Brand Section */}
+          {/* ==================== BRAND / LOGO (MOBILE) ==================== */}
           <div className="h-20 px-4 border-b border-white/10 flex items-center">
             <Link
               href="/"
@@ -348,7 +366,7 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
             </Link>
           </div>
 
-          {/* Navigation Menu */}
+          {/* ==================== NAVIGATION GROUPS (MOBILE) ==================== */}
           <nav className="admin-sidebar-scroll flex-1 overflow-y-auto p-4 space-y-2">
             {visibleGroups.map((group) => {
               const expanded = expandedGroupId === group.id;
@@ -386,7 +404,9 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
                       <div className="space-y-2 pt-1">
                         {group.items.map((item) => {
                           const isActive =
-                            item.kind === 'page' ? pathname === item.path : activeTab === item.id;
+                            item.kind === 'page'
+                              ? pathname === item.path
+                              : activeTab != null && activeTab === item.id;
                           return (
                             <button
                               key={`${item.kind}-${item.id}`}

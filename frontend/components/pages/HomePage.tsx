@@ -13,6 +13,8 @@ interface HomePageProps {
 
 type HomeFeature = { icon: string; title: string; description: string };
 
+// --- Sections: Branding & features fetch | Hero | Features grid (see JSX markers) ---
+
 function normalizeHomeFeatures(raw: unknown): HomeFeature[] {
   return safeArray<unknown>(raw).map((item) => {
     const f = item as Record<string, unknown>;

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { authorize } from '@/lib/adminAuth';
+import { jsonObjectBody, readNestedBoolean } from '@/lib/jsonBody';
 import {
   UI_FEATURES,
   featureToPermissionPrefix,
@@ -32,9 +33,17 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ user
 
   const matrix = await getEffectiveFeatureMatrix(targetUserId);
 
+  const targetRole = await prisma.role.findUnique({
+    where: { id: targetUser.roleId },
+    select: { name: true },
+  });
+  const editable =
+    !targetUser.isProtected && normalizeRoleName(targetRole?.name) !== 'SYSADMIN';
+
   return NextResponse.json({
     user: targetUser,
     features: matrix,
+    editable,
   });
 }
 
@@ -71,8 +80,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ user
     return NextResponse.json({ error: 'Forbidden: cannot edit permissions for a higher role' }, { status: 403 });
   }
 
-  const body = await req.json().catch(() => ({}));
-  const features = (body as any)?.features || {};
+  const body = jsonObjectBody(await req.json().catch(() => ({})));
+  const features = jsonObjectBody(body.features);
 
   const permissionNames: string[] = [];
   for (const f of UI_FEATURES) {
@@ -93,7 +102,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ user
       const permissionId = nameToId.get(permissionName);
       if (!permissionId) continue;
 
-      const desired = Boolean((features as any)?.[f]?.[a]);
+      const desired = readNestedBoolean(features, f, a);
 
       if (desired) {
         await prisma.userPermission.upsert({

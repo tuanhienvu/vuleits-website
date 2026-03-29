@@ -7,6 +7,8 @@ import { useToast } from '@/components/providers/ToastProvider';
 import { useLocale } from '@/components/providers/LocaleProvider';
 import { useCompanyBranding } from '@/hooks/useCompanyBranding';
 
+// --- Sections: Redirect if already authed | Branding header | Login form ---
+
 export default function AdminLogin() {
   const toast = useToast();
   const { t } = useLocale();
@@ -53,6 +55,7 @@ export default function AdminLogin() {
   return (
     <div className="min-h-screen bg-linear-to-br from-[#0c0c0c] via-[#1a1a2e] to-[#a0616a] flex items-center justify-center px-4">
       <div className="glass p-8 md:p-12 rounded-3xl w-full max-w-md relative z-10">
+        {/* ==================== BRAND & TITLE ==================== */}
         <div className="text-center mb-8">
           <Link
             href="/"
@@ -67,6 +70,7 @@ export default function AdminLogin() {
           <p className="text-white/70">Content Management System</p>
         </div>
 
+        {/* ==================== CREDENTIALS FORM ==================== */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="email" className="text-white font-medium block mb-2">

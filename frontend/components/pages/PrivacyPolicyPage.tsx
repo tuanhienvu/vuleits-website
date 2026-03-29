@@ -1,13 +1,17 @@
 'use client';
 
+// --- Sections: Policy header | Numbered policy sections ---
+
 export default function PrivacyPolicyPage() {
   return (
     <div className="container mx-auto px-4">
+      {/* ==================== PRIVACY HEADER ==================== */}
       <section className="glass p-8 md:p-12 rounded-3xl mb-8">
         <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Privacy</h1>
         <p className="text-white/80 text-sm">Last updated: December 13, 2025</p>
       </section>
 
+      {/* ==================== PRIVACY BODY ==================== */}
       <section className="glass p-8 md:p-12 rounded-3xl space-y-6 mb-12">
         <div>
           <h2 className="text-2xl font-bold text-white mb-3">1. Introduction</h2>

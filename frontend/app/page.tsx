@@ -1,19 +1,81 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
+import { useState, useEffect, useRef, startTransition } from 'react';
 import Navigation from '@/components/Navigation';
-import HomePage from '@/components/pages/HomePage';
-import AboutPage from '@/components/pages/AboutPage';
-import ServicesPage from '@/components/pages/ServicesPage';
-import ContactPage from '@/components/pages/ContactPage';
-import ProductsPage from '@/components/pages/ProductsPage';
-import NewsPage from '@/components/pages/NewsPage';
-import PrivacyPolicyPage from '@/components/pages/PrivacyPolicyPage';
-import TermsOfServicePage from '@/components/pages/TermsOfServicePage';
 import Footer from '@/components/Footer';
+import {
+  PUBLIC_SECTION_STORAGE_KEY,
+  isPublicSectionId,
+} from '@/lib/navigation/publicSectionStorage';
+
+function PublicSectionFallback() {
+  return (
+    <div className="min-h-[45vh] flex items-center justify-center px-4" role="status" aria-busy>
+      <span className="sr-only">Loading section</span>
+      <div className="h-28 w-full max-w-lg rounded-2xl bg-white/5 motion-safe:animate-pulse" />
+    </div>
+  );
+}
+
+/* Turbopack production build requires an object literal as `dynamic()` options (not a shared const). */
+const HomePage = dynamic<{ setCurrentPage: (page: string) => void }>(
+  () => import('@/components/pages/HomePage'),
+  { loading: () => <PublicSectionFallback /> },
+);
+const AboutPage = dynamic(() => import('@/components/pages/AboutPage'), {
+  loading: () => <PublicSectionFallback />,
+});
+const ServicesPage = dynamic(() => import('@/components/pages/ServicesPage'), {
+  loading: () => <PublicSectionFallback />,
+});
+const ContactPage = dynamic(() => import('@/components/pages/ContactPage'), {
+  loading: () => <PublicSectionFallback />,
+});
+const ProductsPage = dynamic(() => import('@/components/pages/ProductsPage'), {
+  loading: () => <PublicSectionFallback />,
+});
+const NewsPage = dynamic(() => import('@/components/pages/NewsPage'), {
+  loading: () => <PublicSectionFallback />,
+});
+const PrivacyPolicyPage = dynamic(() => import('@/components/pages/PrivacyPolicyPage'), {
+  loading: () => <PublicSectionFallback />,
+});
+const TermsOfServicePage = dynamic(() => import('@/components/pages/TermsOfServicePage'), {
+  loading: () => <PublicSectionFallback />,
+});
+
+// --- Sections: Session restore | Meta/SEO per section | Shell (bg, skip link, nav, main, footer) ---
 
 export default function Home() {
   const [currentPage, setCurrentPage] = useState('home');
+  const skipInitialPersist = useRef(true);
+
+  /** Restore SPA section when returning from /products, /news, etc. via browser back. */
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(PUBLIC_SECTION_STORAGE_KEY);
+      if (raw && isPublicSectionId(raw) && raw !== 'home') {
+        startTransition(() => {
+          setCurrentPage(raw);
+        });
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    if (skipInitialPersist.current) {
+      skipInitialPersist.current = false;
+      return;
+    }
+    try {
+      sessionStorage.setItem(PUBLIC_SECTION_STORAGE_KEY, currentPage);
+    } catch {
+      // ignore
+    }
+  }, [currentPage]);
 
   useEffect(() => {
     const meta = (name: string) => document.querySelector(`meta[name="${name}"]`);
@@ -61,8 +123,8 @@ export default function Home() {
   }, [currentPage]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0c0c0c] via-[#1a1a2e] to-[#a0616a]">
-      {/* Background Shapes */}
+    <div className="min-h-screen bg-linear-to-br from-[#0c0c0c] via-[#1a1a2e] to-[#a0616a]">
+      {/* ==================== DECORATIVE BACKGROUND SHAPES ==================== */}
       <div className="fixed top-0 left-0 w-full h-full -z-10 overflow-hidden pointer-events-none">
         {[1, 2, 3, 4, 5, 6].map((i) => (
           <div
@@ -84,10 +146,13 @@ export default function Home() {
         ))}
       </div>
 
+      {/* ==================== SKIP LINK (ACCESSIBILITY) ==================== */}
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:bg-white/10 focus:text-white focus:px-3 focus:py-2 rounded">Skip to content</a>
 
+      {/* ==================== PRIMARY NAVIGATION ==================== */}
       <Navigation currentPage={currentPage} setCurrentPage={setCurrentPage} />
 
+      {/* ==================== SECTION ROUTER (HOME, ABOUT, …) ==================== */}
       <main id="main-content" className="relative z-10">
         {currentPage === 'home' && <HomePage setCurrentPage={setCurrentPage} />}
         {currentPage === 'about' && <AboutPage />}
@@ -99,6 +164,7 @@ export default function Home() {
         {currentPage === 'terms' && <TermsOfServicePage />}
       </main>
 
+      {/* ==================== FOOTER ==================== */}
       <Footer setCurrentPage={setCurrentPage} />
     </div>
   );

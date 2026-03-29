@@ -3,6 +3,8 @@
 import Image from 'next/image';
 import { useLocale, type Locale } from '@/components/providers/LocaleProvider';
 
+// --- Section: EN/VI toggle with flag assets ---
+
 const FLAG: Record<Locale, { src: string }> = {
   'en-US': { src: '/flags/us.svg' },
   'vi-VN': { src: '/flags/vn.svg' },

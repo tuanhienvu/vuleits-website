@@ -1,6 +1,10 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
+import DetailBackButton from '@/components/navigation/DetailBackButton';
+import NewsRelatedArticlesFlip from '@/components/news/NewsRelatedArticlesFlip';
+
+// --- News article: fetch detail + JSON-LD | Breadcrumb, article body, related ---
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -107,8 +111,10 @@ export default async function NewsDetailPage({ params }: Props) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0c0c0c] via-[#1a1a2e] to-[#a0616a]">
+    <div className="min-h-screen bg-linear-to-br from-[#0c0c0c] via-[#1a1a2e] to-[#a0616a]">
       <div className="container mx-auto px-4 py-8">
+        {/* ==================== BACK & BREADCRUMB ==================== */}
+        <DetailBackButton fallbackHref="/news" />
         <nav className="text-white/60 text-sm mb-6" aria-label="Breadcrumb">
           <ol className="flex flex-wrap gap-2">
             <li>
@@ -132,6 +138,7 @@ export default async function NewsDetailPage({ params }: Props) {
           </ol>
         </nav>
 
+        {/* ==================== ARTICLE (META, THUMB, BODY, JSON-LD) ==================== */}
         <article className="glass p-6 md:p-10 rounded-3xl mb-10">
           <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">{a.title}</h1>
 
@@ -163,25 +170,10 @@ export default async function NewsDetailPage({ params }: Props) {
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
         </article>
 
+        {/* ==================== RELATED ARTICLES ==================== */}
         <section className="mb-16">
-          <h2 className="text-2xl font-bold text-white mb-4">Related articles</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {related.length ? (
-              related.map((r) => (
-                <Link
-                  key={r.id}
-                  href={`/news/${r.slug}`}
-                  className="glass p-5 rounded-2xl hover:shadow-xl transition-all"
-                >
-                  <p className="text-white font-semibold">{r.title}</p>
-                  <p className="text-white/70 text-sm mt-2">{r.description}</p>
-                  <p className="text-white/50 text-xs mt-3">{new Date(r.publishedAt).toLocaleDateString()}</p>
-                </Link>
-              ))
-            ) : (
-              <div className="glass p-6 rounded-2xl text-white/70">No related articles found.</div>
-            )}
-          </div>
+          <h2 className="mb-4 text-2xl font-bold text-white">Related articles</h2>
+          <NewsRelatedArticlesFlip related={related} />
         </section>
       </div>
     </div>

@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import type { ServiceCard, ServicesListResponse } from '@/lib/services/types';
 
+// --- Sections: Search filter | Spotlight | Service cards grid ---
+
 export default function ServicesListingExperience() {
   const [data, setData] = useState<ServicesListResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -34,6 +36,7 @@ export default function ServicesListingExperience() {
 
   return (
     <>
+      {/* ==================== SEARCH ==================== */}
       <section className="glass p-6 rounded-2xl mb-8 border border-white/10">
         <label className="block">
           <span className="text-white/70 text-sm block mb-2">Search services</span>
@@ -52,6 +55,7 @@ export default function ServicesListingExperience() {
         <p className="text-white/70 mb-12">Could not load services.</p>
       ) : (
         <>
+          {/* ==================== SPOTLIGHT (EMPTY SEARCH) ==================== */}
           {spotlight.length > 0 && !q.trim() ? (
             <section className="mb-12" aria-labelledby="spotlight-title">
               <h2 id="spotlight-title" className="text-2xl font-bold text-white mb-4">
@@ -65,6 +69,7 @@ export default function ServicesListingExperience() {
             </section>
           ) : null}
 
+          {/* ==================== ALL / MATCHING SERVICES ==================== */}
           <section aria-labelledby="all-services-title">
             <h2 id="all-services-title" className="text-2xl font-bold text-white mb-4">
               {q.trim() ? 'Matching services' : 'All services'}
@@ -84,6 +89,8 @@ export default function ServicesListingExperience() {
     </>
   );
 }
+
+// --- ServiceCardView: summary card + link to detail ---
 
 function ServiceCardView({ service, highlight = false }: { service: ServiceCard; highlight?: boolean }) {
   return (

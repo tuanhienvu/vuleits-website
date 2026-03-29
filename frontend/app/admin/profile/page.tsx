@@ -10,6 +10,8 @@ type Me = {
   role: { name: string } | null;
 };
 
+// --- Sections: Load /api/admin/me | Profile summary ---
+
 export default function AdminProfilePage() {
   const [me, setMe] = useState<Me | null>(null);
   const [loading, setLoading] = useState(true);
@@ -38,6 +40,7 @@ export default function AdminProfilePage() {
 
   return (
     <section className="glass p-6 rounded-2xl">
+      {/* ==================== PROFILE DETAILS ==================== */}
       <h1 className="text-2xl font-bold text-white mb-4">My Profile</h1>
       <div className="space-y-2 text-white/85">
         <p><span className="text-white/60">Email:</span> {me?.email ?? '-'}</p>

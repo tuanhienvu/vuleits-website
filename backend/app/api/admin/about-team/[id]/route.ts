@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { authorize } from '@/lib/adminAuth';
+import { jsonObjectBody } from '@/lib/jsonBody';
 
 type AboutTeamRow = {
   id: number;
@@ -48,15 +49,15 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const id = Number(idParam);
   if (!Number.isFinite(id)) return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
 
-  const body = await req.json();
+  const body = jsonObjectBody(await req.json());
   const data: { emoji?: string; name?: string; role?: string; bio?: string; order?: number; isActive?: boolean } = {};
 
-  if ((body as any).emoji !== undefined) data.emoji = String((body as any).emoji || '').trim();
-  if ((body as any).name !== undefined) data.name = String((body as any).name || '').trim();
-  if ((body as any).role !== undefined) data.role = String((body as any).role || '').trim();
-  if ((body as any).bio !== undefined) data.bio = String((body as any).bio || '').trim();
-  if ((body as any).order !== undefined) data.order = Number((body as any).order);
-  if ((body as any).isActive !== undefined) data.isActive = Boolean((body as any).isActive);
+  if (body.emoji !== undefined) data.emoji = String(body.emoji ?? '').trim();
+  if (body.name !== undefined) data.name = String(body.name ?? '').trim();
+  if (body.role !== undefined) data.role = String(body.role ?? '').trim();
+  if (body.bio !== undefined) data.bio = String(body.bio ?? '').trim();
+  if (body.order !== undefined) data.order = Number(body.order);
+  if (body.isActive !== undefined) data.isActive = Boolean(body.isActive);
 
   if (data.emoji !== undefined && !data.emoji) return NextResponse.json({ error: 'Emoji is required' }, { status: 400 });
   if (data.name !== undefined && !data.name) return NextResponse.json({ error: 'Name is required' }, { status: 400 });

@@ -36,6 +36,8 @@ type AboutIntro = {
   heroImageAlt: string;
 };
 
+// --- Sections: Intro + hero | Statistics | Team (see JSX markers) ---
+
 export default function AboutPage() {
   const { locale } = useLocale();
   const [intro, setIntro] = useState<AboutIntro | null>(null);

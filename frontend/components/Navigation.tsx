@@ -2,7 +2,9 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { navigateToPublicSection } from '@/lib/navigation/navigateToPublicSection';
+import { PUBLIC_SECTION_STORAGE_KEY } from '@/lib/navigation/publicSectionStorage';
 import { useLocale } from '@/components/providers/LocaleProvider';
 import LocaleSwitcher from '@/components/LocaleSwitcher';
 import BrandingLogo from '@/components/BrandingLogo';
@@ -17,6 +19,7 @@ export default function Navigation({ currentPage, setCurrentPage }: NavigationPr
   // ==================== STATE MANAGEMENT ==================== 
   const [mobileOpen, setMobileOpen] = useState(false);
   const router = useRouter();
+  const pathname = usePathname() ?? '/';
   const { t } = useLocale();
   const { logoSrc, companyName, slogan } = useCompanyBranding();
   const tagline = slogan || t('nav.tagline');
@@ -43,8 +46,15 @@ export default function Navigation({ currentPage, setCurrentPage }: NavigationPr
           <Link
             href="/"
             onClick={(e) => {
-              e.preventDefault();
-              setCurrentPage('home');
+              try {
+                sessionStorage.setItem(PUBLIC_SECTION_STORAGE_KEY, 'home');
+              } catch {
+                // ignore
+              }
+              if (pathname === '/') {
+                e.preventDefault();
+                setCurrentPage('home');
+              }
               setMobileOpen(false);
             }}
             className="flex items-center gap-4 cursor-pointer rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-white/40"
@@ -86,7 +96,7 @@ export default function Navigation({ currentPage, setCurrentPage }: NavigationPr
                 href="#"
                 onClick={(e) => {
                   e.preventDefault();
-                  setCurrentPage(item.id);
+                  navigateToPublicSection(item.id, pathname, setCurrentPage, router);
                 }}
                 aria-current={currentPage === item.id ? 'page' : undefined}
                 className={`text-white font-medium transition-all duration-300 pb-2 text-sm md:text-base ${
@@ -122,7 +132,7 @@ export default function Navigation({ currentPage, setCurrentPage }: NavigationPr
                     href="#"
                     onClick={(e) => {
                       e.preventDefault();
-                      setCurrentPage(item.id);
+                      navigateToPublicSection(item.id, pathname, setCurrentPage, router);
                       setMobileOpen(false);
                     }}
                     className={`text-white font-medium transition-all duration-200 py-2 px-3 rounded-lg border ${

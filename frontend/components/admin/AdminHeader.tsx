@@ -30,6 +30,8 @@ function avatarInitials(displayName: string | null, email: string): string {
   return (local.charAt(0) || '?').toUpperCase();
 }
 
+// --- Sections: Title bar & menu trigger | User menu & locale | Change-password modal ---
+
 export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
   const router = useRouter();
   const { t } = useLocale();
@@ -137,6 +139,7 @@ export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
 
   return (
     <header className="sticky top-0 z-30 bg-[#0a0a0a]/80 backdrop-blur-lg border-b border-white/10">
+      {/* ==================== TOP BAR: TITLE & MOBILE MENU ==================== */}
       <div className="flex items-center justify-between px-4 lg:px-6 py-4">
         <div className="flex items-center gap-4 min-w-0">
           <button
@@ -153,6 +156,7 @@ export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
           </div>
         </div>
 
+        {/* ==================== USER MENU & LOCALE ==================== */}
         <div className="flex items-center gap-3 sm:gap-4 shrink-0">
           <div className="relative" ref={menuRef}>
             <button
@@ -213,6 +217,7 @@ export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
         </div>
       </div>
 
+      {/* ==================== CHANGE PASSWORD MODAL ==================== */}
       {passwordOpen && (
         <div className="fixed inset-0 z-60 flex items-center justify-center px-2 sm:px-4">
           <div

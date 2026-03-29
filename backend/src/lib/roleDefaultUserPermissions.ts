@@ -129,3 +129,38 @@ export async function applyRoleDefaultUserPermissions(userId: number, roleName: 
   }
 }
 
+/** Replace RolePermission rows for a role with the default matrix for that role name (seed-aligned). */
+export async function applyRoleDefaultRolePermissions(roleId: number, roleName: string): Promise<void> {
+  const matrix = getRoleDefaultMatrix(roleName);
+  await prisma.rolePermission.deleteMany({ where: { roleId } });
+
+  const permissionNames: string[] = [];
+  for (const f of UI_FEATURES) {
+    const prefix = featureToPermissionPrefix[f];
+    for (const a of PERMISSION_ACTIONS) {
+      permissionNames.push(buildPermissionName(prefix, a));
+    }
+  }
+
+  const permissions = await prisma.permission.findMany({
+    where: { name: { in: permissionNames } },
+    select: { id: true, name: true },
+  });
+  const nameToId = new Map(permissions.map((p) => [p.name, p.id]));
+
+  const rows: { roleId: number; permissionId: number }[] = [];
+  for (const f of UI_FEATURES) {
+    const prefix = featureToPermissionPrefix[f];
+    const cell = matrix[f];
+    for (const a of PERMISSION_ACTIONS) {
+      if (!cell[a]) continue;
+      const permissionId = nameToId.get(buildPermissionName(prefix, a));
+      if (permissionId != null) rows.push({ roleId, permissionId });
+    }
+  }
+
+  if (rows.length > 0) {
+    await prisma.rolePermission.createMany({ data: rows });
+  }
+}
+

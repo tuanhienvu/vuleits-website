@@ -204,6 +204,7 @@
       "hideLogsAfterAbort": false,
       "mcpServer": true,
       "optimizePackageImports": [
+        "framer-motion",
         "lucide-react",
         "date-fns",
         "lodash-es",

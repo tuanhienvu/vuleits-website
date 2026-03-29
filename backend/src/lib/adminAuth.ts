@@ -50,6 +50,17 @@ export async function authorize(request: Request, requiredPermission?: string) {
   return { error: NextResponse.json({ error: 'Forbidden' }, { status: 403 }) };
 }
 
+/** Authenticated user must have at least one of the given permissions. */
+export async function authorizeAny(request: Request, requiredPermissions: string[]) {
+  const base = await authorize(request);
+  if (base.error) return base;
+  const user = base.user;
+  for (const p of requiredPermissions) {
+    if (await userHasPermission(user.id, p)) return { user };
+  }
+  return { error: NextResponse.json({ error: 'Forbidden' }, { status: 403 }) };
+}
+
 export async function userHasPermission(userId: number, permissionName: string): Promise<boolean> {
   const perm = await prisma.permission.findUnique({ where: { name: permissionName } });
   if (!perm) return false;

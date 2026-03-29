@@ -1,0 +1,3 @@
+module.exports=[13180,a=>{"use strict";var b=a.i(72131);function c(a,c){let d=(0,b.useRef)(c);(0,b.useEffect)(()=>{d.current=c},[c]),(0,b.useEffect)(()=>{if(!a)return;let b=a=>{"Escape"===a.key&&(a.preventDefault(),Promise.resolve(d.current()))};return document.addEventListener("keydown",b),()=>document.removeEventListener("keydown",b)},[a])}a.s(["useEscapeToClose",()=>c])},20769,a=>{"use strict";var b=a.i(87924),c=a.i(55492);function d(){return(0,b.jsx)(c.default,{})}a.s(["default",()=>d])}];
+
+//# sourceMappingURL=frontend_a048fad5._.js.map

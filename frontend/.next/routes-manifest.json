@@ -76,6 +76,12 @@
       "namedRegex": "^/_not\\-found(?:/)?$"
     },
     {
+      "page": "/admin/about-us",
+      "regex": "^/admin/about\\-us(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/about\\-us(?:/)?$"
+    },
+    {
       "page": "/admin/company-profile",
       "regex": "^/admin/company\\-profile(?:/)?$",
       "routeKeys": {},
@@ -92,6 +98,12 @@
       "regex": "^/admin/login(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/admin/login(?:/)?$"
+    },
+    {
+      "page": "/admin/permissions",
+      "regex": "^/admin/permissions(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/permissions(?:/)?$"
     },
     {
       "page": "/admin/profile",

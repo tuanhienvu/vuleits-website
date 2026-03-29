@@ -6,6 +6,8 @@ import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminHeader from '@/components/admin/AdminHeader';
 import { AdminPermissionProvider } from '@/components/admin/AdminPermissionContext';
 
+// --- Sections: Login (bare children) | App shell: sidebar, header, main, mobile backdrop ---
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isLoginPage = pathname === '/admin/login';
@@ -26,6 +28,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <AdminPermissionProvider>
       <div className="min-h-screen bg-gradient-to-br from-[#0c0c0c] via-[#1a1a2e] to-[#a0616a]">
+        {/* ==================== SIDEBAR (DESKTOP + MOBILE, SUSPENSE) ==================== */}
         <Suspense fallback={null}>
           <AdminSidebar
             isOpen={sidebarOpen}
@@ -34,10 +37,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             onMobileToggle={() => setMobileMenuOpen(!mobileMenuOpen)}
           />
         </Suspense>
+        {/* ==================== MAIN COLUMN: HEADER + PAGE CONTENT ==================== */}
         <div className={`transition-all duration-300 ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-24'}`}>
           <AdminHeader onMenuClick={() => setMobileMenuOpen(!mobileMenuOpen)} />
           <main className="p-4 lg:p-6">{children}</main>
         </div>
+        {/* ==================== MOBILE SIDEBAR BACKDROP ==================== */}
         {mobileMenuOpen && (
           <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setMobileMenuOpen(false)} />
         )}

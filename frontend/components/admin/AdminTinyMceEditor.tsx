@@ -6,6 +6,8 @@ import dynamic from 'next/dynamic';
 const TINYMCE_VERSION = '8.3.2';
 const tinymceScriptSrc = `https://cdn.jsdelivr.net/npm/tinymce@${TINYMCE_VERSION}/tinymce.min.js`;
 
+// --- Section: Dynamic TinyMCE editor wrapper (admin rich text) ---
+
 export type AdminTinyMceEditorProps = {
   id?: string;
   value: string;
@@ -24,6 +26,7 @@ const Editor = dynamic(() => import('@tinymce/tinymce-react').then((m) => m.Edit
 
 export default function AdminTinyMceEditor({ id, value, onChange, disabled }: AdminTinyMceEditorProps) {
   return (
+    /* ==================== TINYMCE EDITOR ==================== */
     <div className={disabled ? 'opacity-70 pointer-events-none' : ''}>
       <Editor
         id={id ?? 'tinymce-editor'}
@@ -33,8 +36,9 @@ export default function AdminTinyMceEditor({ id, value, onChange, disabled }: Ad
         onEditorChange={(content: string) => onChange(content)}
         disabled={disabled}
         init={{
-          height: 280,
-          min_height: 200,
+          width: '100%',
+          height: 320,
+          min_height: 220,
           menubar: false,
           skin: 'oxide-dark',
           content_css: 'dark',

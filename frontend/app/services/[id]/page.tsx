@@ -4,6 +4,8 @@ import type { ServiceDetailResponse } from '@/lib/services/types';
 
 type Props = { params: Promise<{ id: string }> };
 
+// --- Service detail: SSR fetch + ServiceDetailClient ---
+
 function backendBaseUrl() {
   return process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:5000';
 }

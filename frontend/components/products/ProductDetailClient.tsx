@@ -1,16 +1,54 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { motion, useReducedMotion } from 'framer-motion';
+import DetailBackButton from '@/components/navigation/DetailBackButton';
+import { PRODUCT_HERO_LAYOUT_ID } from '@/components/products/interactive/types';
+import {
+  clearProductTransition,
+  readProductTransition,
+  type StoredProductTransition,
+} from '@/components/products/interactive/productTransitionStorage';
+import RelatedProductsRow from '@/components/products/related/RelatedProductsRow';
 import type { PublicProductDetail } from '@/lib/products/types';
 import { youtubeEmbedFromUrl } from '@/lib/products/videoEmbed';
 
+/** Expand: snappier so the detail shell reaches full screen sooner. */
+const SHELL_ENTER_SPRING = { type: 'spring' as const, stiffness: 380, damping: 36, mass: 0.72 };
+/** Collapse back to card: ~30% longer than prior exit (~stiffness 72, mass 1.22). */
+const SHELL_EXIT_SPRING = { type: 'spring' as const, stiffness: 55, damping: 36, mass: 1.59 };
+
+/**
+ * `transform-origin` for fullscreen shell: card hero center as % of the panel.
+ * Uses viewport size from when the card was measured (`viewportW/H`) so ratios match `getBoundingClientRect()`.
+ */
+function cardImageCenterOriginPercent(b: StoredProductTransition): string {
+  if (typeof window === 'undefined') return '50% 50%';
+  const vw = b.viewportW ?? (window.innerWidth || 1);
+  const vh = b.viewportH ?? (window.innerHeight || 1);
+  const cx = b.left + b.width / 2;
+  const cy = b.top + b.height / 2;
+  return `${(cx / vw) * 100}% ${(cy / vh) * 100}%`;
+}
+
+// --- Sections: Back + breadcrumb | Header | Media & body | Demo / related ---
+
 export default function ProductDetailClient({ initial }: { initial: PublicProductDetail }) {
-  const tracked = useRef(false);
+  const router = useRouter();
+  const reduceMotion = useReducedMotion();
+  const skipMotion = reduceMotion === true;
+  /** Bounds for shared-element shell; state (not ref) so render stays valid for React Compiler / eslint. */
+  const [shellBounds, setShellBounds] = useState<StoredProductTransition | null>(null);
+  const exitHandledRef = useRef(false);
+  const [shellFromListing, setShellFromListing] = useState(false);
+  const [exiting, setExiting] = useState(false);
+  const viewTrackedRef = useRef(false);
 
   useEffect(() => {
-    if (tracked.current) return;
-    tracked.current = true;
+    if (viewTrackedRef.current) return;
+    viewTrackedRef.current = true;
     void fetch('/api/products/analytics', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -18,19 +56,106 @@ export default function ProductDetailClient({ initial }: { initial: PublicProduc
     });
   }, [initial.slug]);
 
-  const mainImage = initial.imageUrls[0] ?? null;
+  /* Sync shared-element bounds from sessionStorage before first paint (cannot be derived during SSR render). */
+  /* eslint-disable react-hooks/set-state-in-effect -- intentional layout sync; deferring would flash wrong shell */
+  useLayoutEffect(() => {
+    if (skipMotion) {
+      const stale = readProductTransition();
+      if (stale?.slug === initial.slug) clearProductTransition();
+      setShellBounds(null);
+      return;
+    }
+    const data = readProductTransition();
+    if (!data) {
+      setShellFromListing(false);
+      setShellBounds(null);
+      return;
+    }
+    if (data.slug !== initial.slug) {
+      clearProductTransition();
+      setShellFromListing(false);
+      setShellBounds(null);
+      return;
+    }
+    setShellBounds(data);
+    setShellFromListing(true);
+  }, [initial.slug, skipMotion]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
-  return (
-    <div className="container mx-auto px-4 py-8 pb-16">
+  const finishExitAndNavigate = useCallback(() => {
+    clearProductTransition();
+    setShellBounds(null);
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push('/products');
+    }
+  }, [router]);
+
+  const handleBack = useCallback(() => {
+    if (!shellBounds || skipMotion || !shellFromListing) {
+      clearProductTransition();
+      if (typeof window !== 'undefined' && window.history.length > 1) {
+        router.back();
+      } else {
+        router.push('/products');
+      }
+      return;
+    }
+    exitHandledRef.current = false;
+    setExiting(true);
+  }, [shellFromListing, skipMotion, router, shellBounds]);
+
+  const onShellAnimationComplete = useCallback(() => {
+    if (!exiting) return;
+    if (exitHandledRef.current) return;
+    exitHandledRef.current = true;
+    finishExitAndNavigate();
+  }, [exiting, finishExitAndNavigate]);
+
+  const mainImage = initial.imageUrls[0] ?? null;
+  const useShell = shellFromListing && shellBounds != null && !skipMotion;
+  const b = shellBounds;
+
+  const productsCrumb =
+    useShell && !skipMotion ? (
+      <button
+        type="button"
+        onClick={handleBack}
+        className="hover:text-white transition-colors text-sm text-white/60"
+      >
+        Products
+      </button>
+    ) : (
+      <Link href="/products" className="hover:text-white transition-colors">
+        Products
+      </Link>
+    );
+
+  const heroLayoutId =
+    useShell || skipMotion ? undefined : `${PRODUCT_HERO_LAYOUT_ID}${initial.slug}`;
+
+  const mainInner = (
+    <>
+      <DetailBackButton fallbackHref="/products" onCustomNavigate={handleBack} />
       <nav className="text-sm text-white/60 mb-6" aria-label="Breadcrumb">
-        <Link href="/products" className="hover:text-white transition-colors">
-          Products
-        </Link>
+        {productsCrumb}
         <span className="mx-2">/</span>
         <span className="text-white/90">{initial.productName}</span>
       </nav>
 
-      <header className="mb-10">
+      <motion.header
+        className="mb-10"
+        initial={skipMotion ? false : useShell ? { opacity: 0, y: 10 } : { opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={
+          skipMotion
+            ? { duration: 0 }
+            : useShell
+              ? { type: 'spring', bounce: 0.06, stiffness: 360, damping: 34 }
+              : { type: 'spring', bounce: 0.1, stiffness: 260, damping: 32 }
+        }
+      >
         <div className="flex flex-wrap items-center gap-3 mb-4">
           <span className="px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wide bg-white/10 text-emerald-200 border border-emerald-400/30">
             {initial.category.name}
@@ -70,10 +195,28 @@ export default function ProductDetailClient({ initial }: { initial: PublicProduc
             Share
           </button>
         </div>
-      </header>
+      </motion.header>
 
       {mainImage ? (
-        <div className="mb-10 overflow-hidden rounded-3xl border border-white/10 bg-white/5 shadow-2xl">
+        <motion.div
+          layoutId={heroLayoutId}
+          className="mb-10 overflow-hidden rounded-3xl border border-white/10 bg-white/5 shadow-2xl"
+          initial={
+            skipMotion
+              ? false
+              : useShell
+                ? { opacity: 0.55, scale: 0.985, filter: 'blur(3px)' }
+                : { opacity: 0, scale: 0.94 }
+          }
+          animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+          transition={
+            skipMotion
+              ? { duration: 0 }
+              : useShell
+                ? { delay: 0, duration: 0.48, ease: [0.22, 0.62, 0.32, 1] }
+                : { type: 'spring', bounce: 0.16, duration: 1 }
+          }
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={mainImage}
@@ -81,7 +224,7 @@ export default function ProductDetailClient({ initial }: { initial: PublicProduc
             className="w-full max-h-[min(70vh,560px)] object-cover transition duration-500 hover:scale-[1.02]"
             loading="eager"
           />
-        </div>
+        </motion.div>
       ) : null}
 
       {initial.imageUrls.length > 1 ? (
@@ -208,37 +351,71 @@ export default function ProductDetailClient({ initial }: { initial: PublicProduc
 
       {initial.related.length > 0 ? (
         <section className="border-t border-white/10 pt-12" aria-labelledby="related-heading">
-          <h2 id="related-heading" className="text-2xl font-bold text-white mb-6">
+          <h2 id="related-heading" className="mb-6 text-2xl font-bold text-white">
             Related products
           </h2>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {initial.related.map((r) => (
-              <Link
-                key={r.id}
-                href={`/products/${encodeURIComponent(r.slug)}`}
-                className="group overflow-hidden rounded-2xl border border-white/10 bg-white/5 transition hover:border-white/25 hover:shadow-lg"
-              >
-                <div className="aspect-video overflow-hidden bg-white/5">
-                  {r.mainImage ? (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img src={r.mainImage} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" />
-                  ) : (
-                    <div className="flex h-full items-center justify-center text-4xl">📦</div>
-                  )}
-                </div>
-                <div className="p-4">
-                  <p className="text-xs uppercase tracking-wide text-emerald-200/90">{r.category.name}</p>
-                  <h3 className="mt-1 font-semibold text-white group-hover:text-emerald-100">{r.productName}</h3>
-                  <p className="mt-2 line-clamp-2 text-sm text-white/65">{r.shortDescription}</p>
-                </div>
-              </Link>
-            ))}
-          </div>
+          <RelatedProductsRow
+            related={initial.related}
+            listLabelId="related-heading"
+            onNavigate={() => clearProductTransition()}
+          />
         </section>
       ) : null}
-    </div>
+    </>
   );
+
+  if (useShell && b) {
+    return (
+      <motion.div
+        className={`fixed overflow-x-hidden bg-linear-to-br from-[#0c0c0c] via-[#1a1a2e] to-[#a0616a] shadow-2xl will-change-transform ${
+          exiting ? 'overflow-hidden' : 'overflow-y-auto'
+        }`}
+        style={{ zIndex: 25 }}
+        initial={{
+          top: b.top,
+          left: b.left,
+          width: b.width,
+          height: b.height,
+          borderRadius: 16,
+          scale: 1,
+          opacity: 1,
+          transformOrigin: '50% 50%',
+        }}
+        animate={
+          exiting
+            ? {
+                top: b.top,
+                left: b.left,
+                width: b.width,
+                height: b.height,
+                borderRadius: 16,
+                scale: 0.82,
+                opacity: 0.88,
+                transformOrigin: '50% 50%',
+              }
+            : {
+                top: 0,
+                left: 0,
+                width: '100vw',
+                height: '100vh',
+                borderRadius: 0,
+                scale: 1,
+                opacity: 1,
+                transformOrigin: cardImageCenterOriginPercent(b),
+              }
+        }
+        transition={exiting ? SHELL_EXIT_SPRING : SHELL_ENTER_SPRING}
+        onAnimationComplete={onShellAnimationComplete}
+      >
+        <div className="container mx-auto px-4 py-8 pb-16 min-h-full">{mainInner}</div>
+      </motion.div>
+    );
+  }
+
+  return <div className="container mx-auto px-4 py-8 pb-16">{mainInner}</div>;
 }
+
+// --- DemoButton: external demo link + analytics ---
 
 function DemoButton({ href, label, slug }: { href: string; label: string; slug: string }) {
   return (

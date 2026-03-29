@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
 
 type Category = { id: number; name: string; slug: string };
 type Tech = { id: number; techName: string; techLogo: string | null };
@@ -25,6 +24,10 @@ type ApiResponse = {
   technologies: Tech[];
   categories: Category[];
 };
+
+import { ProductList } from '@/components/products/interactive/ProductList';
+
+// --- Sections: Filters | Trending / popular / featured | Interactive card grid → /products/[slug] ---
 
 export default function ProductsListingExperience() {
   const [data, setData] = useState<ApiResponse | null>(null);
@@ -73,7 +76,7 @@ export default function ProductsListingExperience() {
 
   return (
     <>
-      {/* Filters */}
+      {/* ==================== FILTERS (SEARCH, CATEGORY, TECH) ==================== */}
       <section className="glass p-6 rounded-2xl mb-8 border border-white/10">
         <div className="flex flex-wrap items-end gap-4 mb-6">
           <label className="min-w-[200px] flex-1">
@@ -156,7 +159,7 @@ export default function ProductsListingExperience() {
         <p className="text-white/70 mb-12">Could not load products.</p>
       ) : (
         <>
-          {/* Trending highlight */}
+          {/* ==================== TRENDING (NO ACTIVE FILTERS) ==================== */}
           {data.trending.length > 0 && !hasFilters ? (
             <section className="mb-12" aria-labelledby="trending-title">
               <div className="flex items-center justify-between gap-4 mb-4">
@@ -165,41 +168,43 @@ export default function ProductsListingExperience() {
                 </h2>
                 <span className="text-xs uppercase tracking-widest text-emerald-300/90">Analytics-driven</span>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {data.trending.slice(0, 3).map((p) => (
-                  <ProductCard key={p.id} product={p} variant="trending" />
-                ))}
-              </div>
+              <ProductList
+                items={data.trending.slice(0, 3)}
+                variant="trending"
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-0"
+              />
             </section>
           ) : null}
 
-          {/* Most popular */}
+          {/* ==================== MOST POPULAR ==================== */}
           {data.popular.length > 0 && !hasFilters ? (
             <section className="mb-12" aria-labelledby="popular-title">
               <h2 id="popular-title" className="text-2xl font-bold text-white mb-4">
                 Most popular
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {data.popular.slice(0, 4).map((p) => (
-                  <ProductCard key={`pop-${p.id}`} product={p} variant="compact" />
-                ))}
-              </div>
+              <ProductList
+                items={data.popular.slice(0, 4)}
+                variant="default"
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-0"
+              />
             </section>
           ) : null}
 
+          {/* ==================== FEATURED ROW ==================== */}
           {featuredOnPage.length > 0 && !hasFilters ? (
             <section className="mb-10" aria-labelledby="featured-title">
               <h2 id="featured-title" className="text-2xl font-bold text-white mb-4">
                 Featured
               </h2>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {featuredOnPage.map((p) => (
-                  <ProductCard key={`feat-${p.id}`} product={p} variant="featured" />
-                ))}
-              </div>
+              <ProductList
+                items={featuredOnPage}
+                variant="featured"
+                className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-0"
+              />
             </section>
           ) : null}
 
+          {/* ==================== ALL / FILTERED PRODUCT GRID ==================== */}
           <section aria-labelledby="all-title">
             <h2 id="all-title" className="text-2xl font-bold text-white mb-4">
               {hasFilters ? 'Matching products' : 'All products'}
@@ -207,104 +212,11 @@ export default function ProductsListingExperience() {
             {items.length === 0 ? (
               <div className="glass rounded-2xl p-12 text-center text-white/70">No products match your filters.</div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-                {items.map((p) => (
-                  <ProductCard key={p.id} product={p} variant="default" />
-                ))}
-              </div>
+              <ProductList items={items} variant="default" />
             )}
           </section>
         </>
       )}
     </>
-  );
-}
-
-function ProductCard({
-  product,
-  variant,
-}: {
-  product: CardItem;
-  variant: 'default' | 'featured' | 'trending' | 'compact';
-}) {
-  const isFeatured = variant === 'featured';
-  const isTrending = variant === 'trending';
-  const href = `/products/${encodeURIComponent(product.slug)}`;
-  const techList = Array.isArray(product.technologies) ? product.technologies : [];
-
-  return (
-    <article
-      className={`group relative flex flex-col overflow-hidden rounded-2xl border transition duration-300 ${
-        isFeatured
-          ? 'border-emerald-400/40 bg-linear-to-br from-white/8 to-emerald-500/10 shadow-[0_0_40px_-10px_rgba(52,211,153,0.45)] md:min-h-[320px]'
-          : isTrending
-            ? 'border-amber-400/30 bg-white/5 hover:border-amber-400/50'
-            : 'border-white/10 bg-white/5 hover:border-white/25'
-      } hover:-translate-y-1 hover:shadow-xl`}
-    >
-      <Link href={href} className="block">
-        <div className={`relative overflow-hidden ${isFeatured ? 'h-56 md:h-64' : 'h-44'}`}>
-          {product.mainImage ? (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img
-              src={product.mainImage}
-              alt=""
-              className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-              loading="lazy"
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center bg-white/5 text-5xl">📦</div>
-          )}
-          <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/60 to-transparent opacity-80" />
-          <span className="absolute left-3 top-3 rounded-full bg-black/45 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white/90 backdrop-blur-sm">
-            {product.category.name}
-          </span>
-        </div>
-      </Link>
-
-      <div className="flex flex-1 flex-col p-5">
-        <Link href={href} className="block">
-          <h3 className={`font-semibold text-white ${isFeatured ? 'text-xl md:text-2xl' : 'text-lg'}`}>{product.productName}</h3>
-        </Link>
-        <p className={`mt-2 text-white/70 ${variant === 'compact' ? 'line-clamp-2 text-sm' : 'line-clamp-3 text-sm'}`}>
-          {product.shortDescription}
-        </p>
-
-        <div className="mt-3 flex flex-wrap gap-1.5">
-          {techList.slice(0, 4).map((t) => (
-            <span key={t.id} className="rounded-md bg-white/10 px-2 py-0.5 text-[11px] text-white/75" title={t.name}>
-              {t.name}
-            </span>
-          ))}
-        </div>
-
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
-          <span className="text-xs text-white/45">
-            {product.viewsCount} views · {product.demoClickCount} demos
-          </span>
-          <Link
-            href={href}
-            className="inline-flex rounded-lg bg-emerald-500/90 px-4 py-2 text-sm font-medium text-emerald-950 opacity-0 transition group-hover:opacity-100"
-          >
-            View details
-          </Link>
-        </div>
-
-        <div className="mt-3 flex gap-2 opacity-0 transition duration-300 group-hover:opacity-100">
-          <Link
-            href={`${href}#demo`}
-            className="flex-1 text-center text-sm py-2 rounded-lg bg-white/15 text-white hover:bg-white/25 border border-white/20"
-          >
-            Demo
-          </Link>
-          <Link
-            href={`${href}#landing`}
-            className="flex-1 text-center text-sm py-2 rounded-lg bg-white/10 text-white/90 hover:bg-white/20 border border-white/15"
-          >
-            Landing
-          </Link>
-        </div>
-      </div>
-    </article>
   );
 }

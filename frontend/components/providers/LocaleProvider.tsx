@@ -6,6 +6,8 @@ export type Locale = 'en-US' | 'vi-VN';
 
 type Messages = Record<string, string>;
 
+// --- Message catalogs (en-US, vi-VN): all UI copy for t() ---
+
 const messagesByLocale: Record<Locale, Messages> = {
   'en-US': {
     'lang.english': 'English (US)',
@@ -40,6 +42,7 @@ const messagesByLocale: Record<Locale, Messages> = {
     'admin.permissionGroup': 'Authority',
     'admin.homeFeatures': 'Home Features',
     'admin.aboutStats': 'About Stats',
+    'admin.aboutUs': 'About Us',
     'admin.aboutTeam': 'About Team',
     'admin.services': 'Services',
     'admin.products': 'Products',
@@ -111,6 +114,24 @@ const messagesByLocale: Record<Locale, Messages> = {
     'admin.close': 'Close',
     'admin.noImagesInLibrary': 'No images in media library yet. Upload a logo file above.',
 
+    'admin.aboutUsPageSubtitle':
+      'Vision, intro copy, and hero image for the public About page. Separate paragraphs with a blank line.',
+    'admin.aboutUsLoadError': 'Failed to load About intro',
+    'admin.aboutUsSaved': 'About intro saved',
+    'admin.aboutUsTitleEn': 'Title (English)',
+    'admin.aboutUsTitleVi': 'Title (Vietnamese)',
+    'admin.aboutUsBodyEn': 'Body (English)',
+    'admin.aboutUsBodyVi': 'Body (Vietnamese)',
+    'admin.aboutUsBodyHint': 'Plain text or safe HTML (headings, lists, links).',
+    'admin.aboutUsHeroUrl': 'Hero image URL',
+    'admin.aboutUsHeroAltEn': 'Hero image alt (English)',
+    'admin.aboutUsHeroAltVi': 'Hero image alt (Vietnamese)',
+    'admin.aboutUsNoPermission': 'You do not have permission to view this section.',
+    'admin.aboutUsLoading': 'Loading…',
+    'admin.overviewQuickLinks': 'Quick links',
+    'admin.overviewEditAboutUs': 'About Us — vision & intro',
+    'admin.overviewLoadingData': 'Loading dashboard data…',
+
     // Public contact page
     'contact.heroTitle': 'Get In Touch',
     'contact.heroSubtitle': "Have questions? We'd love to hear from you. Send us a message!",
@@ -165,6 +186,7 @@ const messagesByLocale: Record<Locale, Messages> = {
     'admin.permissionGroup': 'Phân quyền',
     'admin.homeFeatures': 'Tính năng trang chủ',
     'admin.aboutStats': 'Chỉ số giới thiệu',
+    'admin.aboutUs': 'Giới thiệu',
     'admin.aboutTeam': 'Đội ngũ',
     'admin.services': 'Dịch vụ',
     'admin.products': 'Sản phẩm',
@@ -236,6 +258,24 @@ const messagesByLocale: Record<Locale, Messages> = {
     'admin.close': 'Đóng',
     'admin.noImagesInLibrary': 'Chưa có ảnh trong thư viện. Hãy tải logo lên phía trên.',
 
+    'admin.aboutUsPageSubtitle':
+      'Tầm nhìn, nội dung giới thiệu và ảnh hero cho trang Giới thiệu công khai. Ngăn cách đoạn bằng một dòng trống.',
+    'admin.aboutUsLoadError': 'Không tải được nội dung Giới thiệu',
+    'admin.aboutUsSaved': 'Đã lưu nội dung Giới thiệu',
+    'admin.aboutUsTitleEn': 'Tiêu đề (Tiếng Anh)',
+    'admin.aboutUsTitleVi': 'Tiêu đề (Tiếng Việt)',
+    'admin.aboutUsBodyEn': 'Nội dung (Tiếng Anh)',
+    'admin.aboutUsBodyVi': 'Nội dung (Tiếng Việt)',
+    'admin.aboutUsBodyHint': 'Văn bản thuần hoặc HTML an toàn (tiêu đề, danh sách, liên kết).',
+    'admin.aboutUsHeroUrl': 'URL ảnh hero',
+    'admin.aboutUsHeroAltEn': 'Mô tả ảnh hero (Tiếng Anh)',
+    'admin.aboutUsHeroAltVi': 'Mô tả ảnh hero (Tiếng Việt)',
+    'admin.aboutUsNoPermission': 'Bạn không có quyền xem mục này.',
+    'admin.aboutUsLoading': 'Đang tải…',
+    'admin.overviewQuickLinks': 'Liên kết nhanh',
+    'admin.overviewEditAboutUs': 'Giới thiệu — tầm nhìn & nội dung',
+    'admin.overviewLoadingData': 'Đang tải dữ liệu bảng điều khiển…',
+
     'contact.heroTitle': 'Liên hệ',
     'contact.heroSubtitle': 'Bạn có câu hỏi? Chúng tôi rất muốn lắng nghe. Hãy gửi tin nhắn!',
     'contact.sendMessage': 'Gửi tin nhắn',
@@ -267,6 +307,8 @@ type LocaleContextValue = {
 const LocaleContext = createContext<LocaleContextValue | null>(null);
 
 const STORAGE_KEY = 'app_locale';
+
+// --- LocaleProvider: localStorage + document.lang + t() interpolation ---
 
 export function LocaleProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>('en-US');

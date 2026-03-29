@@ -1,5 +1,7 @@
 import ProductsListingExperience from '@/components/products/ProductsListingExperience';
 
+// --- /products route: intro + listing client ---
+
 export const metadata = {
   title: 'Products - VULE ITS',
   description: 'Explore our products, live demos, and technology stack.',
@@ -14,6 +16,7 @@ export default function ProductsRoutePage() {
           Filter by launch type and stack, explore trending picks, and open live demos—all in one place.
         </p>
       </section>
+      {/* ==================== LISTING ==================== */}
       <ProductsListingExperience />
     </div>
   );

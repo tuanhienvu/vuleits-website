@@ -1,9 +1,11 @@
 {
   "/_global-error/page": "app/_global-error/page.js",
   "/_not-found/page": "app/_not-found/page.js",
+  "/admin/about-us/page": "app/admin/about-us/page.js",
   "/admin/company-profile/page": "app/admin/company-profile/page.js",
   "/admin/dashboard/page": "app/admin/dashboard/page.js",
   "/admin/login/page": "app/admin/login/page.js",
+  "/admin/permissions/page": "app/admin/permissions/page.js",
   "/admin/profile/page": "app/admin/profile/page.js",
   "/news/[slug]/page": "app/news/[slug]/page.js",
   "/news/page": "app/news/page.js",

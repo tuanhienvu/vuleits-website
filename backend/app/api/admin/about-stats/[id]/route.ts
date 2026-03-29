@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { authorize } from '@/lib/adminAuth';
+import { jsonObjectBody } from '@/lib/jsonBody';
 
 type AboutStatRow = { id: number; number: string; label: string; order: number; isActive: number | boolean };
 
@@ -39,13 +40,13 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const id = Number(idParam);
   if (!Number.isFinite(id)) return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
 
-  const body = await req.json();
+  const body = jsonObjectBody(await req.json());
   const data: { number?: string; label?: string; order?: number; isActive?: boolean } = {};
 
-  if ((body as any).number !== undefined) data.number = String((body as any).number || '').trim();
-  if ((body as any).label !== undefined) data.label = String((body as any).label || '').trim();
-  if ((body as any).order !== undefined) data.order = Number((body as any).order);
-  if ((body as any).isActive !== undefined) data.isActive = Boolean((body as any).isActive);
+  if (body.number !== undefined) data.number = String(body.number ?? '').trim();
+  if (body.label !== undefined) data.label = String(body.label ?? '').trim();
+  if (body.order !== undefined) data.order = Number(body.order);
+  if (body.isActive !== undefined) data.isActive = Boolean(body.isActive);
 
   if (data.number !== undefined && !data.number) return NextResponse.json({ error: 'Number is required' }, { status: 400 });
   if (data.label !== undefined && !data.label) return NextResponse.json({ error: 'Label is required' }, { status: 400 });

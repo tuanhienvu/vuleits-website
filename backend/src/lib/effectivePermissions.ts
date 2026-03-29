@@ -99,3 +99,60 @@ export async function getEffectiveFeatureMatrix(userId: number): Promise<AdminCr
   return matrix;
 }
 
+/** CRUD matrix from RolePermission rows only (no user overrides). */
+export async function getRoleFeatureMatrix(roleId: number): Promise<AdminCrudMatrix> {
+  const role = await prisma.role.findUnique({
+    where: { id: roleId },
+    select: { id: true },
+  });
+  if (!role) return makeEmptyAdminMatrix();
+
+  const permissionNames: string[] = [];
+  for (const f of UI_FEATURES) {
+    const prefix = featureToPermissionPrefix[f];
+    for (const a of PERMISSION_ACTIONS) permissionNames.push(buildPermissionName(prefix, a));
+  }
+
+  const permissions = await prisma.permission.findMany({
+    where: { name: { in: permissionNames } },
+    select: { id: true, name: true },
+  });
+  const nameToId = new Map<string, number>(permissions.map((p) => [p.name, p.id]));
+  const ids = permissions.map((p) => p.id);
+
+  const rolePerms = await prisma.rolePermission.findMany({
+    where: { roleId, permissionId: { in: ids } },
+    select: { permissionId: true },
+  });
+  const roleSet = new Set(rolePerms.map((p) => p.permissionId));
+
+  const matrix = makeEmptyAdminMatrix();
+  for (const f of UI_FEATURES) {
+    const prefix = featureToPermissionPrefix[f];
+    matrix[f] = {
+      create: (() => {
+        const id = nameToId.get(buildPermissionName(prefix, 'create'));
+        if (!id) return false;
+        return roleSet.has(id);
+      })(),
+      read: (() => {
+        const id = nameToId.get(buildPermissionName(prefix, 'read'));
+        if (!id) return false;
+        return roleSet.has(id);
+      })(),
+      update: (() => {
+        const id = nameToId.get(buildPermissionName(prefix, 'update'));
+        if (!id) return false;
+        return roleSet.has(id);
+      })(),
+      delete: (() => {
+        const id = nameToId.get(buildPermissionName(prefix, 'delete'));
+        if (!id) return false;
+        return roleSet.has(id);
+      })(),
+    };
+  }
+
+  return matrix;
+}
+

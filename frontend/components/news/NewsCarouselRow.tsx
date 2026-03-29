@@ -15,6 +15,8 @@ export type NewsCarouselCard = {
   thumbnailAlt: string | null;
 };
 
+// --- Sections: Prev/next controls (md+) | Horizontal snap scroller | Cards ---
+
 export default function NewsCarouselRow({
   items,
   autoStartDelayMs = 0,
@@ -99,6 +101,7 @@ export default function NewsCarouselRow({
 
   return (
     <div className="relative">
+      {/* ==================== CAROUSEL ARROWS (DESKTOP) ==================== */}
       {showControls ? (
         <div className="hidden md:flex absolute -top-11 right-0 gap-2">
           <button
@@ -122,6 +125,7 @@ export default function NewsCarouselRow({
         </div>
       ) : null}
 
+      {/* ==================== SCROLLING CARD ROW ==================== */}
       <div
         ref={scrollerRef}
         className={[
