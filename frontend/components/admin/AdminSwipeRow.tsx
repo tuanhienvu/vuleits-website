@@ -70,7 +70,7 @@ export default function AdminSwipeRow({
   const showSwipe = canEdit || canDelete;
 
   return (
-    <div className={`flex w-full min-w-0 flex-col md:flex-row md:items-stretch ${className}`.trim()}>
+    <div className={`flex w-full min-w-0 flex-col md:flex-row md:items-center ${className}`.trim()}>
       <div className={`relative min-w-0 flex-1 ${showSwipe ? 'max-md:overflow-hidden' : ''}`}>
         {canEdit ? (
           <button
@@ -117,10 +117,10 @@ export default function AdminSwipeRow({
           onTouchEnd={showSwipe ? endTouch : undefined}
           onTouchCancel={showSwipe ? endTouch : undefined}
         >
-          <div className="flex min-w-0 flex-col md:flex-row md:items-stretch">
+          <div className="flex min-w-0 flex-col md:flex-row md:items-center">
             <div className="min-w-0 flex-1">{children}</div>
             {actionsDesktop ? (
-              <div className="hidden shrink-0 flex-row items-start gap-1 border-t border-white/10 p-3 md:flex md:border-t-0 md:border-l md:border-white/10 md:pl-3">
+              <div className="hidden shrink-0 flex-row items-center justify-center gap-1 self-stretch border-t border-white/10 p-3 md:flex md:border-t-0 md:border-l md:border-white/10 md:pl-3">
                 {actionsDesktop}
               </div>
             ) : null}

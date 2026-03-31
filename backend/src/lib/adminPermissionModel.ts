@@ -7,6 +7,7 @@ export const UI_FEATURES = [
   'media',
   'banners',
   'homeFeatures',
+  'uiTexts',
   'contacts',
   'aboutTeam',
   'aboutStats',

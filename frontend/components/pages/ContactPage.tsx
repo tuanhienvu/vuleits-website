@@ -120,17 +120,17 @@ export default function ContactPage() {
     <div className="container mx-auto px-4">
       {/* ==================== CONTACT HERO ==================== */}
       <section className="glass p-8 md:p-12 rounded-3xl mb-12 text-center">
-        <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">{t('contact.heroTitle')}</h1>
-        <p className="text-white/80 text-lg">{t('contact.heroSubtitle')}</p>
+        <h1 className="text-4xl md:text-5xl font-bold text-fg mb-4">{t('contact.heroTitle')}</h1>
+        <p className="text-fg-muted text-lg">{t('contact.heroSubtitle')}</p>
       </section>
 
       {/* ==================== MESSAGE FORM & COMPANY INFO ==================== */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
         <div className="glass p-8 rounded-3xl">
-          <h2 className="text-3xl font-bold text-white mb-6">{t('contact.sendMessage')}</h2>
+          <h2 className="text-3xl font-bold text-fg mb-6">{t('contact.sendMessage')}</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="name" className="text-white font-medium mb-2 block">
+              <label htmlFor="name" className="text-fg font-medium mb-2 block">
                 {t('contact.fullName')}
               </label>
               <input
@@ -141,12 +141,12 @@ export default function ContactPage() {
                 onChange={handleChange}
                 placeholder={t('contact.fullName')}
                 required
-                className="w-full px-4 py-2 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-white/50"
+                className="w-full px-4 py-2 bg-white/20 border border-white/30 rounded-lg text-fg placeholder:text-fg-subtle focus:outline-none focus:border-white/50"
               />
             </div>
 
             <div>
-              <label htmlFor="email" className="text-white font-medium mb-2 block">
+              <label htmlFor="email" className="text-fg font-medium mb-2 block">
                 {t('contact.yourEmail')}
               </label>
               <input
@@ -157,12 +157,12 @@ export default function ContactPage() {
                 onChange={handleChange}
                 placeholder={t('contact.yourEmail')}
                 required
-                className="w-full px-4 py-2 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-white/50"
+                className="w-full px-4 py-2 bg-white/20 border border-white/30 rounded-lg text-fg placeholder:text-fg-subtle focus:outline-none focus:border-white/50"
               />
             </div>
 
             <div>
-              <label htmlFor="subject" className="text-white font-medium mb-2 block">
+              <label htmlFor="subject" className="text-fg font-medium mb-2 block">
                 {t('contact.subject')}
               </label>
               <input
@@ -172,12 +172,12 @@ export default function ContactPage() {
                 value={formData.subject}
                 onChange={handleChange}
                 placeholder={t('contact.subject')}
-                className="w-full px-4 py-2 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-white/50"
+                className="w-full px-4 py-2 bg-white/20 border border-white/30 rounded-lg text-fg placeholder:text-fg-subtle focus:outline-none focus:border-white/50"
               />
             </div>
 
             <div>
-              <label htmlFor="message" className="text-white font-medium mb-2 block">
+              <label htmlFor="message" className="text-fg font-medium mb-2 block">
                 {t('contact.message')}
               </label>
               <textarea
@@ -188,54 +188,51 @@ export default function ContactPage() {
                 placeholder={t('contact.message')}
                 required
                 rows={5}
-                className="w-full px-4 py-2 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-white/50 resize-none"
+                className="w-full px-4 py-2 bg-white/20 border border-white/30 rounded-lg text-fg placeholder:text-fg-subtle focus:outline-none focus:border-white/50 resize-none"
               />
             </div>
 
-            <button type="submit" className="cta-button w-full text-center">
+            <button type="submit" className="public-cta-button w-full text-center">
               {t('contact.send')}
             </button>
           </form>
         </div>
 
         <div className="glass p-8 rounded-3xl">
-          <h2 className="text-3xl font-bold text-white mb-6">
+          <h2 className="text-3xl font-bold text-fg mb-6">
             {info && !infoLoading ? displayCompanyFullName(locale, info) || t('contact.contactInfo') : t('contact.contactInfo')}
           </h2>
           {infoLoading ? (
-            <p className="text-white/50">…</p>
+            <p className="text-fg-subtle">…</p>
           ) : (
             <div className="space-y-6">
               {addressLine ? (
                 <div className="flex gap-4">
                   <div className="text-3xl shrink-0">📍</div>
                   <div className="min-w-0">
-                    <h4 className="text-white font-semibold mb-1">{t('contact.address')}</h4>
-                    <p className="text-white/70 whitespace-pre-line">{addressLine}</p>
+                    <h4 className="text-fg font-semibold mb-1">{t('contact.address')}</h4>
+                    <p className="text-fg-muted whitespace-pre-line">{addressLine}</p>
                   </div>
                 </div>
               ) : null}
 
-              {emailLine ? (
+              {emailLine || email2Line ? (
                 <div className="flex gap-4">
                   <div className="text-3xl shrink-0">📧</div>
                   <div className="min-w-0">
-                    <h4 className="text-white font-semibold mb-1">{t('contact.email')}</h4>
-                    <a href={`mailto:${emailLine}`} className="text-white/70 hover:text-white break-all">
-                      {emailLine}
-                    </a>
-                  </div>
-                </div>
-              ) : null}
-
-              {email2Line && email2Line !== emailLine ? (
-                <div className="flex gap-4">
-                  <div className="text-3xl shrink-0">📧</div>
-                  <div className="min-w-0">
-                    <h4 className="text-white font-semibold mb-1">Secondary email</h4>
-                    <a href={`mailto:${email2Line}`} className="text-white/70 hover:text-white break-all">
-                      {email2Line}
-                    </a>
+                    <h4 className="text-fg font-semibold mb-1">{t('contact.email')}</h4>
+                    <div className="flex flex-col gap-2">
+                      {emailLine ? (
+                        <a href={`mailto:${emailLine}`} className="text-fg-muted hover:text-fg break-all">
+                          {emailLine}
+                        </a>
+                      ) : null}
+                      {email2Line && email2Line !== emailLine ? (
+                        <a href={`mailto:${email2Line}`} className="text-fg-muted hover:text-fg break-all">
+                          {email2Line}
+                        </a>
+                      ) : null}
+                    </div>
                   </div>
                 </div>
               ) : null}
@@ -244,8 +241,8 @@ export default function ContactPage() {
                 <div className="flex gap-4">
                   <div className="text-3xl shrink-0">📞</div>
                   <div className="min-w-0">
-                    <h4 className="text-white font-semibold mb-1">{t('contact.phone')}</h4>
-                    <a href={`tel:${phoneLine.replace(/\s/g, '')}`} className="text-white/70 hover:text-white">
+                    <h4 className="text-fg font-semibold mb-1">{t('contact.phone')}</h4>
+                    <a href={`tel:${phoneLine.replace(/\s/g, '')}`} className="text-fg-muted hover:text-fg">
                       {phoneLine}
                     </a>
                   </div>
@@ -256,8 +253,8 @@ export default function ContactPage() {
                 <div className="flex gap-4">
                   <div className="text-3xl shrink-0">☎️</div>
                   <div className="min-w-0">
-                    <h4 className="text-white font-semibold mb-1">{t('contact.hotline')}</h4>
-                    <a href={`tel:${hotlineLine!.replace(/\s/g, '')}`} className="text-white/70 hover:text-white">
+                    <h4 className="text-fg font-semibold mb-1">{t('contact.hotline')}</h4>
+                    <a href={`tel:${hotlineLine!.replace(/\s/g, '')}`} className="text-fg-muted hover:text-fg">
                       {hotlineLine}
                     </a>
                   </div>
@@ -269,7 +266,7 @@ export default function ContactPage() {
               ) : null}
 
               {!emailLine && !email2Line && !phoneLine && !addressLine && !info?.socialLinks?.length ? (
-                <p className="text-white/50 text-sm">{t('contact.mapPlaceholder')}</p>
+                <p className="text-fg-subtle text-sm">{t('contact.mapPlaceholder')}</p>
               ) : null}
             </div>
           )}
@@ -279,7 +276,7 @@ export default function ContactPage() {
       {/* ==================== MAP / FIND US ==================== */}
       <section className="mb-12">
         <div className="glass p-8 rounded-3xl">
-          <h2 className="text-3xl font-bold text-white mb-6">{t('contact.findUs')}</h2>
+          <h2 className="text-3xl font-bold text-fg mb-6">{t('contact.findUs')}</h2>
           <div className="rounded-2xl overflow-hidden border border-white/20 bg-black/20 aspect-16/10 min-h-64 md:min-h-96">
             {info?.mapEmbedSrc ? (
               <iframe
@@ -293,9 +290,9 @@ export default function ContactPage() {
             ) : (
               <div className="h-full min-h-64 md:min-h-96 flex flex-col items-center justify-center p-6 text-center">
                 <div className="text-5xl mb-3">🗺️</div>
-                <p className="text-white/70 max-w-md">{t('contact.mapPlaceholder')}</p>
+                <p className="text-fg-muted max-w-md">{t('contact.mapPlaceholder')}</p>
                 {addressLine ? (
-                  <p className="text-white/50 text-sm mt-3 whitespace-pre-line">{addressLine}</p>
+                  <p className="text-fg-subtle text-sm mt-3 whitespace-pre-line">{addressLine}</p>
                 ) : null}
               </div>
             )}

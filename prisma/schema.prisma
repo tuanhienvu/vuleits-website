@@ -218,6 +218,20 @@ model SiteSetting {
   updatedAt       DateTime @updatedAt
 }
 
+// Overrides for public/admin UI strings (merged with code defaults on the client).
+model UiMessage {
+  id          Int      @id @default(autoincrement())
+  locale      String   @db.VarChar(20)
+  messageKey  String   @map("message_key") @db.VarChar(190)
+  value       String   @db.LongText
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@unique([locale, messageKey])
+  @@index([locale])
+  @@map("ui_messages")
+}
+
 model AboutSection {
   id          Int      @id @default(autoincrement())
   title       String

@@ -41,6 +41,7 @@ export function getRoleDefaultMatrix(roleName: string): AdminCrudMatrix {
       'media',
       'banners',
       'homeFeatures',
+      'uiTexts',
       'contacts',
       'aboutTeam',
       'aboutStats',

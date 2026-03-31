@@ -266,14 +266,14 @@ export default function ServicesAdminPanel() {
   };
 
   if (!can('services', 'read')) {
-    return <div className="text-white/70">{isVi ? 'Không có quyền xem dịch vụ.' : 'No permission to read services.'}</div>;
+    return <div className="text-fg-muted">{isVi ? 'Không có quyền xem dịch vụ.' : 'No permission to read services.'}</div>;
   }
 
   return (
     <>
       <div className="top-0 z-20 w-full backdrop-blur bg-[#0a0a0a]/60 border-b border-white/10 p-4 rounded-2xl">
         <div className="mb-4 flex min-w-0 flex-row items-center justify-between gap-2">
-          <h2 className="min-w-0 flex-1 truncate pr-1 text-xl font-bold text-white sm:text-2xl">
+          <h2 className="min-w-0 flex-1 truncate pr-1 text-xl font-bold text-fg sm:text-2xl">
             {isVi ? 'Quản lý dịch vụ' : 'Services Management'}
           </h2>
           <div className="flex shrink-0 items-center gap-2">
@@ -299,22 +299,22 @@ export default function ServicesAdminPanel() {
         <div className={`glass w-full p-4 rounded-2xl border border-white/10 bg-white/5 ${adminFilterPanelClass(mobileFiltersOpen)}`}>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <label>
-              <span className="text-white/70 text-sm block mb-2">{isVi ? 'Tìm kiếm' : 'Search'}</span>
+              <span className="text-fg-muted text-sm block mb-2">{isVi ? 'Tìm kiếm' : 'Search'}</span>
               <input
                 ref={searchInputRef}
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 onFocus={() => setMobileFiltersOpen(true)}
                 placeholder="Title/description/features..."
-                className="w-full px-3 py-2 bg-white/5 border border-white/15 rounded-xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-white/30"
+                className="w-full px-3 py-2 bg-white/5 border border-white/15 rounded-xl text-fg placeholder:text-fg-subtle focus:outline-none focus:ring-2 focus:ring-(--focus-ring)"
               />
             </label>
             <label>
-              <span className="text-white/70 text-sm block mb-2">{isVi ? 'Trạng thái' : 'Status'}</span>
+              <span className="text-fg-muted text-sm block mb-2">{isVi ? 'Trạng thái' : 'Status'}</span>
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value as 'all' | 'active' | 'inactive')}
-                className="w-full px-3 py-2 bg-white/5 border border-white/15 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-white/30"
+                className="w-full px-3 py-2 bg-white/5 border border-white/15 rounded-xl text-fg focus:outline-none focus:ring-2 focus:ring-(--focus-ring)"
               >
                 <option value="all">{isVi ? 'Tất cả' : 'All'}</option>
                 <option value="active">{isVi ? 'Đang hoạt động' : 'Active'}</option>
@@ -322,11 +322,11 @@ export default function ServicesAdminPanel() {
               </select>
             </label>
             <label>
-              <span className="text-white/70 text-sm block mb-2">{isVi ? 'Kích thước trang' : 'Page size'}</span>
+              <span className="text-fg-muted text-sm block mb-2">{isVi ? 'Kích thước trang' : 'Page size'}</span>
               <select
                 value={pageSize}
                 onChange={(e) => setPageSize(Number(e.target.value))}
-                className="w-full px-3 py-2 bg-white/5 border border-white/15 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-white/30"
+                className="w-full px-3 py-2 bg-white/5 border border-white/15 rounded-xl text-fg focus:outline-none focus:ring-2 focus:ring-(--focus-ring)"
               >
                 {PAGE_SIZES.map((s) => (
                   <option key={s} value={s}>
@@ -342,7 +342,7 @@ export default function ServicesAdminPanel() {
       {/* ==================== SERVICE LIST & PAGINATION ==================== */}
       <div className="pt-4">
         {canDelete && selectedIds.size > 0 ? (
-          <div className="flex flex-wrap items-center gap-2 rounded-xl border border-red-500/35 bg-red-950/35 px-3 py-2 text-sm text-white mb-3">
+          <div className="flex flex-wrap items-center gap-2 rounded-xl border border-red-500/35 bg-red-950/35 px-3 py-2 text-sm text-fg mb-3">
             <span>{isVi ? `Đã chọn ${selectedIds.size}` : `${selectedIds.size} selected`}</span>
             <button
               type="button"
@@ -358,17 +358,17 @@ export default function ServicesAdminPanel() {
           </div>
         ) : null}
         {loading ? (
-          <div className="text-white/80">{isVi ? 'Đang tải...' : 'Loading...'}</div>
+          <div className="text-fg-muted">{isVi ? 'Đang tải...' : 'Loading...'}</div>
         ) : rows.length === 0 ? (
-          <div className="glass p-6 rounded-2xl text-white/70">{isVi ? 'Chưa có dịch vụ.' : 'No services yet.'}</div>
+          <div className="glass p-6 rounded-2xl text-fg-muted">{isVi ? 'Chưa có dịch vụ.' : 'No services yet.'}</div>
         ) : total === 0 ? (
-          <div className="glass p-6 rounded-2xl text-white/70">
+          <div className="glass p-6 rounded-2xl text-fg-muted">
             {isVi ? 'Không có kết quả khớp bộ lọc.' : 'No services match your filters.'}
           </div>
         ) : (
           <div className="space-y-3">
             {canDelete && paged.length > 0 ? (
-              <label className="hidden md:flex items-center gap-2 text-sm text-white/70 px-1">
+              <label className="hidden md:flex items-center gap-2 text-sm text-fg-muted px-1">
                 <input
                   ref={selectAllPageRef}
                   type="checkbox"
@@ -412,12 +412,12 @@ export default function ServicesAdminPanel() {
                   </>
                 }
               >
-                <div className="flex items-start gap-3 p-4">
+                <div className="flex items-center gap-3 p-4 min-h-[52px]">
                   {canDelete ? (
-                    <label className="hidden md:flex items-start pt-1 shrink-0" onTouchStart={(e) => e.stopPropagation()}>
+                    <label className="hidden md:flex items-center shrink-0" onTouchStart={(e) => e.stopPropagation()}>
                       <input
                         type="checkbox"
-                        className="rounded border-white/30 mt-0.5"
+                        className="rounded border-white/30"
                         checked={selectedIds.has(r.id)}
                         onChange={() => toggleSelectRow(r.id)}
                         aria-label={isVi ? 'Chọn dòng' : 'Select row'}
@@ -425,21 +425,13 @@ export default function ServicesAdminPanel() {
                     </label>
                   ) : null}
                   <div className="min-w-0 flex-1">
-                    <p className="text-white font-semibold flex items-center gap-2">
-                      <span className="text-2xl">{r.icon || '🧩'}</span>
-                      {r.title}
-                    </p>
-                    <p className="text-white/50 text-sm mt-1">
-                      {isVi ? 'Thứ tự' : 'Order'}: {r.order} • {isVi ? 'Trạng thái' : 'Status'}:{' '}
-                      {r.isActive ? (isVi ? 'Đang hoạt động' : 'Active') : isVi ? 'Ngừng hoạt động' : 'Inactive'}
-                    </p>
-                    <p className="text-white/70 text-sm mt-1">{r.description}</p>
+                    <p className="text-white font-semibold wrap-break-word">{r.title}</p>
                   </div>
                   {canDelete ? (
-                    <label className="flex md:hidden items-start pt-1 shrink-0 px-1" onTouchStart={(e) => e.stopPropagation()}>
+                    <label className="flex md:hidden items-center shrink-0 px-1" onTouchStart={(e) => e.stopPropagation()}>
                       <input
                         type="checkbox"
-                        className="rounded border-white/30 mt-0.5"
+                        className="rounded border-white/30"
                         checked={selectedIds.has(r.id)}
                         onChange={() => toggleSelectRow(r.id)}
                         aria-label={isVi ? 'Chọn dòng' : 'Select row'}

@@ -73,13 +73,9 @@ function ProductCardInner({ product, variant }: ProductCardProps) {
 
   return (
     <article
-      className={`group relative flex flex-col overflow-visible rounded-2xl border transition duration-300 ${
-        isFeatured
-          ? 'border-emerald-400/40 bg-linear-to-br from-white/8 to-emerald-500/10 shadow-[0_0_40px_-10px_rgba(52,211,153,0.45)] md:min-h-[320px]'
-          : isTrending
-            ? 'border-amber-400/30 bg-white/5 hover:border-amber-400/50'
-            : 'border-white/10 bg-white/5 hover:border-white/25'
-      } hover:-translate-y-1 hover:shadow-xl`}
+      className={`public-card group ${
+        isFeatured ? 'public-card-featured md:min-h-[320px]' : isTrending ? 'public-card-trending' : ''
+      }`}
     >
       <div
         className="relative perspective-distant"
@@ -97,7 +93,7 @@ function ProductCardInner({ product, variant }: ProductCardProps) {
         >
           {/* ==================== FRONT FACE ==================== */}
           <div
-            className="backface-hidden flex flex-col overflow-hidden rounded-2xl bg-[#12121a]"
+            className="backface-hidden flex flex-col overflow-hidden rounded-2xl bg-[color:var(--pub-card-face-bg)]"
             style={{
               backfaceVisibility: 'hidden',
               WebkitBackfaceVisibility: 'hidden',
@@ -109,7 +105,7 @@ function ProductCardInner({ product, variant }: ProductCardProps) {
               tabIndex={0}
               aria-expanded={flipped}
               aria-label={`${product.productName}. Activate to flip card, then open full product page.`}
-              className="cursor-pointer text-left outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0c0c0c]"
+              className="cursor-pointer text-left outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--pub-card-focus-ring-offset)]"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
@@ -120,7 +116,7 @@ function ProductCardInner({ product, variant }: ProductCardProps) {
             >
               <div
                 ref={heroMeasureRef}
-                className={`relative isolate min-h-44 overflow-hidden rounded-t-2xl bg-white/5 ${imageHeight}`}
+                className={`relative isolate min-h-44 overflow-hidden rounded-t-2xl bg-[color:var(--pub-card-image-well-bg)] ${imageHeight}`}
               >
                 {product.mainImage ? (
                   /* eslint-disable-next-line @next/next/no-img-element */
@@ -132,31 +128,31 @@ function ProductCardInner({ product, variant }: ProductCardProps) {
                     decoding="async"
                   />
                 ) : (
-                  <div className="absolute inset-0 z-0 flex h-full items-center justify-center bg-white/5 text-5xl">
+                  <div className="absolute inset-0 z-0 flex h-full items-center justify-center bg-[color:var(--pub-card-image-well-bg)] text-5xl">
                     📦
                   </div>
                 )}
                 <div className="pointer-events-none absolute inset-0 z-1 bg-linear-to-t from-black/35 via-transparent to-transparent" />
-                <span className="absolute left-3 top-3 z-2 rounded-full bg-black/50 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white/95">
+                <span className="card-media-chip absolute left-3 top-3 z-2 rounded-full bg-[color:var(--pub-card-chip-bg)] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide">
                   {product.category.name}
                 </span>
               </div>
 
               <div className="flex flex-1 flex-col p-5">
                 <h3
-                  className={`pointer-events-none font-semibold text-white ${isFeatured ? 'text-xl md:text-2xl' : 'text-lg'}`}
+                  className={`pointer-events-none font-semibold text-fg ${isFeatured ? 'text-xl md:text-2xl' : 'text-lg'}`}
                 >
                   {product.productName}
                 </h3>
                 <p
-                  className={`pointer-events-none mt-2 text-white/70 ${variant === 'compact' ? 'line-clamp-2 text-sm' : 'line-clamp-3 text-sm'}`}
+                  className={`pointer-events-none mt-2 text-fg-muted ${variant === 'compact' ? 'line-clamp-2 text-sm' : 'line-clamp-3 text-sm'}`}
                   dangerouslySetInnerHTML={{ __html: product.shortDescription }}
                 />
                 <div className="pointer-events-none mt-3 flex flex-wrap gap-1.5">
                   {techList.slice(0, 4).map((t) => (
                     <span
                       key={t.id}
-                      className="rounded-md bg-white/10 px-2 py-0.5 text-[11px] text-white/75"
+                      className="rounded-md border border-[color:var(--pub-card-border)] bg-[color:var(--pub-card-image-well-bg)] px-2 py-0.5 text-[11px] text-fg-muted"
                       title={t.name}
                     >
                       {t.name}
@@ -164,7 +160,7 @@ function ProductCardInner({ product, variant }: ProductCardProps) {
                   ))}
                 </div>
                 <div className="pointer-events-none mt-4">
-                  <span className="text-xs text-white/45">
+                  <span className="text-xs text-fg-subtle">
                     {product.viewsCount} views · {product.demoClickCount} demos
                   </span>
                 </div>
@@ -172,21 +168,21 @@ function ProductCardInner({ product, variant }: ProductCardProps) {
             </div>
 
             <div
-              className="mt-auto flex gap-2 border-t border-white/10 p-4 pt-3"
+              className="mt-auto flex gap-2 border-t border-[color:var(--pub-card-footer-border)] p-4 pt-3"
               onClick={stopBtn}
               onPointerDown={stopBtn}
             >
               <Link
                 href={`${href}#demo`}
                 onClick={() => writeProductTransition(product.slug, heroMeasureRef.current)}
-                className="flex-1 min-w-0 text-center text-sm py-2 rounded-lg bg-white/15 text-white hover:bg-white/25 border border-white/20"
+                className="public-card-cta-primary"
               >
                 View demo
               </Link>
               <Link
                 href={`${href}#landing`}
                 onClick={() => writeProductTransition(product.slug, heroMeasureRef.current)}
-                className="flex-1 min-w-0 text-center text-sm py-2 rounded-lg bg-white/10 text-white/90 hover:bg-white/20 border border-white/15"
+                className="public-card-cta-secondary"
               >
                 Landing
               </Link>
@@ -195,7 +191,7 @@ function ProductCardInner({ product, variant }: ProductCardProps) {
 
           {/* ==================== BACK FACE ==================== */}
           <div
-            className="absolute inset-0 flex flex-col overflow-hidden rounded-2xl border border-white/15 bg-[#16161f] p-5 shadow-inner"
+            className="absolute inset-0 flex flex-col overflow-hidden rounded-2xl border border-[color:var(--pub-card-border)] bg-[color:var(--pub-card-face-back-bg)] p-5 shadow-inner"
             style={{
               backfaceVisibility: 'hidden',
               WebkitBackfaceVisibility: 'hidden',
@@ -203,9 +199,9 @@ function ProductCardInner({ product, variant }: ProductCardProps) {
             }}
           >
             <p className="text-xs font-medium uppercase tracking-wider text-emerald-300/90">Overview</p>
-            <h3 className="mt-2 text-lg font-semibold text-white leading-snug">{product.productName}</h3>
-            <p className="mt-3 flex-1 overflow-y-auto text-sm leading-relaxed text-white/80">{backBlurb}</p>
-            <p className="mt-4 text-xs text-white/45">Opening product page…</p>
+            <h3 className="mt-2 text-lg font-semibold text-fg leading-snug">{product.productName}</h3>
+            <p className="mt-3 flex-1 overflow-y-auto text-sm leading-relaxed text-fg-muted">{backBlurb}</p>
+            <p className="mt-4 text-xs text-fg-subtle">Opening product page…</p>
           </div>
         </motion.div>
       </div>

@@ -13,7 +13,30 @@
       "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
     }
   ],
-  "headers": [],
+  "headers": [
+    {
+      "source": "/:path*",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()"
+        }
+      ],
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))?(?:/)?$"
+    }
+  ],
   "rewrites": {
     "beforeFiles": [],
     "afterFiles": [],
@@ -249,6 +272,12 @@
       "namedRegex": "^/api/admin/news(?:/)?$"
     },
     {
+      "page": "/api/admin/privacy-policy",
+      "regex": "^/api/admin/privacy\\-policy(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/privacy\\-policy(?:/)?$"
+    },
+    {
       "page": "/api/admin/products",
       "regex": "^/api/admin/products(?:/)?$",
       "routeKeys": {},
@@ -265,6 +294,18 @@
       "regex": "^/api/admin/services(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/api/admin/services(?:/)?$"
+    },
+    {
+      "page": "/api/admin/terms-of-service",
+      "regex": "^/api/admin/terms\\-of\\-service(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/terms\\-of\\-service(?:/)?$"
+    },
+    {
+      "page": "/api/admin/ui-messages",
+      "regex": "^/api/admin/ui\\-messages(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/ui\\-messages(?:/)?$"
     },
     {
       "page": "/api/admin/users",
@@ -303,6 +344,12 @@
       "namedRegex": "^/api/news/rss\\.xml(?:/)?$"
     },
     {
+      "page": "/api/privacy-policy",
+      "regex": "^/api/privacy\\-policy(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/privacy\\-policy(?:/)?$"
+    },
+    {
       "page": "/api/products",
       "regex": "^/api/products(?:/)?$",
       "routeKeys": {},
@@ -319,6 +366,18 @@
       "regex": "^/api/services(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/api/services(?:/)?$"
+    },
+    {
+      "page": "/api/terms-of-service",
+      "regex": "^/api/terms\\-of\\-service(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/terms\\-of\\-service(?:/)?$"
+    },
+    {
+      "page": "/api/ui-messages",
+      "regex": "^/api/ui\\-messages(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/ui\\-messages(?:/)?$"
     }
   ],
   "dataRoutes": [],

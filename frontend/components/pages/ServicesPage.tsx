@@ -9,8 +9,8 @@ export default function ServicesPage() {
     <div className="container mx-auto px-4">
       {/* ==================== SERVICES HERO ==================== */}
       <section className="glass p-8 md:p-12 rounded-3xl mb-12 text-center">
-        <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Our Services</h1>
-        <p className="text-white/80 text-lg">
+        <h1 className="text-4xl md:text-5xl font-bold text-fg mb-4">Our Services</h1>
+        <p className="text-fg-muted text-lg">
           Discover consulting, delivery, and implementation services with clear outcomes and feature breakdowns.
         </p>
       </section>

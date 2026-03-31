@@ -53,13 +53,13 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-[#0c0c0c] via-[#1a1a2e] to-[#a0616a] flex items-center justify-center px-4">
+    <div className="public-shell min-h-screen theme-page-gradient flex items-center justify-center px-4">
       <div className="glass p-8 md:p-12 rounded-3xl w-full max-w-md relative z-10">
         {/* ==================== BRAND & TITLE ==================== */}
         <div className="text-center mb-8">
           <Link
             href="/"
-            className="block w-20 h-20 relative mx-auto mb-4 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+            className="block w-20 h-20 relative mx-auto mb-4 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--text-primary)]/25"
             aria-label={t('nav.home')}
           >
             <Image src="/vercel.svg" alt="VULE ITS Logo" fill sizes="80px" className="object-contain" priority />
@@ -100,7 +100,7 @@ export default function AdminLogin() {
               disabled={loading}
             />
           </div>
-          <button type="submit" disabled={loading} className="w-full cta-button py-3 font-semibold text-center mt-6 disabled:opacity-50">
+          <button type="submit" disabled={loading} className="w-full public-cta-button py-3 font-semibold text-center mt-6 disabled:opacity-50">
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>

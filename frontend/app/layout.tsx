@@ -1,9 +1,11 @@
 import type { Metadata } from 'next';
+import Script from 'next/script';
 import { Geist, Geist_Mono } from 'next/font/google';
 /** Latin subset only (~one woff2) — full `index.css` pulls 60+ unicode slices. Vietnamese diacritics fall back to Geist. */
 import '@fontsource/zcool-xiaowei/latin-400.css';
 import '@/app/globals.css';
 import { LocaleProvider } from '@/components/providers/LocaleProvider';
+import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import { ToastProvider } from '@/components/providers/ToastProvider';
 
 const geistSans = Geist({
@@ -32,12 +34,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      {/* ==================== ROOT: FONTS, LOCALE & TOAST PROVIDERS ==================== */}
+    <html lang="en" className="dark" suppressHydrationWarning>
+      {/* ==================== ROOT: THEME (before paint), LOCALE & TOAST ==================== */}
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <LocaleProvider>
-          <ToastProvider>{children}</ToastProvider>
-        </LocaleProvider>
+        <Script id="vuleits-theme-init" strategy="beforeInteractive">
+          {`(function(){try{var d=document.documentElement;d.classList.remove('light','dark');d.classList.add('dark');d.style.colorScheme='dark';try{localStorage.setItem('vuleits-theme','dark');}catch(e){} }catch(e){document.documentElement.classList.add('dark');document.documentElement.style.colorScheme='dark';}})();`}
+        </Script>
+        <ThemeProvider>
+          <LocaleProvider>
+            <ToastProvider>{children}</ToastProvider>
+          </LocaleProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

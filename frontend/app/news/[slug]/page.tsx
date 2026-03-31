@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import DetailBackButton from '@/components/navigation/DetailBackButton';
-import NewsRelatedArticlesFlip from '@/components/news/NewsRelatedArticlesFlip';
 
 // --- News article: fetch detail + JSON-LD | Breadcrumb, article body, related ---
 
@@ -173,7 +172,25 @@ export default async function NewsDetailPage({ params }: Props) {
         {/* ==================== RELATED ARTICLES ==================== */}
         <section className="mb-16">
           <h2 className="mb-4 text-2xl font-bold text-white">Related articles</h2>
-          <NewsRelatedArticlesFlip related={related} />
+          {related.length ? (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {related.map((item) => (
+                <Link
+                  key={item.id}
+                  href={`/news/${item.slug}`}
+                  className="glass flex h-full min-h-[140px] flex-col rounded-2xl p-4 transition-all hover:shadow-xl sm:min-h-[160px] sm:p-5"
+                >
+                  <p className="line-clamp-2 font-semibold text-fg">{item.title}</p>
+                  <p className="line-clamp-3 text-sm text-fg-muted mt-2">{item.description}</p>
+                  <p className="mt-auto pt-3 text-xs text-fg-subtle">
+                    {new Date(item.publishedAt).toLocaleDateString()}
+                  </p>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="glass rounded-2xl p-6 text-fg-muted">No related articles found.</div>
+          )}
         </section>
       </div>
     </div>

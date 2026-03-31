@@ -1,5 +1,7 @@
-// Load environment variables first
-require('dotenv').config({ path: '.env' });
+// Load environment variables first (monorepo: prefer backend/.env, then repo root)
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '..', 'backend', '.env') });
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 if (!process.env.DATABASE_URL) {
   const { DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD } = process.env;
@@ -26,6 +28,7 @@ async function main() {
     'media',
     'banners',
     'homeFeatures',
+    'uiTexts',
     'contacts',
     'aboutTeam',
     'aboutStats',
@@ -43,6 +46,7 @@ async function main() {
     media: 'media',
     banners: 'banners',
     homeFeatures: 'homeFeatures',
+    uiTexts: 'uiTexts',
     contacts: 'contacts',
     aboutTeam: 'aboutTeam',
     aboutStats: 'aboutStats',
@@ -115,7 +119,7 @@ async function main() {
     ADMIN: Object.fromEntries(uiFeatures.map((f) => [f, { create: true, read: true, update: true, delete: true }])),
     MANAGER: (() => {
       const base = Object.fromEntries(uiFeatures.map((f) => [f, { create: false, read: false, update: false, delete: false }])); // start empty
-      for (const f of ['overview', 'services', 'products', 'news', 'media', 'banners', 'homeFeatures', 'contacts', 'aboutTeam', 'aboutStats']) {
+      for (const f of ['overview', 'services', 'products', 'news', 'media', 'banners', 'homeFeatures', 'uiTexts', 'contacts', 'aboutTeam', 'aboutStats']) {
         base[f] = { create: true, read: true, update: true, delete: false };
       }
       base.users = { create: false, read: false, update: false, delete: false };

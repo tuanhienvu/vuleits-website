@@ -25,6 +25,18 @@ function isPlatformId(v: string): v is SocialPlatformId {
   return v in PLATFORM_NAMES;
 }
 
+function sanitizeExternalUrl(raw: string): string | null {
+  const s = raw.trim();
+  if (!s) return null;
+  try {
+    const url = new URL(s);
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') return null;
+    return url.href;
+  } catch {
+    return null;
+  }
+}
+
 function SocialGlyph({ type }: { type: string }) {
   const cls = 'w-4.5 h-4.5 fill-current';
   const p = isPlatformId(type) ? type : 'other';
@@ -125,7 +137,13 @@ export default function CompanySocialLinks({
   listClassName = '',
 }: CompanySocialLinksProps) {
   const { t } = useLocale();
-  const valid = links.filter((l) => l.url?.trim());
+  const valid = links
+    .map((l) => {
+      const safeUrl = sanitizeExternalUrl(l.url ?? '');
+      if (!safeUrl) return null;
+      return { ...l, url: safeUrl };
+    })
+    .filter((x): x is PublicSocialLink => x != null);
 
   if (valid.length === 0) return null;
 

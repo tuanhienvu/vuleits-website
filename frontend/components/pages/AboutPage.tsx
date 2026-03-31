@@ -42,6 +42,7 @@ export default function AboutPage() {
   const { locale } = useLocale();
   const [intro, setIntro] = useState<AboutIntro | null>(null);
   const introFallback = toPublicIntro(defaultAboutIntroPayload(), locale);
+  const [activeTeamCard, setActiveTeamCard] = useState<number | null>(null);
 
   function parseIntroJson(j: Record<string, unknown>): AboutIntro {
     const title = typeof j.title === 'string' ? j.title : '';
@@ -113,7 +114,7 @@ export default function AboutPage() {
       {/* ==================== ABOUT CONTENT SECTION ==================== */}
       <section className="mb-12">
         <div className="glass p-8 md:p-12 rounded-3xl mb-8">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">{intro?.title || introFallback.title}</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-fg mb-6">{intro?.title || introFallback.title}</h2>
           {(() => {
             const heroUrl = intro?.heroImageUrl ?? introFallback.heroImageUrl;
             const heroAlt = intro?.heroImageAlt ?? introFallback.heroImageAlt;
@@ -132,13 +133,13 @@ export default function AboutPage() {
               </div>
             );
           })()}
-          <div className="text-white/80 text-lg">
+          <div className="text-fg-muted text-lg">
             {(() => {
               const html = (intro?.bodyHtml ?? introFallback.bodyHtml)?.trim() ?? '';
               if (html) {
                 return (
                   <div
-                    className="about-intro-rich max-w-none [&_a]:text-purple-200 [&_a]:underline [&_blockquote]:border-l-2 [&_blockquote]:border-white/25 [&_blockquote]:pl-4 [&_blockquote]:italic [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:text-white [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:text-white [&_h4]:text-lg [&_h4]:font-semibold [&_li]:my-1 [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:mb-4 [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-6"
+                    className="about-intro-rich max-w-none [&_a]:text-[color:var(--link-color)] [&_a]:underline [&_a]:hover:text-[color:var(--link-hover)] [&_blockquote]:border-l-2 [&_blockquote]:border-white/25 [&_blockquote]:pl-4 [&_blockquote]:italic [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:text-[color:var(--text-primary)] [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:text-[color:var(--text-primary)] [&_h4]:text-lg [&_h4]:font-semibold [&_h4]:text-[color:var(--text-primary)] [&_li]:my-1 [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:mb-4 [&_p]:text-[color:var(--text-muted)] [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-6"
                     dangerouslySetInnerHTML={{ __html: html }}
                   />
                 );
@@ -161,8 +162,8 @@ export default function AboutPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
           {stats.map((stat, index: number) => (
             <div key={index} className="glass p-6 rounded-2xl text-center">
-              <div className="text-3xl md:text-4xl font-bold text-white mb-2">{stat.number}</div>
-              <div className="text-white/70">{stat.label}</div>
+              <div className="text-3xl md:text-4xl font-bold text-fg mb-2">{stat.number}</div>
+              <div className="text-fg-muted">{stat.label}</div>
             </div>
           ))}
         </div>
@@ -170,20 +171,44 @@ export default function AboutPage() {
 
       {/* ==================== TEAM SECTION ==================== */}
       <section>
-        <h2 className="text-3xl md:text-4xl font-bold text-white mb-8">Meet Our Team</h2>
+        <h2 className="text-3xl md:text-4xl font-bold text-fg mb-8">Meet Our Team</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {team.map((member, index: number) => (
-            <div key={index} className="glass p-6 rounded-2xl text-center hover:shadow-xl transition-all duration-300">
-              <div className="text-5xl mb-4">{member.emoji}</div>
-              <h3 className="text-white font-semibold text-xl mb-1">{member.name}</h3>
-              <p className="text-purple-200 text-sm mb-3">{member.role}</p>
-              <p className="text-white/70 text-sm mb-4">{member.bio}</p>
-              
-              {/* Team Member Social Links */}
-              <div className="flex gap-3 justify-center text-xl">
-                <a href="#" className="hover:scale-125 transition-transform">📧</a>
-                <a href="#" className="hover:scale-125 transition-transform">💼</a>
-                <a href="#" className="hover:scale-125 transition-transform">🎨</a>
+            <div key={index} className="group perspective-distant min-h-[260px]">
+              <div
+                role="button"
+                tabIndex={0}
+                aria-label={`${member.name} details`}
+                aria-pressed={activeTeamCard === index}
+                className={`relative h-full min-h-[260px] transform-3d transition-transform duration-900 group-hover:transform-[rotateY(180deg)] ${
+                  activeTeamCard === index ? 'transform-[rotateY(180deg)]' : ''
+                }`}
+                onClick={() => setActiveTeamCard((prev) => (prev === index ? null : index))}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setActiveTeamCard((prev) => (prev === index ? null : index));
+                  }
+                }}
+              >
+                <article className="glass absolute inset-0 rounded-2xl p-6 text-center backface-hidden transform-[rotateY(0deg)]">
+                  <div className="h-full flex flex-col items-center justify-center">
+                    <div className="text-6xl mb-5">{member.emoji}</div>
+                    <h3 className="text-fg font-semibold text-2xl">{member.name}</h3>
+                  </div>
+                </article>
+
+                <article className="glass absolute inset-0 rounded-2xl p-6 text-center backface-hidden transform-[rotateY(180deg)]">
+                  <div className="text-5xl mb-3">{member.emoji}</div>
+                  <h3 className="text-fg font-semibold text-xl mb-1">{member.name}</h3>
+                  <p className="text-(--brand-accent) text-sm mb-3">{member.role}</p>
+                  <p className="text-fg-muted text-sm mb-4">{member.bio}</p>
+                  <div className="flex gap-3 justify-center text-xl">
+                    <span aria-hidden>📧</span>
+                    <span aria-hidden>💼</span>
+                    <span aria-hidden>🎨</span>
+                  </div>
+                </article>
               </div>
             </div>
           ))}

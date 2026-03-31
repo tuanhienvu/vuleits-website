@@ -3,8 +3,21 @@ import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 import { signJWT } from '@/lib/jwt';
 import { normalizeAdminEmail } from '@/lib/adminEmail';
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 
 export async function POST(request: Request) {
+  const ip = getClientIp(request);
+  const rate = checkRateLimit(`admin-login:${ip}`, 10, 15 * 60 * 1000);
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: 'Too many login attempts. Please try again later.' },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(rate.retryAfterSeconds) },
+      },
+    );
+  }
+
   try {
     const body = await request.json();
     const emailNorm = normalizeAdminEmail(body?.email);

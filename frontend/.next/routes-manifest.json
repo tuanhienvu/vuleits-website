@@ -13,7 +13,30 @@
       "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
     }
   ],
-  "headers": [],
+  "headers": [
+    {
+      "source": "/:path*",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()"
+        }
+      ],
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))?(?:/)?$"
+    }
+  ],
   "rewrites": {
     "beforeFiles": [],
     "afterFiles": [
@@ -106,10 +129,22 @@
       "namedRegex": "^/admin/permissions(?:/)?$"
     },
     {
+      "page": "/admin/privacy-policy",
+      "regex": "^/admin/privacy\\-policy(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/privacy\\-policy(?:/)?$"
+    },
+    {
       "page": "/admin/profile",
       "regex": "^/admin/profile(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/admin/profile(?:/)?$"
+    },
+    {
+      "page": "/admin/terms-of-service",
+      "regex": "^/admin/terms\\-of\\-service(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/terms\\-of\\-service(?:/)?$"
     },
     {
       "page": "/news",
@@ -128,6 +163,12 @@
       "regex": "^/services(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/services(?:/)?$"
+    },
+    {
+      "page": "/sitemap.xml",
+      "regex": "^/sitemap\\.xml(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/sitemap\\.xml(?:/)?$"
     }
   ],
   "dataRoutes": [],

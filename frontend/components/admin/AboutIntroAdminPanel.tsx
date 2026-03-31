@@ -153,7 +153,6 @@ export default function AboutIntroAdminPanel() {
                   disabled={!can('aboutTeam', 'update')}
                 />
               </div>
-              <p className="text-white/45 text-xs mt-1">{t('admin.aboutUsBodyHint')}</p>
             </label>
 
             <label className="block">

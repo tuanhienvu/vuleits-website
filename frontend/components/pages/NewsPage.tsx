@@ -100,99 +100,101 @@ export default function NewsPage() {
     <div className="container mx-auto px-4">
       {/* ==================== HERO SECTION ==================== */}
       <section className="glass p-8 md:p-12 rounded-3xl mb-8">
-        <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Latest News & Updates</h1>
-        <p className="text-white/80 text-lg">Stay informed with our latest articles and announcements</p>
+        <h1 className="text-4xl md:text-5xl font-bold text-fg mb-4">Latest News & Updates</h1>
+        <p className="text-fg-muted text-lg">Stay informed with our latest articles and announcements</p>
       </section>
 
       {/* ==================== SEARCH & FILTER AREA ==================== */}
       <section className="glass p-6 rounded-2xl mb-8" aria-labelledby="news-search-heading">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           <label>
-            <span className="text-white/70 text-sm block mb-2">Keyword</span>
+            <span className="text-fg-muted text-sm block mb-2">Keyword</span>
             <input
               type="text"
               placeholder="Search by keyword..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-white/50"
+              className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-fg placeholder:text-fg-subtle focus:outline-none focus:border-white/50"
             />
           </label>
 
-          <label className="min-w-0">
-            <span className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-2">
-              <span className="text-white/70 text-sm">Category</span>
-              {categoryFilter ? (
-                <button
-                  type="button"
-                  onClick={clearCategoryFilter}
-                  className="text-sm text-red-400 hover:text-red-300 underline underline-offset-2"
-                >
-                  Clear filter
-                </button>
-              ) : null}
-            </span>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white focus:outline-none focus:border-white/50"
-            >
-              <option value="">All</option>
-              {categories.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </label>
+          <div className="grid grid-cols-3 gap-2 md:contents">
+            <label className="min-w-0">
+              <span className="flex items-center justify-between gap-1 mb-2">
+                <span className="text-fg-muted text-sm">Category</span>
+                {categoryFilter ? (
+                  <button
+                    type="button"
+                    onClick={clearCategoryFilter}
+                    className="text-[11px] text-red-400 hover:text-red-300 underline underline-offset-2 whitespace-nowrap"
+                  >
+                    Clear
+                  </button>
+                ) : null}
+              </span>
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="w-full px-2 py-3 md:px-4 bg-white/20 border border-white/30 rounded-lg text-fg focus:outline-none focus:border-white/50"
+              >
+                <option value="">All</option>
+                {categories.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </label>
 
-          <label>
-            <span className="text-white/70 text-sm block mb-2">From</span>
-            <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white" />
-          </label>
+            <label className="min-w-0">
+              <span className="text-fg-muted text-sm block mb-2">From</span>
+              <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="w-full px-2 py-3 md:px-4 bg-white/20 border border-white/30 rounded-lg text-fg" />
+            </label>
 
-          <label>
-            <span className="text-white/70 text-sm block mb-2">To</span>
-            <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white" />
-          </label>
+            <label className="min-w-0">
+              <span className="text-fg-muted text-sm block mb-2">To</span>
+              <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="w-full px-2 py-3 md:px-4 bg-white/20 border border-white/30 rounded-lg text-fg" />
+            </label>
+          </div>
         </div>
       </section>
 
       {/* ==================== ARTICLES LIST SECTION ==================== */}
       {loading ? (
-        <div className="text-white/80 mb-12">Loading news...</div>
+        <div className="text-fg-muted mb-12">Loading news...</div>
       ) : showAllCategories ? (
         <section className="space-y-10 mb-12" aria-label="Articles list">
           {primaryCategories.map((cat, idx) => (
-            <div key={`${cat}-row`}>
-              <h2 className="text-2xl font-bold text-white mb-4">{cat}</h2>
+            <div key={`${cat}-row`} className="news-category-row">
+              <h2 className="text-2xl font-bold text-fg mb-4">{cat}</h2>
               {byCategory[cat].length ? (
                 <NewsCarouselRow autoStartDelayMs={idx * 750} items={mapToCarouselItems(byCategory[cat])} />
               ) : (
-                <div className="glass p-6 rounded-2xl text-white/70">No articles found.</div>
+                <div className="glass p-6 rounded-2xl text-fg-muted">No articles found.</div>
               )}
             </div>
           ))}
 
           <div>
-            <h2 className="text-2xl font-bold text-white mb-4">Other</h2>
+            <h2 className="text-2xl font-bold text-fg mb-4">Other</h2>
             {byCategory.Other.length ? (
               <NewsCarouselRow
                 autoStartDelayMs={primaryCategories.length * 750}
                 items={mapToCarouselItems(byCategory.Other)}
               />
             ) : (
-              <div className="glass p-6 rounded-2xl text-white/70">No articles found.</div>
+              <div className="glass p-6 rounded-2xl text-fg-muted">No articles found.</div>
             )}
           </div>
         </section>
       ) : (
         <section className="space-y-10 mb-12" aria-label="Filtered articles">
-          <div>
-            <h2 className="text-2xl font-bold text-white mb-4">{categoryFilter}</h2>
+          <div className="news-category-row">
+            <h2 className="text-2xl font-bold text-fg mb-4">{categoryFilter}</h2>
             {articles.length ? (
               <NewsCarouselRow autoStartDelayMs={0} items={mapToCarouselItems(articles)} />
             ) : (
-              <div className="glass p-6 rounded-2xl text-white/70">No articles found.</div>
+              <div className="glass p-6 rounded-2xl text-fg-muted">No articles found.</div>
             )}
           </div>
         </section>

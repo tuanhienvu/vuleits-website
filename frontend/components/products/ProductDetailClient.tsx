@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { motion, useReducedMotion } from 'framer-motion';
 import DetailBackButton from '@/components/navigation/DetailBackButton';
@@ -11,9 +12,12 @@ import {
   readProductTransition,
   type StoredProductTransition,
 } from '@/components/products/interactive/productTransitionStorage';
-import RelatedProductsRow from '@/components/products/related/RelatedProductsRow';
 import type { PublicProductDetail } from '@/lib/products/types';
 import { youtubeEmbedFromUrl } from '@/lib/products/videoEmbed';
+
+const RelatedProductsRow = dynamic(() => import('@/components/products/related/RelatedProductsRow'), {
+  ssr: false,
+});
 
 /** Expand: snappier so the detail shell reaches full screen sooner. */
 const SHELL_ENTER_SPRING = { type: 'spring' as const, stiffness: 380, damping: 36, mass: 0.72 };
@@ -122,12 +126,12 @@ export default function ProductDetailClient({ initial }: { initial: PublicProduc
       <button
         type="button"
         onClick={handleBack}
-        className="hover:text-white transition-colors text-sm text-white/60"
+        className="hover:text-fg transition-colors text-sm text-fg-muted"
       >
         Products
       </button>
     ) : (
-      <Link href="/products" className="hover:text-white transition-colors">
+      <Link href="/products" className="text-fg-muted hover:text-fg transition-colors">
         Products
       </Link>
     );
@@ -138,10 +142,10 @@ export default function ProductDetailClient({ initial }: { initial: PublicProduc
   const mainInner = (
     <>
       <DetailBackButton fallbackHref="/products" onCustomNavigate={handleBack} />
-      <nav className="text-sm text-white/60 mb-6" aria-label="Breadcrumb">
+      <nav className="text-sm text-fg-muted mb-6" aria-label="Breadcrumb">
         {productsCrumb}
         <span className="mx-2">/</span>
-        <span className="text-white/90">{initial.productName}</span>
+        <span className="text-fg">{initial.productName}</span>
       </nav>
 
       <motion.header
@@ -157,25 +161,25 @@ export default function ProductDetailClient({ initial }: { initial: PublicProduc
         }
       >
         <div className="flex flex-wrap items-center gap-3 mb-4">
-          <span className="px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wide bg-white/10 text-emerald-200 border border-emerald-400/30">
+          <span className="px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wide bg-white/10 text-emerald-900 dark:text-emerald-200 border border-emerald-400/30">
             {initial.category.name}
           </span>
           {initial.isFeatured ? (
-            <span className="px-3 py-1 rounded-full text-xs font-medium bg-amber-500/20 text-amber-100 border border-amber-400/40">
+            <span className="px-3 py-1 rounded-full text-xs font-medium bg-amber-500/20 text-amber-900 dark:text-amber-100 border border-amber-400/40">
               Featured
             </span>
           ) : null}
         </div>
-        <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">{initial.productName}</h1>
-        <p className="text-lg text-white/80 max-w-3xl">{initial.shortDescription}</p>
+        <h1 className="text-4xl md:text-5xl font-bold text-fg mb-4">{initial.productName}</h1>
+        <p className="text-lg text-fg-muted max-w-3xl">{initial.shortDescription}</p>
         <div className="mt-4 flex flex-wrap items-center gap-3">
-          <p className="text-sm text-white/50">
+          <p className="text-sm text-fg-subtle">
             {initial.authorName ? `By ${initial.authorName} · ` : null}
             {initial.viewsCount} views · {initial.demoClickCount} demo opens
           </p>
           <button
             type="button"
-            className="rounded-lg border border-white/20 bg-white/5 px-3 py-1.5 text-sm text-white/85 transition hover:bg-white/10"
+            className="rounded-lg border border-white/20 bg-white/5 px-3 py-1.5 text-sm text-fg-muted transition hover:bg-white/10"
             onClick={() => {
               void fetch('/api/products/analytics', {
                 method: 'POST',
@@ -229,7 +233,7 @@ export default function ProductDetailClient({ initial }: { initial: PublicProduc
 
       {initial.imageUrls.length > 1 ? (
         <section className="mb-12" aria-label="Gallery">
-          <h2 className="text-xl font-semibold text-white mb-4">Gallery</h2>
+          <h2 className="text-xl font-semibold text-fg mb-4">Gallery</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {initial.imageUrls.slice(1).map((src, i) => (
               <div
@@ -251,7 +255,7 @@ export default function ProductDetailClient({ initial }: { initial: PublicProduc
 
       {initial.videoUrls.length > 0 ? (
         <section className="mb-12" aria-label="Videos">
-          <h2 className="text-xl font-semibold text-white mb-4">Videos</h2>
+          <h2 className="text-xl font-semibold text-fg mb-4">Videos</h2>
           <div className="space-y-6">
             {initial.videoUrls.map((url, i) => {
               const embed = youtubeEmbedFromUrl(url);
@@ -262,11 +266,12 @@ export default function ProductDetailClient({ initial }: { initial: PublicProduc
                       title={`Video ${i + 1}`}
                       src={embed}
                       className="h-full w-full"
+                      loading="lazy"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
                     />
                   ) : (
-                    <a href={url} target="_blank" rel="noopener noreferrer" className="flex h-full items-center justify-center text-emerald-300 hover:underline p-6">
+                    <a href={url} target="_blank" rel="noopener noreferrer" className="flex h-full items-center justify-center text-emerald-700 dark:text-emerald-300 hover:underline p-6">
                       Open video
                     </a>
                   )}
@@ -285,6 +290,7 @@ export default function ProductDetailClient({ initial }: { initial: PublicProduc
                 title="Product demo"
                 src={initial.embedDemoUrl}
                 className="h-[min(70vh,560px)] w-full bg-white"
+                loading="lazy"
                 sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
               />
             </div>
@@ -299,7 +305,7 @@ export default function ProductDetailClient({ initial }: { initial: PublicProduc
                 href={initial.landingPageLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-5 py-3 text-white transition hover:bg-white/15 hover:border-white/40 scroll-mt-28"
+                className="inline-flex items-center gap-2 rounded-xl border border-white/30 bg-white/12 px-5 py-3 font-medium text-fg shadow-lg shadow-black/20 transition hover:border-white/45 hover:bg-white/20 scroll-mt-28"
               >
                 Landing page
               </a>
@@ -310,7 +316,7 @@ export default function ProductDetailClient({ initial }: { initial: PublicProduc
 
       {initial.technologies.length > 0 ? (
         <section className="mb-12" aria-labelledby="tech-heading">
-          <h2 id="tech-heading" className="text-xl font-semibold text-white mb-4">
+          <h2 id="tech-heading" className="text-xl font-semibold text-fg mb-4">
             Technologies used
           </h2>
           <ul className="flex flex-wrap gap-3">
@@ -326,9 +332,9 @@ export default function ProductDetailClient({ initial }: { initial: PublicProduc
                   ) : (
                     <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-lg">⚙</span>
                   )}
-                  <span className="text-sm text-white/90">{t.name}</span>
+                  <span className="text-sm text-fg-muted">{t.name}</span>
                   {t.description ? (
-                    <span className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 w-56 -translate-x-1/2 rounded-lg border border-white/10 bg-[#0a1020] px-3 py-2 text-xs text-white/90 opacity-0 shadow-xl transition group-hover:opacity-100">
+                    <span className="public-popover-surface pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 w-56 -translate-x-1/2 rounded-lg border border-white/10 px-3 py-2 text-xs text-fg-muted opacity-0 shadow-xl transition group-hover:opacity-100">
                       {t.description}
                     </span>
                   ) : null}
@@ -340,18 +346,18 @@ export default function ProductDetailClient({ initial }: { initial: PublicProduc
       ) : null}
 
       <section className="mb-8" aria-labelledby="overview-heading">
-        <h2 id="overview-heading" className="text-xl font-semibold text-white mb-4">
+        <h2 id="overview-heading" className="text-xl font-semibold text-fg mb-4">
           Overview
         </h2>
         <div
-          className="max-w-none rounded-2xl border border-white/10 bg-white/5 p-6 md:p-8 text-white/85 [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:mb-4 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:mt-8 [&_h2]:mb-3 [&_h3]:text-xl [&_p]:mb-4 [&_ul]:list-disc [&_ul]:pl-6 [&_a]:text-emerald-300 [&_a]:underline"
+          className="public-prose-rich max-w-none rounded-2xl border border-white/10 bg-white/5 p-6 md:p-8 text-fg-muted [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:mb-4 [&_h1]:text-(--text-primary) [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:mt-8 [&_h2]:mb-3 [&_h2]:text-(--text-primary) [&_h3]:text-xl [&_h3]:text-(--text-primary) [&_p]:mb-4 [&_ul]:list-disc [&_ul]:pl-6 [&_a]:text-(--link-color) [&_a]:underline [&_a]:hover:text-(--link-hover)"
           dangerouslySetInnerHTML={{ __html: initial.fullDescriptionHtml }}
         />
       </section>
 
       {initial.related.length > 0 ? (
         <section className="border-t border-white/10 pt-12" aria-labelledby="related-heading">
-          <h2 id="related-heading" className="mb-6 text-2xl font-bold text-white">
+          <h2 id="related-heading" className="mb-6 text-2xl font-bold text-fg">
             Related products
           </h2>
           <RelatedProductsRow
@@ -430,7 +436,7 @@ function DemoButton({ href, label, slug }: { href: string; label: string; slug: 
           body: JSON.stringify({ slug, action: 'click_demo' }),
         });
       }}
-      className="inline-flex items-center gap-2 rounded-xl bg-emerald-500/90 px-5 py-3 font-medium text-emerald-950 shadow-lg shadow-emerald-900/30 transition hover:bg-emerald-400"
+      className="inline-flex items-center gap-2 rounded-xl border border-emerald-300/70 bg-emerald-400 px-5 py-3 font-medium text-emerald-950 shadow-lg shadow-emerald-900/30 transition hover:border-emerald-200 hover:bg-emerald-300"
     >
       {label}
     </a>

@@ -24,7 +24,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
   }, [pathname]);
 
   return (
-    <div className="flex min-h-screen flex-col bg-linear-to-br from-[#0c0c0c] via-[#1a1a2e] to-[#a0616a]">
+    <div className="public-shell flex min-h-screen flex-col theme-page-gradient">
       {/* ==================== PUBLIC NAVIGATION ==================== */}
       <Navigation currentPage={currentPage} setCurrentPage={setCurrentPage} />
       {/* ==================== PAGE CONTENT (`flex-1` keeps footer at bottom when main has no in-flow height, e.g. fixed product shell) ==================== */}

@@ -17,8 +17,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 1080) setMobileMenuOpen(false);
+      if (window.innerWidth >= 1080) {
+        setMobileMenuOpen(false);
+        return;
+      }
+      // On mobile widths, keep desktop rail collapsed.
+      setSidebarOpen(false);
     };
+    handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -27,7 +33,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <AdminPermissionProvider>
-      <div className="min-h-screen bg-gradient-to-br from-[#0c0c0c] via-[#1a1a2e] to-[#a0616a]">
+      <div className="admin-app min-h-screen theme-page-gradient">
         {/* ==================== SIDEBAR (DESKTOP + MOBILE, SUSPENSE) ==================== */}
         <Suspense fallback={null}>
           <AdminSidebar
@@ -39,7 +45,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </Suspense>
         {/* ==================== MAIN COLUMN: HEADER + PAGE CONTENT ==================== */}
         <div className={`transition-all duration-300 ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-24'}`}>
-          <AdminHeader onMenuClick={() => setMobileMenuOpen(!mobileMenuOpen)} />
+          <AdminHeader onMenuClick={() => setMobileMenuOpen(!mobileMenuOpen)} mobileMenuOpen={mobileMenuOpen} />
           <main className="p-4 lg:p-6">{children}</main>
         </div>
         {/* ==================== MOBILE SIDEBAR BACKDROP ==================== */}

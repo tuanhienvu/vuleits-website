@@ -64,10 +64,10 @@ function RelatedProductCardInner({
           <Link
             href={`/products/${encodeURIComponent(product.slug)}`}
             onClick={onNavigate}
-            className="group flex h-full min-h-[220px] flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/5 outline-none transition hover:border-white/25 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-emerald-400/60"
+            className="group public-card flex h-full min-h-[220px] flex-col overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60"
             aria-label={`${product.productName}, related product`}
           >
-            <div className="aspect-4/3 max-h-36 shrink-0 overflow-hidden bg-white/5">
+            <div className="aspect-4/3 max-h-36 shrink-0 overflow-hidden bg-[color:var(--pub-card-image-well-bg)]">
               {product.mainImage ? (
                 /* eslint-disable-next-line @next/next/no-img-element */
                 <img
@@ -86,18 +86,15 @@ function RelatedProductCardInner({
             <div className="flex min-h-0 flex-1 flex-col p-4">
               <div className="flex flex-wrap gap-1.5" aria-label="Tags">
                 {tags.map((label) => (
-                  <span
-                    key={label}
-                    className="rounded-full border border-emerald-400/35 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-emerald-200/95"
-                  >
+                  <span key={label} className="public-tag-emerald">
                     {label}
                   </span>
                 ))}
               </div>
-              <h3 className="mt-2 line-clamp-2 text-base font-semibold text-white group-hover:text-emerald-100">
+              <h3 className="mt-2 line-clamp-2 text-base font-semibold text-fg group-hover:text-emerald-800 dark:group-hover:text-emerald-100">
                 {product.productName}
               </h3>
-              <p className="mt-2 line-clamp-2 text-sm text-white/65">{richTextAsPlain(product.shortDescription)}</p>
+              <p className="mt-2 line-clamp-2 text-sm text-fg-muted">{richTextAsPlain(product.shortDescription)}</p>
             </div>
           </Link>
         </motion.article>

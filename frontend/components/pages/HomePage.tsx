@@ -103,23 +103,23 @@ export default function HomePage({ setCurrentPage }: HomePageProps) {
       {/* ==================== HERO SECTION ==================== */}
       <section className="glass p-8 md:p-12 rounded-3xl mb-12 flex flex-col md:flex-row items-center gap-8">
         <div className="flex-1">
-          <h1 className="text-5xl md:text-6xl font-bold text-white mb-2 leading-tight font-zcool tracking-wide">
+          <h1 className="text-5xl md:text-6xl font-bold text-fg mb-2 leading-tight font-zcool tracking-wide">
             {companyName}
           </h1>
-          <p className="text-2xl md:text-3xl text-white/90 mb-6 font-zcool tracking-wide">
+          <p className="text-2xl md:text-3xl text-(--brand-accent) mb-6 font-zcool tracking-wide">
             {tagline}
           </p>
-          <p className="text-white/80 text-lg mb-6">{t('home.heroIntro')}</p>
-          <button 
+          <p className="text-fg-muted text-lg mb-6">{t('home.heroIntro')}</p>
+          <button
             onClick={() => setCurrentPage('about')}
-            className="cta-button"
+            className="public-cta-button"
           >
             Learn More
           </button>
         </div>
         
         {/* Hero Image Area — image from About intro (admin); placeholder if unset */}
-        <div className="flex-1 min-h-64 relative bg-white/10 rounded-2xl overflow-hidden border border-white/10 flex items-center justify-center">
+        <div className="relative w-full md:flex-1 aspect-4/3 sm:aspect-video min-h-56 md:min-h-64 rounded-2xl overflow-hidden flex items-center justify-center bg-(--hero-media-bg) border border-(--hero-media-border)">
           {heroImageUrl ? (
             <Image
               src={heroImageUrl}
@@ -145,9 +145,9 @@ export default function HomePage({ setCurrentPage }: HomePageProps) {
           {features.map((feature, index) => (
             <div key={index} className="glass p-6 rounded-2xl hover:shadow-xl transition-all duration-300">
               <div className="text-4xl mb-3">{feature.icon}</div>
-              <h3 className="text-white font-semibold text-xl mb-2">{feature.title}</h3>
+              <h3 className="text-fg font-semibold text-xl mb-2">{feature.title}</h3>
               <div
-                className="text-white/70"
+                className="text-fg-muted"
                 // Allow embedded HTML/CSS/JS snippets pasted from the admin textarea.
                 dangerouslySetInnerHTML={{ __html: feature.description || '' }}
               />

@@ -21,7 +21,7 @@ export default function LocaleSwitcher({ className, alignWithProfileAvatar }: Lo
 
   const triggerClass =
     className ??
-    'rounded-lg border border-white/30 bg-white/10 px-2 py-1.5 text-sm text-white hover:bg-white/15';
+    'rounded-lg border border-[color:var(--locale-switch-border)] bg-[color:var(--locale-switch-bg)] px-2 py-1.5 text-sm text-[color:var(--text-primary)] hover:bg-[color:var(--locale-switch-bg-hover)]';
   const fullWidth = Boolean(className?.includes('w-full'));
 
   const flagWrapBase = alignWithProfileAvatar
@@ -44,7 +44,7 @@ export default function LocaleSwitcher({ className, alignWithProfileAvatar }: Lo
     <div className={fullWidth ? 'relative block w-full' : 'relative inline-block'}>
       <button
         type="button"
-        className={`flex items-center justify-center text-sm text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 ${fullWidth ? 'w-full' : ''} ${triggerClass}`}
+        className={`flex items-center justify-center text-sm text-[color:var(--text-primary)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--text-primary)]/25 ${fullWidth ? 'w-full' : ''} ${triggerClass}`}
         onClick={toggle}
         aria-label={ariaLabel}
         title={ariaLabel}

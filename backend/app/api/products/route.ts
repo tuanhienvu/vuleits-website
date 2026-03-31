@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import type { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { asStringArray } from '@/lib/products/jsonArrays';
+import { sanitizeAboutIntroBodyHtml } from '@/lib/sanitizeAboutIntroHtml';
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -43,7 +44,7 @@ export async function GET(req: Request) {
     id: p.id,
     productName: p.productName,
     slug: p.slug,
-    shortDescription: p.shortDescription,
+    shortDescription: sanitizeAboutIntroBodyHtml(p.shortDescription ?? ''),
     mainImage: asStringArray(p.imageUrls)[0] ?? null,
     category: p.category,
     isFeatured: p.isFeatured,

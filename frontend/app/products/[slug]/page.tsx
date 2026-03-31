@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { cache } from 'react';
 import ProductDetailClient from '@/components/products/ProductDetailClient';
 import type { PublicProductDetail } from '@/lib/products/types';
 
@@ -10,11 +11,13 @@ function backendBaseUrl() {
   return process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:5000';
 }
 
-async function fetchProduct(slug: string): Promise<PublicProductDetail | null> {
-  const res = await fetch(`${backendBaseUrl()}/api/products/${encodeURIComponent(slug)}`, { cache: 'no-store' });
+const fetchProduct = cache(async (slug: string): Promise<PublicProductDetail | null> => {
+  const res = await fetch(`${backendBaseUrl()}/api/products/${encodeURIComponent(slug)}`, {
+    next: { revalidate: 60 },
+  });
   if (!res.ok) return null;
   return (await res.json()) as PublicProductDetail;
-}
+});
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;

@@ -108,7 +108,7 @@ export default function NewsCarouselRow({
             type="button"
             onClick={() => scrollByPage(-1)}
             disabled={!canPrev}
-            className="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded disabled:opacity-40 disabled:pointer-events-none"
+            className="news-carousel-nav-btn px-3 py-1.5 rounded disabled:opacity-40 disabled:pointer-events-none transition-colors"
             aria-label="Previous articles"
           >
             ←
@@ -117,7 +117,7 @@ export default function NewsCarouselRow({
             type="button"
             onClick={() => scrollByPage(1)}
             disabled={!canNext}
-            className="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded disabled:opacity-40 disabled:pointer-events-none"
+            className="news-carousel-nav-btn px-3 py-1.5 rounded disabled:opacity-40 disabled:pointer-events-none transition-colors"
             aria-label="Next articles"
           >
             →
@@ -129,7 +129,8 @@ export default function NewsCarouselRow({
       <div
         ref={scrollerRef}
         className={[
-          'flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-2',
+          /* Room for hover lift/scale + shadow; overflow-x scrollports clip vertically without padding */
+          'flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory py-4 pb-8',
           '[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
         ].join(' ')}
         onMouseEnter={() => {
@@ -142,37 +143,49 @@ export default function NewsCarouselRow({
         {cards.map((a) => (
           <div
             key={a.id}
-            className="shrink-0 snap-start basis-full md:basis-[calc((100%-32px)/3)]"
+            className="shrink-0 snap-start basis-full md:basis-[calc((100%-32px)/3)] px-0.5 py-1"
           >
-            <Link
-              href={`/news/${a.slug}`}
-              className="block glass p-6 rounded-2xl hover:shadow-xl transition-all duration-300 h-full"
-            >
-              <div className="relative w-full h-24 rounded-lg overflow-hidden bg-white/10 mb-4">
-                {a.thumbnailSrc ? (
-                  <Image
-                    src={a.thumbnailSrc}
-                    alt={a.thumbnailAlt ?? a.title}
-                    fill
-                    className="object-cover"
-                    loading="lazy"
-                    unoptimized={/^https?:\/\//i.test(a.thumbnailSrc)}
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-3xl">📰</div>
-                )}
-              </div>
-              <p className="text-white font-semibold">{a.title}</p>
-              <p className="text-white/70 text-sm mt-2">{a.description}</p>
-              <p className="text-white/50 text-xs mt-3">
-                {new Date(a.publishedAt).toLocaleDateString()}
-              </p>
-              <p className="text-white/40 text-[11px] mt-1">{a.authorName}</p>
-            </Link>
+            <NewsCardContent article={a} />
           </div>
         ))}
       </div>
     </div>
+  );
+}
+
+function NewsCardContent({ article }: { article: NewsCarouselCard }) {
+  return (
+    <Link
+      href={`/news/${article.slug}`}
+      className="news-uiverse-card block glass p-6 rounded-2xl transition-all duration-300 h-full"
+    >
+      <NewsCardInner article={article} />
+    </Link>
+  );
+}
+
+function NewsCardInner({ article }: { article: NewsCarouselCard }) {
+  return (
+    <>
+      <div className="relative w-full h-24 rounded-lg overflow-hidden bg-(--pub-card-image-well-bg) mb-4">
+        {article.thumbnailSrc ? (
+          <Image
+            src={article.thumbnailSrc}
+            alt={article.thumbnailAlt ?? article.title}
+            fill
+            className="object-cover"
+            loading="lazy"
+            unoptimized={/^https?:\/\//i.test(article.thumbnailSrc)}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-3xl">📰</div>
+        )}
+      </div>
+      <p className="text-fg font-semibold">{article.title}</p>
+      <p className="text-fg-muted text-sm mt-2">{article.description}</p>
+      <p className="text-fg-subtle text-xs mt-3">{new Date(article.publishedAt).toLocaleDateString()}</p>
+      <p className="text-fg-subtle text-[11px] mt-1">{article.authorName}</p>
+    </>
   );
 }
 

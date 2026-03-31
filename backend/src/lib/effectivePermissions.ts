@@ -21,6 +21,7 @@ export const featureToPermissionPrefix: Record<AdminUiFeatureId, string> = {
   media: 'media',
   banners: 'banners',
   homeFeatures: 'homeFeatures',
+  uiTexts: 'uiTexts',
   contacts: 'contacts',
   aboutTeam: 'aboutTeam',
   aboutStats: 'aboutStats',

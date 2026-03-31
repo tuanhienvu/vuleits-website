@@ -348,10 +348,10 @@ export default function AboutStatsAdminPanel() {
                         setDeleteTarget(r);
                       }}
                     >
-                      <div className="flex items-stretch">
+                      <div className="flex items-center min-h-[4.5rem]">
                         {canDelete ? (
                           <label
-                            className="flex items-center px-2 border-r border-white/10"
+                            className="flex items-center px-2 border-r border-white/10 self-stretch"
                             onTouchStart={(e) => e.stopPropagation()}
                           >
                             <input

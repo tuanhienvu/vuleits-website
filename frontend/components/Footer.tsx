@@ -58,7 +58,7 @@ export default function Footer({ setCurrentPage }: FooterProps) {
                   e.preventDefault();
                   navigateToPublicSection('about', pathname, setCurrentPage, router);
                 }}
-                className="text-white hover:text-white/80 transition-colors"
+                className="text-[color:var(--text-primary)] hover:opacity-80 transition-opacity"
               >
                 About
               </a>
@@ -68,7 +68,7 @@ export default function Footer({ setCurrentPage }: FooterProps) {
                   e.preventDefault();
                   navigateToPublicSection('privacy', pathname, setCurrentPage, router);
                 }}
-                className="text-white hover:text-white/80 transition-colors"
+                className="text-[color:var(--text-primary)] hover:opacity-80 transition-opacity"
               >
                 Privacy
               </a>
@@ -78,18 +78,18 @@ export default function Footer({ setCurrentPage }: FooterProps) {
                   e.preventDefault();
                   navigateToPublicSection('terms', pathname, setCurrentPage, router);
                 }}
-                className="text-white hover:text-white/80 transition-colors"
+                className="text-[color:var(--text-primary)] hover:opacity-80 transition-opacity"
               >
                 Terms
               </a>
-              <a href="#" className="text-white hover:text-white/80 transition-colors">Sitemap</a>
+              <a href="#" className="text-[color:var(--text-primary)] hover:opacity-80 transition-opacity">Sitemap</a>
               <a
                 href="#"
                 onClick={(e) => {
                   e.preventDefault();
                   navigateToPublicSection('contact', pathname, setCurrentPage, router);
                 }}
-                className="text-white hover:text-white/80 transition-colors"
+                className="text-[color:var(--text-primary)] hover:opacity-80 transition-opacity"
               >
                 Contact
               </a>
@@ -102,7 +102,7 @@ export default function Footer({ setCurrentPage }: FooterProps) {
             ) : null}
 
             {/* ==================== COPYRIGHT & INFO AREA ==================== */}
-            <div className="text-white text-sm text-center md:text-right md:shrink-0">
+            <div className="text-sm text-center md:text-right md:shrink-0 text-[color:var(--text-primary)]">
               <p>
                 &copy; {new Date().getFullYear()}{' '}
                 <span className="font-zcool tracking-wide">{companyName}</span>

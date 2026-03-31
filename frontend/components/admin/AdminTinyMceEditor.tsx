@@ -42,16 +42,26 @@ export default function AdminTinyMceEditor({ id, value, onChange, disabled }: Ad
           menubar: false,
           skin: 'oxide-dark',
           content_css: 'dark',
-          plugins: 'lists link autoresize code',
+          plugins:
+            'autoresize advlist lists link image table charmap anchor searchreplace visualblocks code fullscreen insertdatetime media preview help wordcount formatpainter',
           toolbar:
-            'undo redo | blocks | bold italic underline strikethrough | alignleft aligncenter alignright | bullist numlist | link removeformat | code',
+            'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough superscript subscript formatpainter | forecolor backcolor | alignleft aligncenter alignright alignjustify | outdent indent | bullist numlist | link image table | removeformat code',
+          font_family_formats:
+            'ZCOOL XiaoWei=ZCOOL XiaoWei,serif; Arial=arial,helvetica,sans-serif; Helvetica=helvetica,sans-serif; Georgia=georgia,palatino,serif; Tahoma=tahoma,arial,helvetica,sans-serif; Times New Roman=times new roman,times,serif; Verdana=verdana,geneva,sans-serif',
           branding: false,
           promotion: false,
           elementpath: false,
           resize: true,
           autoresize_bottom_margin: 12,
           max_height: 560,
-          content_style: 'body { font-family: system-ui, -apple-system, sans-serif; font-size: 15px; line-height: 1.5; }',
+          image_title: true,
+          automatic_uploads: true,
+          image_caption: true,
+          table_default_attributes: {
+            border: '1',
+          },
+          content_style:
+            '@import url("https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&display=swap"); body { font-family: system-ui, -apple-system, sans-serif; font-size: 15px; line-height: 1.5; }',
         }}
       />
     </div>

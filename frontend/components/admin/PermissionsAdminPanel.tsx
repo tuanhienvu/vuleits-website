@@ -22,6 +22,7 @@ const FEATURE_LABELS: Record<AdminUiFeatureId, string> = {
   media: 'Media',
   banners: 'Banners',
   homeFeatures: 'Home features',
+  uiTexts: 'UI text & translations',
   contacts: 'Contacts',
   aboutTeam: 'About team',
   aboutStats: 'About stats',
@@ -366,6 +367,12 @@ export default function PermissionsAdminPanel() {
             </tbody>
           </table>
         </div>
+      ) : null}
+      {showTable ? (
+        <p className="text-white/50 text-xs max-w-3xl">
+          Default templates: <span className="text-white/65">{FEATURE_LABELS.uiTexts}</span> is granted for SYSADMIN,
+          ADMIN, and MANAGER only. EDITOR and WRITER have no UI text access until you enable it in this matrix.
+        </p>
       ) : null}
       {!loading && userTarget !== 'all' && filteredUsers.length === 0 ? (
         <p className="text-white/60">No active users in this group.</p>

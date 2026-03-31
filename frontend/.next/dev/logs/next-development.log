@@ -1,0 +1,6 @@
+[00:00:09.192] Server  LOG      ✓ Ready in 6.4s
+[00:00:13.912] Server  LOG      ○ Compiling / ...
+[00:00:38.521] Browser WARN    Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[00:01:07.692] Browser WARN    Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[00:01:16.111] Browser ERROR   Failed to load plugin: formatpainter from url plugins/formatpainter/plugin.min.js
+[00:03:31.304] Server  LOG      ✓ Compiled in 691ms

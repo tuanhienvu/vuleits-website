@@ -1,9 +1,22 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 
 const ACTIONS = new Set(['view', 'click_demo', 'share']);
 
 export async function POST(req: Request) {
+  const ip = getClientIp(req);
+  const rate = checkRateLimit(`product-analytics:${ip}`, 120, 60 * 1000);
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests' },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(rate.retryAfterSeconds) },
+      },
+    );
+  }
+
   let body: { productId?: number; slug?: string; action?: string; userId?: number | null };
   try {
     body = (await req.json()) as typeof body;

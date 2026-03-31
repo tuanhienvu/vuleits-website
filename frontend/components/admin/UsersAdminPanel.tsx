@@ -450,10 +450,10 @@ export default function UsersAdminPanel() {
                         setDeleteTarget(u);
                       }}
                     >
-                      <div className="flex items-stretch">
+                      <div className="flex items-center min-h-[4.5rem]">
                         {canDelete ? (
                           <label
-                            className={`flex items-center px-2 border-r border-white/10 ${isDeleteDisabled(u) ? 'opacity-40' : ''}`}
+                            className={`flex items-center px-2 border-r border-white/10 self-stretch ${isDeleteDisabled(u) ? 'opacity-40' : ''}`}
                             onTouchStart={(e) => e.stopPropagation()}
                           >
                             <input

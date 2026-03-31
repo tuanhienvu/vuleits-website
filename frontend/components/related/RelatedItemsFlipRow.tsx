@@ -129,7 +129,12 @@ export default function RelatedItemsFlipRow<T extends RelatedFlipItem>({
   if (n === 0) return null;
 
   if (!mounted) {
-    return <div className="min-h-[140px] rounded-2xl bg-white/5 motion-safe:animate-pulse" aria-hidden />;
+    return (
+      <div
+        className="min-h-[140px] rounded-2xl bg-[color:var(--pub-card-skeleton-bg)] motion-safe:animate-pulse"
+        aria-hidden
+      />
+    );
   }
 
   return (

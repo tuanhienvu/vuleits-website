@@ -6,12 +6,15 @@
   "/admin/dashboard/page": "/admin/dashboard",
   "/admin/login/page": "/admin/login",
   "/admin/permissions/page": "/admin/permissions",
+  "/admin/privacy-policy/page": "/admin/privacy-policy",
   "/admin/profile/page": "/admin/profile",
+  "/admin/terms-of-service/page": "/admin/terms-of-service",
   "/news/[slug]/page": "/news/[slug]",
   "/news/page": "/news",
   "/page": "/",
   "/products/[slug]/page": "/products/[slug]",
   "/products/page": "/products",
   "/services/[id]/page": "/services/[id]",
-  "/services/page": "/services"
+  "/services/page": "/services",
+  "/sitemap.xml/route": "/sitemap.xml"
 }

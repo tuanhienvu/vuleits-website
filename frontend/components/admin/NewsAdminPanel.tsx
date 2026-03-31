@@ -558,37 +558,26 @@ export default function NewsAdminPanel() {
                   </>
                 }
               >
-                <div className="flex gap-3 items-start p-4">
+                <div className="flex gap-3 items-center p-4 min-h-[52px]">
                   {canDeleteNews ? (
-                    <label className="hidden md:flex items-start pt-1 shrink-0" onTouchStart={(e) => e.stopPropagation()}>
+                    <label className="hidden md:flex items-center shrink-0" onTouchStart={(e) => e.stopPropagation()}>
                       <input
                         type="checkbox"
-                        className="rounded border-white/30 mt-1"
+                        className="rounded border-white/30"
                         checked={selectedIds.has(n.id)}
                         onChange={() => toggleSelectRow(n.id)}
                         aria-label={isVi ? 'Chọn dòng' : 'Select row'}
                       />
                     </label>
                   ) : null}
-                  <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-white/5 shrink-0">
-                    {n.image?.url ? (
-                      <Image src={n.image.url} alt={n.image.filename} fill className="object-cover" unoptimized />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-2xl">📰</div>
-                    )}
-                  </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-white font-semibold wrap-break-word">{n.title}</p>
-                    <p className="text-white/50 text-sm mt-1">
-                      {isVi ? 'Danh mục' : 'Category'}: {n.category} • {isVi ? 'Trạng thái' : 'Status'}: {n.status}
-                    </p>
-                    <p className="text-white/70 text-sm mt-1">{n.description}</p>
                   </div>
                   {canDeleteNews ? (
-                    <label className="flex md:hidden items-start pt-1 shrink-0 px-1" onTouchStart={(e) => e.stopPropagation()}>
+                    <label className="flex md:hidden items-center shrink-0 px-1" onTouchStart={(e) => e.stopPropagation()}>
                       <input
                         type="checkbox"
-                        className="rounded border-white/30 mt-1"
+                        className="rounded border-white/30"
                         checked={selectedIds.has(n.id)}
                         onChange={() => toggleSelectRow(n.id)}
                         aria-label={isVi ? 'Chọn dòng' : 'Select row'}

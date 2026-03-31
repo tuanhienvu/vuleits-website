@@ -93,19 +93,50 @@
 
 @layer components {
   .glass {
-    @apply backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-lg hover:bg-white/15 transition-all duration-300;
+    @apply backdrop-blur-md rounded-2xl shadow-lg transition-all duration-300 border;
+    background: var(--glass-bg);
+    border-color: var(--glass-border);
+    box-shadow: var(--glass-shadow);
+  }
+
+  .glass:hover {
+    background: var(--glass-bg-hover);
+  }
+
+  .theme-page-gradient {
+    background: linear-gradient(to bottom right, var(--page-bg-from), var(--page-bg-via), var(--page-bg-to));
   }
 
   .cta-button {
     @apply inline-block px-8 py-3 bg-linear-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-full hover:shadow-lg transform hover:scale-105 transition-all duration-300 cursor-pointer;
   }
 
+  /* Public site primary CTAs (hero, contact) — matches hero slogan / --brand-accent */
+  .public-cta-button {
+    @apply inline-block px-8 py-3 text-white font-semibold rounded-full hover:shadow-lg transform hover:scale-105 transition-all duration-300 cursor-pointer;
+    background-color: var(--brand-accent);
+  }
+
+  .public-cta-button:hover {
+    background-color: color-mix(in srgb, var(--brand-accent) 88%, #ffffff);
+  }
+
   .btn-admin-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 min-h-11 text-sm font-semibold text-white bg-linear-to-r from-violet-500 to-fuchsia-500 border border-white/20 shadow-md shadow-violet-900/25 hover:from-violet-400 hover:to-fuchsia-400 hover:shadow-lg hover:shadow-violet-700/35 disabled:opacity-50 disabled:pointer-events-none transition-all duration-200;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 min-h-11 text-sm font-semibold text-white bg-linear-to-r from-violet-500 to-fuchsia-500 border shadow-md hover:from-violet-400 hover:to-fuchsia-400 hover:shadow-lg disabled:opacity-50 disabled:pointer-events-none transition-all duration-200;
+    border-color: var(--btn-admin-primary-border);
+    box-shadow: var(--btn-admin-primary-shadow);
   }
 
   .btn-admin-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 min-h-11 text-sm font-medium text-white bg-white/10 border border-white/20 hover:bg-white/20 hover:border-white/35 disabled:opacity-50 disabled:pointer-events-none transition-all duration-200;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 min-h-11 text-sm font-medium border disabled:opacity-50 disabled:pointer-events-none transition-all duration-200;
+    color: var(--btn-admin-secondary-fg);
+    background: var(--btn-admin-secondary-bg);
+    border-color: var(--btn-admin-secondary-border);
+  }
+
+  .btn-admin-secondary:hover {
+    background: var(--btn-admin-secondary-bg-hover);
+    border-color: var(--btn-admin-secondary-border-hover);
   }
 
   .btn-admin-danger {
@@ -113,7 +144,13 @@
   }
 
   .btn-admin-icon {
-    @apply inline-flex items-center justify-center rounded-lg border-0 text-white px-3 py-2 hover:bg-white/10 hover:text-white/90 transition-all duration-200 transform-gpu;
+    @apply inline-flex items-center justify-center rounded-lg border-0 px-3 py-2 transition-all duration-200 transform-gpu;
+    color: var(--btn-admin-icon-fg);
+  }
+
+  .btn-admin-icon:hover {
+    background: var(--btn-admin-icon-bg-hover);
+    color: var(--btn-admin-icon-fg-hover);
   }
 
   .btn-admin-icon-danger {
@@ -125,8 +162,23 @@
     animation: zoom-in-zoom-out-120 1s ease infinite;
   }
 
+  /* Mobile admin: hide inline edit/delete icon buttons; use swipe actions instead. */
+  @media (max-width: 767px) {
+    .btn-admin-icon,
+    .btn-admin-icon-danger {
+      display: none !important;
+    }
+  }
+
   .btn-admin-pager {
-    @apply inline-flex items-center justify-center rounded-xl px-3 py-2 text-white bg-white/5 border border-white/10 hover:bg-white/10 disabled:opacity-40 disabled:pointer-events-none transition-colors;
+    @apply inline-flex items-center justify-center rounded-xl px-3 py-2 border disabled:opacity-40 disabled:pointer-events-none transition-colors;
+    color: var(--btn-admin-pager-fg);
+    background: var(--btn-admin-pager-bg);
+    border-color: var(--btn-admin-pager-border);
+  }
+
+  .btn-admin-pager:hover:not(:disabled) {
+    background: var(--btn-admin-pager-bg-hover);
   }
 
   /* Admin sidebar: slim scrollbar (esp. collapsed rail) */
@@ -151,11 +203,427 @@
   .admin-sidebar-scroll::-webkit-scrollbar-thumb:hover {
     background-color: rgba(255, 255, 255, 0.35);
   }
+
+  .theme-toggle-btn {
+    @apply inline-flex items-center justify-center rounded-lg border transition-colors shrink-0 min-h-10 min-w-10;
+    color: var(--theme-toggle-fg);
+    background: var(--theme-toggle-bg);
+    border-color: var(--theme-toggle-border);
+  }
+
+  .theme-toggle-btn:hover {
+    background: var(--theme-toggle-bg-hover);
+    border-color: var(--theme-toggle-border-hover);
+  }
+
+  /* Mobile nav toggle inspired by Uiverse animated icon style */
+  .uiverse-mobile-menu-btn {
+    @apply relative inline-flex h-11 w-11 items-center justify-center rounded-xl border transition-all duration-300 active:scale-95;
+    color: var(--text-primary);
+    background: var(--locale-switch-bg);
+    border-color: var(--locale-switch-border);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 8px 22px -18px rgba(0, 0, 0, 0.55);
+  }
+
+  .uiverse-mobile-menu-btn:hover {
+    background: var(--locale-switch-bg-hover);
+  }
+
+  .uiverse-mobile-menu-btn:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--text-primary) 55%, transparent);
+    outline-offset: 2px;
+  }
+
+  .uiverse-mobile-menu-lines {
+    @apply relative block h-4 w-5;
+  }
+
+  .uiverse-mobile-menu-line {
+    @apply absolute left-0 block h-[2px] w-5 rounded-full;
+    background-color: currentColor;
+    transition:
+      transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1),
+      top 280ms cubic-bezier(0.34, 1.56, 0.64, 1),
+      opacity 180ms ease,
+      width 220ms ease;
+  }
+
+  .uiverse-mobile-menu-line.top {
+    top: 0;
+  }
+
+  .uiverse-mobile-menu-line.mid {
+    top: 7px;
+    width: 14px;
+  }
+
+  .uiverse-mobile-menu-line.bot {
+    top: 14px;
+  }
+
+  .uiverse-mobile-menu-btn.is-open .uiverse-mobile-menu-line.top {
+    top: 7px;
+    transform: rotate(45deg);
+  }
+
+  .uiverse-mobile-menu-btn.is-open .uiverse-mobile-menu-line.mid {
+    opacity: 0;
+    width: 0;
+  }
+
+  .uiverse-mobile-menu-btn.is-open .uiverse-mobile-menu-line.bot {
+    top: 7px;
+    transform: rotate(-45deg);
+  }
+
+  /* Public site cards (products, services, related): surfaces follow --pub-card-* tokens */
+  .public-card {
+    @apply relative flex flex-col overflow-visible rounded-2xl border transition duration-300;
+    border-color: var(--pub-card-border);
+    background-color: var(--pub-card-bg);
+  }
+
+  .public-card:hover {
+    @apply -translate-y-1 shadow-xl;
+    border-color: var(--pub-card-border-hover);
+  }
+
+  .public-card.public-card-featured {
+    background-color: transparent;
+    background-image: linear-gradient(to bottom right, var(--pub-card-featured-from), var(--pub-card-featured-to));
+    box-shadow: var(--pub-card-featured-shadow);
+    border-color: rgba(52, 211, 153, 0.4);
+  }
+
+  .public-card.public-card-featured:hover {
+    border-color: rgba(52, 211, 153, 0.55);
+  }
+
+  .public-card.public-card-trending {
+    border-color: var(--pub-card-trending-border);
+  }
+
+  .public-card.public-card-trending:hover {
+    border-color: var(--pub-card-trending-border-hover);
+  }
+
+  /* Services page hover treatment inspired by Uiverse card interaction. */
+  @media (hover: hover) and (pointer: fine) {
+    .services-hover-group > .services-hover-card {
+      transition: transform 320ms ease, filter 320ms ease, opacity 320ms ease;
+      will-change: transform, filter;
+    }
+
+    .services-hover-group:hover > .services-hover-card:not(:hover) {
+      transform: scale(0.985);
+      filter: blur(4px);
+      opacity: 0.82;
+    }
+
+    .services-hover-group:hover > .services-hover-card:hover {
+      transform: scale(1.02);
+    }
+
+  }
+
+  .public-card-cta-primary {
+    @apply flex-1 min-w-0 border py-2 text-center text-sm transition-colors rounded-lg;
+    background-color: var(--pub-card-cta-primary-bg);
+    border-color: var(--pub-card-cta-primary-border);
+    color: var(--pub-card-cta-fg);
+  }
+
+  .public-card-cta-primary:hover {
+    background-color: var(--pub-card-cta-primary-bg-hover);
+  }
+
+  .public-card-cta-secondary {
+    @apply flex-1 min-w-0 border py-2 text-center text-sm transition-colors rounded-lg;
+    background-color: var(--pub-card-cta-secondary-bg);
+    border-color: var(--pub-card-cta-secondary-border);
+    color: var(--pub-card-cta-fg-muted);
+  }
+
+  .public-card-cta-secondary:hover {
+    background-color: var(--pub-card-cta-secondary-bg-hover);
+  }
+
+  /** Category / meta chip on top of photos — always light foreground */
+  .card-media-chip {
+    color: rgba(255, 255, 255, 0.95);
+  }
+
+  .public-tag-emerald {
+    @apply rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide;
+    border-color: rgba(52, 211, 153, 0.35);
+    background-color: rgba(16, 185, 129, 0.1);
+    color: rgba(209, 250, 229, 0.95);
+  }
+
+  .news-carousel-nav-btn {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+  }
+
+  .news-carousel-nav-btn:hover:not(:disabled) {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+
+  /* News cards: Uiverse-inspired glow + sheen hover */
+  .news-uiverse-card {
+    position: relative;
+    /* Let border + box-shadow paint fully on hover (overflow:hidden clips outer glow) */
+    overflow: visible;
+    border-radius: 1rem; /* matches rounded-2xl; used by ::before sheen clip */
+    isolation: isolate;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background:
+      radial-gradient(120% 120% at 100% 0%, rgba(99, 102, 241, 0.18) 0%, transparent 52%),
+      radial-gradient(120% 120% at 0% 100%, rgba(16, 185, 129, 0.14) 0%, transparent 56%),
+      color-mix(in srgb, var(--glass-bg) 96%, transparent);
+    box-shadow: 0 12px 30px -18px rgba(0, 0, 0, 0.55);
+    transform: translateY(0) scale(1);
+    transition:
+      transform 320ms ease,
+      box-shadow 320ms ease,
+      border-color 320ms ease,
+      background-color 320ms ease;
+  }
+
+  .news-uiverse-card::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    overflow: hidden;
+    background: linear-gradient(120deg, transparent 15%, rgba(255, 255, 255, 0.2) 50%, transparent 85%);
+    transform: translateX(-120%);
+    transition: transform 520ms ease;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .news-uiverse-card > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Whole row stacks above following category blocks so lift/scale isn’t covered by the next h2 */
+  .news-category-row {
+    position: relative;
+    z-index: 0;
+  }
+
+  .news-category-row:has(.news-uiverse-card:hover) {
+    z-index: 5;
+  }
+
+  .news-uiverse-card:hover {
+    z-index: 999;
+    transform: translateY(-4px) scale(1.012);
+    border-color: rgba(167, 139, 250, 0.55);
+    box-shadow:
+      0 22px 44px -22px rgba(79, 70, 229, 0.65),
+      0 16px 34px -24px rgba(16, 185, 129, 0.55);
+  }
+
+  .news-uiverse-card:hover::before {
+    transform: translateX(120%);
+  }
+
+  .public-popover-surface {
+    background-color: #0a1020;
+    border-color: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.92);
+  }
+}
+
+/* --- Theme tokens: default dark (class on <html> set by ThemeProvider + inline script) --- */
+html.dark {
+  color-scheme: dark;
+  /* Rose accent — matches gradient end cap & typical logo treatment */
+  --brand-accent: #a0616a;
+  --background: #0a0a0a;
+  --foreground: #f4f4f5;
+  --text-primary: #ffffff;
+  --text-muted: rgba(255, 255, 255, 0.72);
+  --text-subtle: rgba(255, 255, 255, 0.55);
+  --page-bg-from: #0c0c0c;
+  --page-bg-via: #1a1a2e;
+  --page-bg-to: #a0616a;
+  --glass-bg: rgba(255, 255, 255, 0.1);
+  --glass-bg-hover: rgba(255, 255, 255, 0.15);
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --glass-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45);
+  --nav-hover-border: rgba(255, 255, 255, 0.5);
+  --nav-active-border: #ffffff;
+  --mobile-nav-panel-bg: rgba(7, 16, 36, 0.82);
+  --mobile-nav-panel-border: rgba(255, 255, 255, 0.1);
+  --theme-toggle-fg: rgba(255, 255, 255, 0.88);
+  --theme-toggle-bg: rgba(255, 255, 255, 0.1);
+  --theme-toggle-border: rgba(255, 255, 255, 0.22);
+  --theme-toggle-bg-hover: rgba(255, 255, 255, 0.16);
+  --theme-toggle-border-hover: rgba(255, 255, 255, 0.35);
+  --admin-sidebar-bg: rgba(10, 10, 10, 0.95);
+  --admin-sidebar-border: rgba(255, 255, 255, 0.1);
+  --admin-header-bg: rgba(10, 10, 10, 0.8);
+  --admin-header-border: rgba(255, 255, 255, 0.1);
+  --admin-menu-bg: rgba(20, 20, 28, 0.95);
+  --admin-menu-border: rgba(255, 255, 255, 0.15);
+  --admin-input-bg: rgba(255, 255, 255, 0.1);
+  --admin-input-border: rgba(255, 255, 255, 0.2);
+  --admin-modal-surface: #16161f;
+  --btn-admin-primary-border: rgba(255, 255, 255, 0.2);
+  --btn-admin-primary-shadow: 0 10px 25px -5px rgba(91, 33, 182, 0.35);
+  --btn-admin-secondary-fg: #ffffff;
+  --btn-admin-secondary-bg: rgba(255, 255, 255, 0.1);
+  --btn-admin-secondary-border: rgba(255, 255, 255, 0.2);
+  --btn-admin-secondary-bg-hover: rgba(255, 255, 255, 0.2);
+  --btn-admin-secondary-border-hover: rgba(255, 255, 255, 0.35);
+  --btn-admin-icon-fg: #ffffff;
+  --btn-admin-icon-bg-hover: rgba(255, 255, 255, 0.1);
+  --btn-admin-icon-fg-hover: rgba(255, 255, 255, 0.95);
+  --btn-admin-pager-fg: #ffffff;
+  --btn-admin-pager-bg: rgba(255, 255, 255, 0.05);
+  --btn-admin-pager-border: rgba(255, 255, 255, 0.1);
+  --btn-admin-pager-bg-hover: rgba(255, 255, 255, 0.1);
+  --locale-switch-border: rgba(255, 255, 255, 0.3);
+  --locale-switch-bg: rgba(255, 255, 255, 0.1);
+  --locale-switch-bg-hover: rgba(255, 255, 255, 0.15);
+  --hero-media-bg: rgba(255, 255, 255, 0.1);
+  --hero-media-border: rgba(255, 255, 255, 0.1);
+  /* Links & focus on dark surfaces (public + admin) */
+  --link-color: #93c5fd;
+  --link-hover: #bfdbfe;
+  --link-active: #e0e7ff;
+  --focus-ring: #60a5fa;
+  --focus-ring-offset: #0c0c0c;
+  /* Public listing / flip cards (products, services, related) */
+  --pub-card-bg: rgba(255, 255, 255, 0.05);
+  --pub-card-border: rgba(255, 255, 255, 0.1);
+  --pub-card-border-hover: rgba(255, 255, 255, 0.25);
+  --pub-card-face-bg: #12121a;
+  --pub-card-face-back-bg: #16161f;
+  --pub-card-image-well-bg: rgba(255, 255, 255, 0.05);
+  --pub-card-footer-border: rgba(255, 255, 255, 0.1);
+  --pub-card-featured-from: rgba(255, 255, 255, 0.08);
+  --pub-card-featured-to: rgba(16, 185, 129, 0.1);
+  --pub-card-featured-shadow: 0 0 40px -10px rgba(52, 211, 153, 0.45);
+  --pub-card-trending-border: rgba(251, 191, 36, 0.3);
+  --pub-card-trending-border-hover: rgba(251, 191, 36, 0.5);
+  --pub-card-chip-bg: rgba(0, 0, 0, 0.5);
+  --pub-card-skeleton-bg: rgba(255, 255, 255, 0.05);
+  --pub-card-focus-ring-offset: #12121a;
+  --pub-card-cta-primary-bg: rgba(16, 185, 129, 0.8);
+  --pub-card-cta-primary-bg-hover: rgba(52, 211, 153, 0.92);
+  --pub-card-cta-primary-border: rgba(52, 211, 153, 0.65);
+  --pub-card-cta-secondary-bg: rgba(255, 255, 255, 0.12);
+  --pub-card-cta-secondary-bg-hover: rgba(255, 255, 255, 0.2);
+  --pub-card-cta-secondary-border: rgba(255, 255, 255, 0.3);
+  --pub-card-cta-fg: #042f2e;
+  --pub-card-cta-fg-muted: rgba(255, 255, 255, 0.95);
+}
+
+html.light {
+  color-scheme: light;
+  /* Same rose-red as dark gradient / brand */
+  --brand-accent: #a0616a;
+  --background: #f1f5f9;
+  --foreground: #111827;
+  --text-primary: #111827;
+  --text-muted: rgba(17, 24, 39, 0.74);
+  --text-subtle: rgba(17, 24, 39, 0.52);
+  --page-bg-from: #f4f6f9;
+  --page-bg-via: #eef2f6;
+  --page-bg-to: #f5e4e6;
+  --glass-bg: rgba(255, 255, 255, 0.92);
+  --glass-bg-hover: #ffffff;
+  --glass-border: rgba(17, 24, 39, 0.14);
+  --glass-shadow: 0 22px 48px -14px rgba(17, 24, 39, 0.16);
+  --nav-hover-border: rgba(17, 24, 39, 0.38);
+  --nav-active-border: #111827;
+  --mobile-nav-panel-bg: rgba(255, 255, 255, 0.98);
+  --mobile-nav-panel-border: rgba(17, 24, 39, 0.14);
+  --theme-toggle-fg: #111827;
+  --theme-toggle-bg: rgba(255, 255, 255, 0.92);
+  --theme-toggle-border: rgba(17, 24, 39, 0.14);
+  --theme-toggle-bg-hover: #ffffff;
+  --theme-toggle-border-hover: rgba(17, 24, 39, 0.22);
+  --admin-sidebar-bg: #f0f3f7;
+  --admin-sidebar-border: rgba(17, 24, 39, 0.1);
+  --admin-header-bg: rgba(255, 255, 255, 0.94);
+  --admin-header-border: rgba(17, 24, 39, 0.1);
+  --admin-menu-bg: #ffffff;
+  --admin-menu-border: rgba(17, 24, 39, 0.12);
+  --admin-input-bg: #ffffff;
+  --admin-input-border: rgba(17, 24, 39, 0.18);
+  --admin-modal-surface: #ffffff;
+  --btn-admin-primary-border: rgba(255, 255, 255, 0.35);
+  --btn-admin-primary-shadow: 0 10px 25px -5px rgba(91, 33, 182, 0.22);
+  --btn-admin-secondary-fg: #1e1b4b;
+  --btn-admin-secondary-bg: rgba(255, 255, 255, 0.92);
+  --btn-admin-secondary-border: rgba(17, 24, 39, 0.14);
+  --btn-admin-secondary-bg-hover: #ffffff;
+  --btn-admin-secondary-border-hover: rgba(17, 24, 39, 0.22);
+  --btn-admin-icon-fg: #111827;
+  --btn-admin-icon-bg-hover: rgba(17, 24, 39, 0.07);
+  --btn-admin-icon-fg-hover: #030712;
+  --btn-admin-pager-fg: #111827;
+  --btn-admin-pager-bg: rgba(17, 24, 39, 0.05);
+  --btn-admin-pager-border: rgba(17, 24, 39, 0.12);
+  --btn-admin-pager-bg-hover: rgba(17, 24, 39, 0.1);
+  --locale-switch-border: rgba(17, 24, 39, 0.16);
+  --locale-switch-bg: rgba(255, 255, 255, 0.95);
+  --locale-switch-bg-hover: #ffffff;
+  --hero-media-bg: rgba(17, 24, 39, 0.045);
+  --hero-media-border: rgba(17, 24, 39, 0.1);
+  --pub-card-bg: rgba(255, 255, 255, 0.94);
+  --pub-card-border: rgba(17, 24, 39, 0.12);
+  --pub-card-border-hover: rgba(17, 24, 39, 0.22);
+  --pub-card-face-bg: #ffffff;
+  --pub-card-face-back-bg: #f8fafc;
+  --pub-card-image-well-bg: rgba(15, 23, 42, 0.06);
+  --pub-card-footer-border: rgba(17, 24, 39, 0.1);
+  --pub-card-featured-from: rgba(236, 253, 245, 0.98);
+  --pub-card-featured-to: rgba(255, 255, 255, 1);
+  --pub-card-featured-shadow: 0 0 36px -12px rgba(52, 211, 153, 0.28);
+  --pub-card-trending-border: rgba(245, 158, 11, 0.42);
+  --pub-card-trending-border-hover: rgba(217, 119, 6, 0.55);
+  --pub-card-chip-bg: rgba(0, 0, 0, 0.52);
+  --pub-card-skeleton-bg: rgba(17, 24, 39, 0.08);
+  --pub-card-focus-ring-offset: #ffffff;
+  --pub-card-cta-primary-bg: rgba(16, 185, 129, 0.22);
+  --pub-card-cta-primary-bg-hover: rgba(16, 185, 129, 0.32);
+  --pub-card-cta-primary-border: rgba(5, 150, 105, 0.5);
+  --pub-card-cta-secondary-bg: rgba(15, 23, 42, 0.07);
+  --pub-card-cta-secondary-bg-hover: rgba(15, 23, 42, 0.12);
+  --pub-card-cta-secondary-border: rgba(15, 23, 42, 0.2);
+  --pub-card-cta-fg: #0f172a;
+  --pub-card-cta-fg-muted: #0f172a;
+  /* Accessible links & focus (WCAG-friendly on light surfaces) */
+  --link-color: #1d4ed8;
+  --link-hover: #1e3a8a;
+  --link-active: #172554;
+  --focus-ring: #2563eb;
+  --focus-ring-offset: #ffffff;
+}
+
+/* Slogan / subtitle only — brand accent; company name uses --text-primary */
+.admin-brand-slogan {
+  color: var(--brand-accent) !important;
+}
+
+html.light .nav-brand-slogan {
+  color: var(--brand-accent);
+}
+
+html.light .admin-app .admin-brand-slogan {
+  color: var(--brand-accent) !important;
 }
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0a0a0a;
+  --foreground: #f4f4f5;
 }
 
 @theme inline {
@@ -185,16 +653,9 @@
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--page-bg-from);
+  color: var(--text-primary);
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
@@ -206,14 +667,342 @@ html {
   box-sizing: border-box;
 }
 
-/* Admin Dashboard Select Dropdown Styling */
-select {
+html.dark select {
   color-scheme: dark;
 }
 
-select option {
+html.dark select option {
   background-color: #1a1a2e;
   color: #ffffff;
   padding: 8px;
+}
+
+html.light select {
+  color-scheme: light;
+}
+
+html.light select option {
+  background-color: #ffffff;
+  color: #111827;
+  padding: 8px;
+}
+
+/* Public site (nav + main + footer): remap legacy white utilities for readable light UI */
+html.light .public-shell .text-white {
+  color: var(--text-primary) !important;
+}
+
+html.light .public-shell .text-white\/90 {
+  color: color-mix(in srgb, var(--text-primary) 90%, transparent) !important;
+}
+
+html.light .public-shell .text-white\/80 {
+  color: color-mix(in srgb, var(--text-primary) 80%, transparent) !important;
+}
+
+html.light .public-shell .text-white\/70 {
+  color: color-mix(in srgb, var(--text-primary) 70%, transparent) !important;
+}
+
+html.light .public-shell .text-white\/60 {
+  color: color-mix(in srgb, var(--text-primary) 60%, transparent) !important;
+}
+
+html.light .public-shell .text-white\/50 {
+  color: color-mix(in srgb, var(--text-primary) 50%, transparent) !important;
+}
+
+html.light .public-shell .text-white\/45 {
+  color: color-mix(in srgb, var(--text-primary) 45%, transparent) !important;
+}
+
+html.light .public-shell .text-white\/65 {
+  color: color-mix(in srgb, var(--text-primary) 65%, transparent) !important;
+}
+
+html.light .public-shell .text-white\/75 {
+  color: color-mix(in srgb, var(--text-primary) 75%, transparent) !important;
+}
+
+html.light .public-shell .text-white\/85 {
+  color: color-mix(in srgb, var(--text-primary) 85%, transparent) !important;
+}
+
+html.light .public-shell .bg-white\/5 {
+  background-color: rgba(15, 23, 42, 0.045) !important;
+}
+
+html.light .public-shell .bg-white\/10 {
+  background-color: rgba(15, 23, 42, 0.07) !important;
+}
+
+html.light .public-shell .bg-white\/15 {
+  background-color: rgba(15, 23, 42, 0.09) !important;
+}
+
+html.light .public-shell .border-white\/10,
+html.light .public-shell .border-white\/15,
+html.light .public-shell .border-white\/20,
+html.light .public-shell .border-white\/25,
+html.light .public-shell .border-white\/30,
+html.light .public-shell .border-white\/40 {
+  border-color: rgba(15, 23, 42, 0.12) !important;
+}
+
+html.light .public-shell .bg-black\/35,
+html.light .public-shell .bg-black\/40,
+html.light .public-shell .bg-black\/50 {
+  background-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+html.light .public-shell .text-emerald-200,
+html.light .public-shell .text-emerald-200\/90,
+html.light .public-shell .text-emerald-200\/95 {
+  color: #047857 !important;
+}
+
+html.light .public-shell .text-emerald-300 {
+  color: #059669 !important;
+}
+
+html.light .public-shell .text-amber-100 {
+  color: #92400e !important;
+}
+
+html.light .public-shell .group:hover .group-hover\:text-emerald-100 {
+  color: #047857 !important;
+}
+
+html.light .public-shell .public-tag-emerald {
+  border-color: rgba(5, 150, 105, 0.38) !important;
+  background-color: rgba(16, 185, 129, 0.12) !important;
+  color: #047857 !important;
+}
+
+html.light .public-shell .news-carousel-nav-btn {
+  background-color: rgba(17, 24, 39, 0.06) !important;
+  color: var(--text-primary) !important;
+}
+
+html.light .public-shell .news-carousel-nav-btn:hover:not(:disabled) {
+  background-color: rgba(17, 24, 42, 0.11) !important;
+}
+
+html.light .public-shell .public-popover-surface {
+  background-color: #ffffff !important;
+  border-color: rgba(17, 24, 39, 0.14) !important;
+  color: var(--text-primary) !important;
+}
+
+html.light .public-shell .about-intro-rich a {
+  color: var(--link-color) !important;
+}
+
+html.light .public-shell .about-intro-rich a:hover {
+  color: var(--link-hover) !important;
+}
+
+html.light .public-shell .public-prose-rich a {
+  color: var(--link-color) !important;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+html.light .public-shell .public-prose-rich a:hover {
+  color: var(--link-hover) !important;
+}
+
+html.light .public-shell select {
+  background-color: rgba(255, 255, 255, 0.98) !important;
+  color: var(--text-primary) !important;
+  border-color: rgba(17, 24, 39, 0.2) !important;
+}
+
+html.light .public-shell a.hover\:text-white:hover,
+html.light .public-shell .hover\:text-white:hover {
+  color: var(--text-primary) !important;
+}
+
+html.light .public-shell input:not([type='checkbox']):not([type='radio']):not([type='file']),
+html.light .public-shell textarea {
+  background-color: rgba(255, 255, 255, 0.98) !important;
+  color: var(--text-primary) !important;
+  border-color: rgba(17, 24, 39, 0.2) !important;
+}
+
+html.light .public-shell input::placeholder,
+html.light .public-shell textarea::placeholder {
+  color: rgba(17, 24, 39, 0.48) !important;
+}
+
+/* Footer & in-content pseudo-links: visible default + hover + keyboard focus */
+html.light .public-shell footer a[href],
+html.light .public-shell main .prose a[href],
+html.light .public-shell main a.text-link {
+  color: var(--link-color);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  text-decoration-thickness: 0.08em;
+}
+
+html.light .public-shell footer a[href]:hover,
+html.light .public-shell main .prose a[href]:hover,
+html.light .public-shell main a.text-link:hover {
+  color: var(--link-hover);
+}
+
+html.light .public-shell footer a[href]:active,
+html.light .public-shell main .prose a[href]:active {
+  color: var(--link-active);
+}
+
+html.light .public-shell a[href]:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Primary nav uses explicit --text-primary; keep bar controls readable */
+html.light .public-shell nav a[href].font-medium {
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+html.light .public-shell nav a[href].font-medium:hover {
+  color: var(--link-hover);
+}
+
+html.light .public-shell nav a[href].font-medium:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 4px;
+}
+
+/* Admin app: same mapping for dashboard panels */
+html.light .admin-app .text-white {
+  color: var(--text-primary) !important;
+}
+
+html.light .admin-app .text-white\/90 {
+  color: color-mix(in srgb, var(--text-primary) 90%, transparent) !important;
+}
+
+html.light .admin-app .text-white\/80 {
+  color: color-mix(in srgb, var(--text-primary) 80%, transparent) !important;
+}
+
+html.light .admin-app .text-white\/70 {
+  color: color-mix(in srgb, var(--text-primary) 70%, transparent) !important;
+}
+
+html.light .admin-app .text-white\/65 {
+  color: color-mix(in srgb, var(--text-primary) 65%, transparent) !important;
+}
+
+html.light .admin-app .text-white\/60 {
+  color: color-mix(in srgb, var(--text-primary) 60%, transparent) !important;
+}
+
+html.light .admin-app .text-white\/55 {
+  color: color-mix(in srgb, var(--text-primary) 55%, transparent) !important;
+}
+
+html.light .admin-app .text-white\/50 {
+  color: color-mix(in srgb, var(--text-primary) 50%, transparent) !important;
+}
+
+html.light .admin-app .text-white\/45 {
+  color: color-mix(in srgb, var(--text-primary) 45%, transparent) !important;
+}
+
+html.light .admin-app .text-white\/40 {
+  color: color-mix(in srgb, var(--text-primary) 40%, transparent) !important;
+}
+
+html.light .admin-app .text-white\/35 {
+  color: color-mix(in srgb, var(--text-primary) 35%, transparent) !important;
+}
+
+html.light .admin-app .text-white\/25 {
+  color: color-mix(in srgb, var(--text-primary) 25%, transparent) !important;
+}
+
+html.light .admin-app .btn-admin-danger {
+  color: #991b1b !important;
+  background-color: rgba(254, 242, 242, 0.95) !important;
+  border-color: rgba(220, 38, 38, 0.4) !important;
+}
+
+html.light .admin-app .btn-admin-danger:hover {
+  background-color: rgba(254, 226, 226, 0.98) !important;
+  border-color: rgba(185, 28, 28, 0.5) !important;
+}
+
+html.light .admin-app .text-emerald-200\/90,
+html.light .admin-app .text-emerald-200\/80 {
+  color: #047857 !important;
+}
+
+html.light .admin-app .text-amber-200\/90 {
+  color: #b45309 !important;
+}
+
+html.light .admin-app .text-cyan-200\/80 {
+  color: #0e7490 !important;
+}
+
+html.light .admin-app input:not([type='checkbox']):not([type='radio']):not([type='file']),
+html.light .admin-app textarea {
+  color: var(--text-primary) !important;
+  background-color: var(--admin-input-bg) !important;
+  border-color: var(--admin-input-border) !important;
+}
+
+html.light .admin-app .border-white\/10,
+html.light .admin-app .border-white\/15,
+html.light .admin-app .border-white\/20 {
+  border-color: rgba(15, 23, 42, 0.1) !important;
+}
+
+html.light .admin-app .bg-black\/30,
+html.light .admin-app .bg-black\/40,
+html.light .admin-app .bg-black\/50 {
+  background-color: rgba(255, 255, 255, 0.65) !important;
+}
+
+html.light .admin-app .bg-slate-900\/95 {
+  background-color: rgba(248, 250, 252, 0.97) !important;
+}
+
+html.light .admin-app .bg-white\/5,
+html.light .admin-app .bg-white\/10 {
+  background-color: rgba(15, 23, 42, 0.04) !important;
+}
+
+html.light .admin-sidebar-scroll {
+  scrollbar-color: rgba(15, 23, 42, 0.25) transparent;
+}
+
+html.light .admin-sidebar-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(15, 23, 42, 0.2);
+}
+
+html.light .admin-sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(15, 23, 42, 0.35);
+}
+
+/*
+ * Semantic foreground utilities (unlayered): always win over Tailwind `text-white` in the cascade.
+ * Use on public pages so light mode stays readable on glass / white card surfaces.
+ */
+.text-fg {
+  color: var(--text-primary);
+}
+
+.text-fg-muted {
+  color: var(--text-muted);
+}
+
+.text-fg-subtle {
+  color: var(--text-subtle);
 }
 

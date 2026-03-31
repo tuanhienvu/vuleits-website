@@ -236,7 +236,7 @@ export default function MediaAdminPanel() {
             {canDelete ? (
               <button
                 type="button"
-                className="absolute right-2 top-2 z-30 flex h-7 w-7 cursor-pointer items-center justify-center rounded-md bg-black/55 ring-1 ring-white/20 text-red-300 hover:bg-black/70 hover:text-red-200"
+                className="absolute right-2 top-2 z-30 hidden md:flex h-7 w-7 cursor-pointer items-center justify-center rounded-md bg-black/55 ring-1 ring-white/20 text-red-300 hover:bg-black/70 hover:text-red-200"
                 aria-label={isVi ? 'Xóa' : 'Delete'}
                 onTouchStart={(e) => e.stopPropagation()}
                 onClick={(e) => {

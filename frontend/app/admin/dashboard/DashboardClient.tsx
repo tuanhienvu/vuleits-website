@@ -49,6 +49,9 @@ const AboutTeamAdminPanel = dynamic(() => import('@/components/admin/AboutTeamAd
 const AboutStatsAdminPanel = dynamic(() => import('@/components/admin/AboutStatsAdminPanel'), {
   loading: () => <AdminPanelFallback />,
 });
+const TranslationsAdminPanel = dynamic(() => import('@/components/admin/TranslationsAdminPanel'), {
+  loading: () => <AdminPanelFallback />,
+});
 
 const SUPPORTED_TABS = new Set([
   'overview',
@@ -60,6 +63,7 @@ const SUPPORTED_TABS = new Set([
   'users',
   'permissions',
   'homeFeatures',
+  'uiTexts',
   'contacts',
   'aboutTeam',
   'aboutStats',
@@ -92,6 +96,13 @@ export default function DashboardClient() {
       return <div className="glass p-6 rounded-2xl text-white/80">You do not have permission to view this section.</div>;
     }
     return <ServicesAdminPanel />;
+  }
+
+  if (activeTab === 'uiTexts') {
+    if (!can('uiTexts', 'read')) {
+      return <div className="glass p-6 rounded-2xl text-white/80">You do not have permission to view this section.</div>;
+    }
+    return <TranslationsAdminPanel />;
   }
 
   if (!can(activeTab as Parameters<typeof can>[0], 'read')) {

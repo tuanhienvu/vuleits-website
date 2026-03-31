@@ -11,7 +11,13 @@ import type { AdminUiFeatureId } from '@/lib/adminPermissionModel';
 
 type SidebarNavItem =
   | { kind: 'tab'; id: AdminUiFeatureId; label: string; icon: string; path: string }
-  | { kind: 'page'; id: 'companyProfile' | 'permissionsPage' | 'aboutUs'; label: string; icon: string; path: string };
+  | {
+      kind: 'page';
+      id: 'companyProfile' | 'permissionsPage' | 'aboutUs' | 'privacyPolicy' | 'termsOfService';
+      label: string;
+      icon: string;
+      path: string;
+    };
 
 interface AdminSidebarProps {
   isOpen: boolean;
@@ -26,7 +32,7 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const { logoSrc, companyName, slogan } = useCompanyBranding();
   const brandSubtitle = slogan || t('admin.panel');
   const { can, loading: permsLoading } = useAdminPermissions();
@@ -109,6 +115,27 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
             icon: '🎯',
             path: '/admin/about-us',
           },
+          {
+            kind: 'page',
+            id: 'privacyPolicy',
+            label: t('admin.privacyPolicy'),
+            icon: '🛡️',
+            path: '/admin/privacy-policy',
+          },
+          {
+            kind: 'page',
+            id: 'termsOfService',
+            label: t('admin.termsOfService'),
+            icon: '📜',
+            path: '/admin/terms-of-service',
+          },
+          {
+            kind: 'tab',
+            id: 'uiTexts',
+            label: t('admin.uiMessages'),
+            icon: '🌐',
+            path: '/admin/dashboard?tab=uiTexts',
+          },
           { kind: 'tab', id: 'aboutTeam', label: t('admin.aboutTeam'), icon: '👤', path: '/admin/dashboard?tab=aboutTeam' },
           { kind: 'tab', id: 'aboutStats', label: t('admin.aboutStats'), icon: '📈', path: '/admin/dashboard?tab=aboutStats' },
         ],
@@ -117,22 +144,50 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
     [t],
   );
 
-  const visibleGroups = useMemo(
-    () =>
-      menuGroups
-        .map((group) => ({
-          ...group,
-          items: group.items.filter((item) => {
+  const visibleGroups = useMemo(() => {
+    const collator = new Intl.Collator(locale, { sensitivity: 'base' });
+    const filtered = menuGroups
+      .map((group) => ({
+        ...group,
+        items: group.items
+          .filter((item) => {
             if (item.kind === 'page' && item.id === 'companyProfile') return showCompanyProfileNav;
             if (item.kind === 'page' && item.id === 'permissionsPage') return allowTab('permissions');
             if (item.kind === 'page' && item.id === 'aboutUs') return allowTab('aboutTeam');
+            if (item.kind === 'page' && item.id === 'privacyPolicy') return allowTab('aboutTeam');
+            if (item.kind === 'page' && item.id === 'termsOfService') return allowTab('aboutTeam');
             if (item.kind === 'tab') return allowTab(item.id);
             return false;
-          }),
-        }))
-        .filter((g) => g.items.length > 0),
-    [menuGroups, showCompanyProfileNav, allowTab],
-  );
+          })
+          .sort((a, b) => collator.compare(a.label, b.label)),
+      }))
+      .filter((g) => g.items.length > 0);
+
+    const byLabel = [...filtered].sort((a, b) => collator.compare(a.label, b.label));
+    const overview = byLabel.find((g) => g.id === 'overview');
+    const contents = byLabel.find((g) => g.id === 'contents');
+    const authority = byLabel.find((g) => g.id === 'authority');
+
+    const baseOrdered = [...byLabel];
+    if (overview && contents) {
+      const overviewIdx = baseOrdered.findIndex((g) => g.id === 'overview');
+      const contentsIdx = baseOrdered.findIndex((g) => g.id === 'contents');
+      if (overviewIdx > contentsIdx && contentsIdx >= 0) {
+        baseOrdered.splice(overviewIdx, 1);
+        baseOrdered.splice(contentsIdx, 0, overview);
+      }
+    }
+
+    if (!authority) return baseOrdered;
+
+    const withoutAuthority = baseOrdered.filter((g) => g.id !== 'authority');
+    const settingsIdx = withoutAuthority.findIndex((g) => g.id === 'settings');
+    if (settingsIdx >= 0) {
+      withoutAuthority.splice(settingsIdx, 0, authority);
+      return withoutAuthority;
+    }
+    return [...withoutAuthority, authority];
+  }, [menuGroups, showCompanyProfileNav, allowTab, locale]);
 
   const activeGroupId = useMemo(() => {
     for (const g of visibleGroups) {
@@ -172,7 +227,7 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
     <>
       {/* ==================== DESKTOP SIDEBAR RAIL ==================== */}
       <aside
-        className={`fixed left-0 top-0 h-full bg-[#0a0a0a]/95 backdrop-blur-lg border-r border-white/10 z-50 transition-[width] duration-300 ease-out ${
+        className={`fixed left-0 top-0 h-full backdrop-blur-lg border-r z-50 transition-[width] duration-300 ease-out bg-[color:var(--admin-sidebar-bg)] border-[color:var(--admin-sidebar-border)] ${
           isOpen ? 'w-64' : 'w-24'
         } hidden lg:block`}
       >
@@ -199,7 +254,7 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
               {isOpen && (
                 <div className="flex-1 min-w-0">
                   <h2 className="text-white font-bold text-lg font-zcool tracking-wide truncate">{companyName}</h2>
-                  <p className="text-white/60 text-xs font-zcool tracking-wide truncate">{brandSubtitle}</p>
+                  <p className="admin-brand-slogan text-white/60 text-xs font-zcool tracking-wide truncate">{brandSubtitle}</p>
                 </div>
               )}
             </Link>
@@ -337,7 +392,7 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
 
       {/* ==================== MOBILE SIDEBAR DRAWER ==================== */}
       <aside
-        className={`fixed left-0 top-0 h-full bg-[#0a0a0a]/95 backdrop-blur-lg border-r border-white/10 z-50 transition-transform duration-300 w-64 ${
+        className={`fixed left-0 top-0 h-full backdrop-blur-lg border-r z-50 transition-transform duration-300 w-64 bg-[color:var(--admin-sidebar-bg)] border-[color:var(--admin-sidebar-border)] ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         } lg:hidden`}
       >
@@ -361,7 +416,7 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
               />
               <div className="flex-1 min-w-0">
                 <h2 className="text-white font-bold text-lg font-zcool tracking-wide truncate">{companyName}</h2>
-                <p className="text-white/60 text-xs font-zcool tracking-wide truncate">{brandSubtitle}</p>
+                <p className="admin-brand-slogan text-white/60 text-xs font-zcool tracking-wide truncate">{brandSubtitle}</p>
               </div>
             </Link>
           </div>

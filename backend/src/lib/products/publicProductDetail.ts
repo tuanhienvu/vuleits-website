@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { asStringArray } from '@/lib/products/jsonArrays';
 import { sanitizeProductBodyHtml } from '@/lib/products/sanitizeProductHtml';
+import { sanitizeAboutIntroBodyHtml } from '@/lib/sanitizeAboutIntroHtml';
 
 export type PublicProductDetail = {
   id: number;
@@ -70,7 +71,7 @@ export async function getPublicProductBySlug(slug: string): Promise<PublicProduc
     id: product.id,
     productName: product.productName,
     slug: product.slug,
-    shortDescription: product.shortDescription,
+    shortDescription: sanitizeAboutIntroBodyHtml(product.shortDescription ?? ''),
     fullDescriptionHtml: sanitizeProductBodyHtml(product.fullDescription),
     imageUrls: asStringArray(product.imageUrls),
     videoUrls: asStringArray(product.videoUrls),
@@ -94,7 +95,7 @@ export async function getPublicProductBySlug(slug: string): Promise<PublicProduc
       id: p.id,
       productName: p.productName,
       slug: p.slug,
-      shortDescription: p.shortDescription,
+      shortDescription: sanitizeAboutIntroBodyHtml(p.shortDescription ?? ''),
       mainImage: asStringArray(p.imageUrls)[0] ?? null,
       category: p.category,
     })),
