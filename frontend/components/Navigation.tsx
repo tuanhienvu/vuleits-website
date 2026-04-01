@@ -2,7 +2,9 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { navigateToPublicSection } from '@/lib/navigation/navigateToPublicSection';
+import { PUBLIC_SECTION_STORAGE_KEY } from '@/lib/navigation/publicSectionStorage';
 import { useLocale } from '@/components/providers/LocaleProvider';
 import LocaleSwitcher from '@/components/LocaleSwitcher';
 import BrandingLogo from '@/components/BrandingLogo';
@@ -17,6 +19,7 @@ export default function Navigation({ currentPage, setCurrentPage }: NavigationPr
   // ==================== STATE MANAGEMENT ==================== 
   const [mobileOpen, setMobileOpen] = useState(false);
   const router = useRouter();
+  const pathname = usePathname() ?? '/';
   const { t } = useLocale();
   const { logoSrc, companyName, slogan } = useCompanyBranding();
   const tagline = slogan || t('nav.tagline');
@@ -37,17 +40,24 @@ export default function Navigation({ currentPage, setCurrentPage }: NavigationPr
       <div className="container mx-auto px-4">
         <nav
           role="navigation"
-          className="glass flex items-center justify-between p-4 my-4 rounded-2xl relative transition-colors duration-200 lg:hover:bg-white/14 hover:bg-white/10"
+          className="glass flex items-center justify-between p-4 my-4 rounded-2xl relative transition-colors duration-200"
         >
           {/* ==================== LOGO & BRANDING AREA [SEARCH: LOGO, BRANDING] ==================== */}
           <Link
             href="/"
             onClick={(e) => {
-              e.preventDefault();
-              setCurrentPage('home');
+              try {
+                sessionStorage.setItem(PUBLIC_SECTION_STORAGE_KEY, 'home');
+              } catch {
+                // ignore
+              }
+              if (pathname === '/') {
+                e.preventDefault();
+                setCurrentPage('home');
+              }
               setMobileOpen(false);
             }}
-            className="flex items-center gap-4 cursor-pointer rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+            className="flex items-center gap-4 cursor-pointer rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--text-primary)]/30"
             aria-label={t('nav.home')}
           >
             <BrandingLogo
@@ -58,10 +68,12 @@ export default function Navigation({ currentPage, setCurrentPage }: NavigationPr
               priority
             />
             <div className="hidden lg:block min-w-0">
-              <h2 className="text-white font-semibold text-xl leading-tight font-zcool tracking-wide truncate">
+              <h2 className="font-semibold text-xl leading-tight font-zcool tracking-wide truncate text-[color:var(--text-primary)]">
                 {companyName}
               </h2>
-              <p className="text-white/70 text-sm font-zcool tracking-wide truncate">{tagline}</p>
+              <p className="nav-brand-slogan text-sm font-zcool tracking-wide truncate text-[color:var(--brand-accent)]">
+                {tagline}
+              </p>
             </div>
           </Link>
 
@@ -70,10 +82,15 @@ export default function Navigation({ currentPage, setCurrentPage }: NavigationPr
           <div className="lg:hidden">
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
+              aria-expanded={mobileOpen}
               aria-label={t('nav.toggleMenu')}
-              className="pt-2 pb-2 px-4 pr-4 rounded-md bg-white/10 text-white transition-all duration-200 hover:bg-white/16 active:scale-95"
+              className={`uiverse-mobile-menu-btn ${mobileOpen ? 'is-open' : ''}`}
             >
-              {mobileOpen ? '✕' : '☰'}
+              <span className="uiverse-mobile-menu-lines" aria-hidden="true">
+                <span className="uiverse-mobile-menu-line top" />
+                <span className="uiverse-mobile-menu-line mid" />
+                <span className="uiverse-mobile-menu-line bot" />
+              </span>
             </button>
           </div>
 
@@ -86,13 +103,13 @@ export default function Navigation({ currentPage, setCurrentPage }: NavigationPr
                 href="#"
                 onClick={(e) => {
                   e.preventDefault();
-                  setCurrentPage(item.id);
+                  navigateToPublicSection(item.id, pathname, setCurrentPage, router);
                 }}
                 aria-current={currentPage === item.id ? 'page' : undefined}
-                className={`text-white font-medium transition-all duration-300 pb-2 text-sm md:text-base ${
+                className={`relative font-medium pb-2 text-sm md:text-base text-[color:var(--text-primary)] transition-colors duration-300 after:pointer-events-none after:absolute after:left-0 after:bottom-0 after:h-0.5 after:w-full after:origin-left after:rounded-full after:bg-(--nav-active-border) after:transition-transform after:duration-300 after:ease-out ${
                   currentPage === item.id
-                    ? 'border-b-2 border-white'
-                    : 'hover:border-b-2 hover:border-white/50'
+                    ? 'after:scale-x-100'
+                    : 'after:scale-x-0 hover:after:scale-x-100'
                 }`}
               >
                 {item.label}
@@ -103,17 +120,17 @@ export default function Navigation({ currentPage, setCurrentPage }: NavigationPr
             <button
               type="button"
               onClick={() => router.push('/admin/login')}
-              className="text-white font-medium transition-all duration-300 pb-2 text-sm md:text-base hover:border-b-2 hover:border-white/50"
+              className="relative font-medium pb-2 text-sm md:text-base text-[color:var(--text-primary)] transition-colors duration-300 after:pointer-events-none after:absolute after:left-0 after:bottom-0 after:h-0.5 after:w-full after:origin-left after:scale-x-0 after:rounded-full after:bg-(--nav-active-border) after:transition-transform after:duration-300 after:ease-out hover:after:scale-x-100"
             >
               {t('nav.admin')}
             </button>
 
-            <LocaleSwitcher className="text-white px-2 py-1.5 rounded-lg text-sm hover:bg-white/10" />
+            <LocaleSwitcher className="px-2 py-1.5 rounded-lg text-sm border border-[color:var(--locale-switch-border)] bg-[color:var(--locale-switch-bg)] hover:bg-[color:var(--locale-switch-bg-hover)]" />
           </div>
 
           {/* ==================== MOBILE MENU PANEL [SEARCH: MOBILE, MENU, DROPDOWN] ==================== */}
           {mobileOpen && (
-            <div className="lg:hidden absolute left-4 right-4 top-full mt-2 bg-[#071024]/80 border border-white/10 rounded-2xl p-4 backdrop-blur-md">
+            <div className="lg:hidden absolute left-4 right-4 top-full mt-2 rounded-2xl p-4 backdrop-blur-md border border-[color:var(--mobile-nav-panel-border)] bg-[color:var(--mobile-nav-panel-bg)]">
               <div className="flex flex-col gap-3">
                 {/* ========== MOBILE NAVIGATION LINKS ========== */}
                 {navItems.map((item) => (
@@ -122,13 +139,13 @@ export default function Navigation({ currentPage, setCurrentPage }: NavigationPr
                     href="#"
                     onClick={(e) => {
                       e.preventDefault();
-                      setCurrentPage(item.id);
+                      navigateToPublicSection(item.id, pathname, setCurrentPage, router);
                       setMobileOpen(false);
                     }}
-                    className={`text-white font-medium transition-all duration-200 py-2 px-3 rounded-lg border ${
+                    className={`font-medium transition-all duration-200 py-2 px-3 rounded-lg border text-[color:var(--text-primary)] ${
                       currentPage === item.id
-                        ? 'bg-white/12 border-white/25 shadow-[0_0_0_1px_rgba(255,255,255,0.06)_inset]'
-                        : 'bg-transparent border-transparent hover:bg-white/8 hover:border-white/16 active:scale-[0.99]'
+                        ? 'bg-[color:color-mix(in_srgb,var(--text-primary)_12%,transparent)] border-[color:color-mix(in_srgb,var(--text-primary)_22%,transparent)]'
+                        : 'bg-transparent border-transparent hover:bg-[color:color-mix(in_srgb,var(--text-primary)_8%,transparent)] hover:border-[color:color-mix(in_srgb,var(--text-primary)_14%,transparent)] active:scale-[0.99]'
                     }`}
                   >
                     {item.label}
@@ -141,11 +158,11 @@ export default function Navigation({ currentPage, setCurrentPage }: NavigationPr
                     setMobileOpen(false);
                     router.push('/admin/login');
                   }}
-                  className="w-full text-left text-white font-medium transition-all duration-200 py-2 px-3 rounded-lg border border-transparent hover:bg-white/8 hover:border-white/16 active:scale-[0.99]"
+                  className="w-full text-left font-medium transition-all duration-200 py-2 px-3 rounded-lg border border-transparent text-[color:var(--text-primary)] hover:bg-[color:color-mix(in_srgb,var(--text-primary)_8%,transparent)] hover:border-[color:color-mix(in_srgb,var(--text-primary)_14%,transparent)] active:scale-[0.99]"
                 >
                   {t('nav.admin')}
                 </button>
-                <LocaleSwitcher className="w-full text-white px-3 py-2 rounded-lg text-sm border border-transparent hover:bg-white/8 hover:border-white/16 justify-start" />
+                <LocaleSwitcher className="w-full px-3 py-2 rounded-lg text-sm border border-[color:var(--locale-switch-border)] bg-[color:var(--locale-switch-bg)] hover:bg-[color:var(--locale-switch-bg-hover)] justify-start" />
               </div>
             </div>
           )}

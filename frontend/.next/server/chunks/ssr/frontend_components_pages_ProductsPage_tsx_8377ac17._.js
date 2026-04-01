@@ -1,0 +1,3 @@
+module.exports=[87754,a=>{"use strict";var b=a.i(87924),c=a.i(5309);function d(){return(0,b.jsxs)("div",{className:"container mx-auto px-4",children:[(0,b.jsxs)("section",{className:"glass p-8 md:p-12 rounded-3xl mb-8 border border-white/10",children:[(0,b.jsx)("h1",{className:"text-4xl md:text-5xl font-bold text-fg mb-4",children:"Our Products"}),(0,b.jsx)("p",{className:"text-fg-muted text-lg max-w-2xl",children:"Filter by launch type and stack, explore trending picks, and open live demos—all in one place."})]}),(0,b.jsx)(c.default,{})]})}a.s(["default",()=>d])},66315,a=>{a.n(a.i(87754))}];
+
+//# sourceMappingURL=frontend_components_pages_ProductsPage_tsx_8377ac17._.js.map

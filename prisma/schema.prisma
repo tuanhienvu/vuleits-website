@@ -197,9 +197,10 @@ model Contact {
   id              Int     @id @default(autoincrement())
   name            String
   email           String
+  subject         String? @db.VarChar(500)
   phone           String?
   message         String  @db.LongText
-  status          String  @default("New") // New, Replied, Archived
+  status          String  @default("New") // New, Read, Replied, Archived
   submittedById    Int?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -216,6 +217,20 @@ model SiteSetting {
   value           String  @db.LongText
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+}
+
+// Overrides for public/admin UI strings (merged with code defaults on the client).
+model UiMessage {
+  id          Int      @id @default(autoincrement())
+  locale      String   @db.VarChar(20)
+  messageKey  String   @map("message_key") @db.VarChar(190)
+  value       String   @db.LongText
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@unique([locale, messageKey])
+  @@index([locale])
+  @@map("ui_messages")
 }
 
 model AboutSection {

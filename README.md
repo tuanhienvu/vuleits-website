@@ -1,160 +1,112 @@
-# VULE ITS Website - IEEE 830 SRS Implementation
+# VULE ITS Website
 
-A modern, responsive website portal built with Next.js, React, and Tailwind CSS following IEEE 830 Software Requirements Specification. Features glass morphism design with comprehensive CMS functionality.
+Monorepo for the VULE ITS web platform with separate frontend and backend Next.js apps.
 
-## 📋 Project Overview
+## Overview
 
-**VULE ITS Website** is a full-featured web portal with:
-- **Public Portal**: Homepage, Products, News, About, Services, Contact, Legal Pages
-- **Admin CMS**: Content management for products, news, media, banners, users
-- **Glass Morphism UI**: Modern frosted glass design pattern
-- **Role-Based Access Control**: SuperAdmin, Admin, Editor roles
-- **SEO Optimized**: Meta tags, structured data support
+- `frontend`: Public website and admin UI
+- `backend`: API server (App Router API routes)
+- `prisma`: Database schema and seed scripts
+- Shared root scripts for development, build, and database tasks
 
-## 🏗️ Project Structure
+## Current Features
 
-```
-src/
-├── app/
-│   ├── page.tsx                 # Main portal with page routing
-│   ├── globals.css              # Global styles & animations
-│   └── admin/
-│       ├── login/page.tsx       # Admin login
-│       └── dashboard/page.tsx   # Admin dashboard
-├── components/
-│   ├── Navigation.tsx           # Navigation bar
-│   ├── Footer.tsx               # Footer
-│   └── pages/
-│       ├── HomePage.tsx
-│       ├── AboutPage.tsx
-│       ├── ProductsPage.tsx
-│       ├── NewsPage.tsx
-│       ├── ServicesPage.tsx
-│       ├── ContactPage.tsx
-│       ├── PrivacyPolicyPage.tsx
-│       └── TermsOfServicePage.tsx
+### Public frontend
+
+- Home, News, Products, Services pages and detail pages
+- Company branding/contact integration from backend APIs
+- Locale switching (`en-US`, `vi-VN`)
+
+### Admin frontend
+
+- Dashboard + sidebar navigation
+- Company profile management
+- About Us intro management
+- News, Services, Products, Users, Media managers
+- About Team, About Stats, Home Features managers
+- Reusable animated modal behavior for edit/delete flows
+
+### Backend APIs
+
+- Public endpoints for products, services, news, company, about, home features
+- Admin endpoints for auth, profile, permissions, content CRUD, media, settings
+- Prisma ORM + MySQL
+
+## Project Structure
+
+```txt
+backend/
+  app/api/           API routes
+  src/lib/           auth, permissions, helpers
+frontend/
+  app/               routes/pages
+  components/        shared and admin components
+  lib/               client helpers/types
 prisma/
-└── schema.prisma               # Database models
+  schema.prisma
+  seed.js
 ```
 
-## 📄 Public Portal Pages
+## Requirements
 
-- **Home**: Hero, features, navigation
-- **Products**: Listing with search & filters
-- **News**: Articles with tag filtering
-- **About**: Company info, team, stats
-- **Services**: 6 service offerings
-- **Contact**: Form with validation
-- **Legal**: Privacy Policy, Terms of Service
+- Node.js 20+
+- npm 10+
+- MySQL database
 
-## 🔐 Admin Dashboard
+## Environment
 
-Modules for managing:
-- Products (CRUD)
-- News (CRUD)
-- Users (RBAC)
-- Media uploads
-- Banner sliders
-- Contact submissions
+Create:
 
-## 🎨 Glass Morphism Design
+- `backend/.env.local` (based on `backend/.env.example`)
+- `frontend/.env.local` with:
 
-- Frosted glass effects
-- Backdrop blur
-- Smooth transitions
-- Responsive layout
-- Modern animations
+```env
+NEXT_PUBLIC_API_BASE_URL=http://localhost:5000
+```
 
-## 📊 Database (Prisma)
-
-Models: User, Role, Product, News, BannerSlider, Media, Contact, AboutSection, PrivacyPolicy, TermsOfService, SiteSetting
-
-## 🚀 Quick Start
+## Install
 
 ```bash
-# Install
 npm install
+```
 
-# Setup .env
-DB_HOST=localhost
-DB_PORT=3306
-DB_NAME=vuleits
-DB_USER=your_mysql_user
-DB_PASSWORD=your_mysql_password
+## Database Setup
 
-# Generate Prisma client
+```bash
 npm run db:generate
-
-# Sync schema
 npm run db:push
-
-# Run
-npm run dev
+npm run seed
 ```
 
-## 📝 Tech Stack
+## Run Locally
 
-- Next.js 14+, React 18+, TypeScript
-- Tailwind CSS 3+
-- Prisma ORM, MySQL
-- Glass Morphism UI
-
-## Version: 1.0 | Status: In Development | Updated: Dec 13, 2025
-
----
-
-## Monorepo Split (Frontend + Backend)
-
-The repository now supports two deployable Next.js apps:
-
-- `apps/frontend` -> deploy to `https://vuleits.com`
-- `apps/backend` -> deploy to `https://portal.vuleits.com`
-
-### Local Development
-
-1. Install dependencies at repo root:
-
-```bash
-npm install
-```
-
-2. Configure env files:
-
-- `apps/frontend/.env.local`
-  - `NEXT_PUBLIC_API_BASE_URL=http://localhost:4000`
-- `apps/backend/.env.local`
-  - Copy from `apps/backend/.env.example`
-
-3. Start backend:
+Terminal 1:
 
 ```bash
 npm run dev:backend
 ```
 
-4. Start frontend (new terminal):
+Terminal 2:
 
 ```bash
 npm run dev:frontend
 ```
 
-### Build/Run Separately
+## Build
 
 ```bash
-npm run build:backend
-npm run start:backend
-
-npm run build:frontend
-npm run start:frontend
+npm run build
 ```
 
-### Integration Notes
+Or separately:
 
-- Frontend rewrites `/api/*` to `NEXT_PUBLIC_API_BASE_URL/api/*`.
-- Backend includes a unified API dispatcher that reuses existing route handlers under `src/app/api`.
-- CORS/security headers are set in backend dispatcher for cross-subdomain requests.
-- Backend now has localized core server modules under `apps/backend/src/lib` (`prisma`, `jwt`, `adminAuth`, `adminEmail`) and locally migrated APIs for:
-  - `/api/products`
-  - `/api/products/[slug]`
-  - `/api/products/analytics`
-  - `/api/admin/login`
-  - `/api/admin/logout`
+```bash
+npm run build:frontend
+npm run build:backend
+```
+
+## Notes
+
+- Frontend calls backend through `NEXT_PUBLIC_API_BASE_URL`.
+- `.next` build output is generated and should be treated as temporary build artifacts.
+- If build fails in backend TypeScript checks, resolve API typing issues before deployment.

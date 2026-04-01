@@ -1,0 +1,58 @@
+import type { NextConfig } from 'next';
+import path from 'path';
+
+const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
+
+/** Must be NEXT_PUBLIC_* so it is available in workers that run generateStaticParams. */
+const isStaticExport =
+  process.env.NEXT_PUBLIC_STATIC_EXPORT === '1' ||
+  process.env.NEXT_PUBLIC_STATIC_EXPORT === 'true';
+
+const nextConfig: NextConfig = {
+  experimental: {
+    externalDir: true,
+    optimizePackageImports: ['framer-motion'],
+  },
+  outputFileTracingRoot: path.join(__dirname, '..'),
+  devIndicators: false,
+  ...(isStaticExport
+    ? {
+        output: 'export' as const,
+        images: { unoptimized: true },
+      }
+    : {}),
+  ...(!isStaticExport
+    ? {
+        async headers() {
+          return [
+            {
+              source: '/:path*',
+              headers: [
+                { key: 'X-Content-Type-Options', value: 'nosniff' },
+                { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+                { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+                {
+                  key: 'Permissions-Policy',
+                  value: 'camera=(), microphone=(), geolocation=()',
+                },
+              ],
+            },
+          ];
+        },
+        async rewrites() {
+          return [
+            {
+              source: '/api/:path*',
+              destination: `${apiBase}/api/:path*`,
+            },
+            {
+              source: '/uploads/:path*',
+              destination: `${apiBase}/uploads/:path*`,
+            },
+          ];
+        },
+      }
+    : {}),
+};
+
+export default nextConfig;

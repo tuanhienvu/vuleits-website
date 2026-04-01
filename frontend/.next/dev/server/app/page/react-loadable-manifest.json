@@ -1,0 +1,59 @@
+{
+  "[project]/frontend/components/pages/TermsOfServicePage.tsx [app-client] (ecmascript, next/dynamic entry)": {
+    "id": "[project]/frontend/components/pages/TermsOfServicePage.tsx [app-client] (ecmascript, next/dynamic entry)",
+    "files": [
+      "static/chunks/frontend_423757a8._.js",
+      "static/chunks/frontend_components_pages_TermsOfServicePage_tsx_d791c028._.js"
+    ]
+  },
+  "[project]/frontend/components/pages/PrivacyPolicyPage.tsx [app-client] (ecmascript, next/dynamic entry)": {
+    "id": "[project]/frontend/components/pages/PrivacyPolicyPage.tsx [app-client] (ecmascript, next/dynamic entry)",
+    "files": [
+      "static/chunks/frontend_1c10b9cf._.js",
+      "static/chunks/frontend_components_pages_PrivacyPolicyPage_tsx_d791c028._.js"
+    ]
+  },
+  "[project]/frontend/components/pages/NewsPage.tsx [app-client] (ecmascript, next/dynamic entry)": {
+    "id": "[project]/frontend/components/pages/NewsPage.tsx [app-client] (ecmascript, next/dynamic entry)",
+    "files": [
+      "static/chunks/frontend_707d53a2._.js",
+      "static/chunks/frontend_components_pages_NewsPage_tsx_d791c028._.js"
+    ]
+  },
+  "[project]/frontend/components/pages/ProductsPage.tsx [app-client] (ecmascript, next/dynamic entry)": {
+    "id": "[project]/frontend/components/pages/ProductsPage.tsx [app-client] (ecmascript, next/dynamic entry)",
+    "files": [
+      "static/chunks/node_modules_fd43835a._.js",
+      "static/chunks/frontend_components_6e08e42d._.js",
+      "static/chunks/frontend_components_pages_ProductsPage_tsx_d791c028._.js"
+    ]
+  },
+  "[project]/frontend/components/pages/ContactPage.tsx [app-client] (ecmascript, next/dynamic entry)": {
+    "id": "[project]/frontend/components/pages/ContactPage.tsx [app-client] (ecmascript, next/dynamic entry)",
+    "files": [
+      "static/chunks/frontend_components_pages_ContactPage_tsx_ba693762._.js",
+      "static/chunks/frontend_components_pages_ContactPage_tsx_d791c028._.js"
+    ]
+  },
+  "[project]/frontend/components/pages/ServicesPage.tsx [app-client] (ecmascript, next/dynamic entry)": {
+    "id": "[project]/frontend/components/pages/ServicesPage.tsx [app-client] (ecmascript, next/dynamic entry)",
+    "files": [
+      "static/chunks/frontend_components_3e5a228e._.js",
+      "static/chunks/frontend_components_pages_ServicesPage_tsx_d791c028._.js"
+    ]
+  },
+  "[project]/frontend/components/pages/AboutPage.tsx [app-client] (ecmascript, next/dynamic entry)": {
+    "id": "[project]/frontend/components/pages/AboutPage.tsx [app-client] (ecmascript, next/dynamic entry)",
+    "files": [
+      "static/chunks/frontend_e5b3f318._.js",
+      "static/chunks/frontend_components_pages_AboutPage_tsx_d791c028._.js"
+    ]
+  },
+  "[project]/frontend/components/pages/HomePage.tsx [app-client] (ecmascript, next/dynamic entry)": {
+    "id": "[project]/frontend/components/pages/HomePage.tsx [app-client] (ecmascript, next/dynamic entry)",
+    "files": [
+      "static/chunks/frontend_b6d5a9bd._.js",
+      "static/chunks/frontend_components_pages_HomePage_tsx_d791c028._.js"
+    ]
+  }
+}
