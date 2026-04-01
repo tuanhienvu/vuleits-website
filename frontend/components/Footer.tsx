@@ -5,6 +5,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import CompanySocialLinks, { type PublicSocialLink } from '@/components/CompanySocialLinks';
 import { useCompanyBranding } from '@/hooks/useCompanyBranding';
 import { navigateToPublicSection } from '@/lib/navigation/navigateToPublicSection';
+import { openConsentPreferences } from '@/lib/marketing/consent';
+import { useLocale } from '@/components/providers/LocaleProvider';
 
 interface FooterProps {
   setCurrentPage: (page: string) => void;
@@ -12,6 +14,7 @@ interface FooterProps {
 
 export default function Footer({ setCurrentPage }: FooterProps) {
   const { companyName } = useCompanyBranding();
+  const { t } = useLocale();
   const router = useRouter();
   const pathname = usePathname() ?? '/';
   const [socialLinks, setSocialLinks] = useState<PublicSocialLink[]>([]);
@@ -82,7 +85,16 @@ export default function Footer({ setCurrentPage }: FooterProps) {
               >
                 Terms
               </a>
-              <a href="#" className="text-[color:var(--text-primary)] hover:opacity-80 transition-opacity">Sitemap</a>
+              <a
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  openConsentPreferences();
+                }}
+                className="text-[color:var(--text-primary)] hover:opacity-80 transition-opacity"
+              >
+                {t('footer.manageCookies')}
+              </a>
               <a
                 href="#"
                 onClick={(e) => {

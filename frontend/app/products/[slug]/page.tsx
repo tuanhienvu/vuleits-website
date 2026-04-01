@@ -2,13 +2,19 @@ import type { Metadata } from 'next';
 import { cache } from 'react';
 import ProductDetailClient from '@/components/products/ProductDetailClient';
 import type { PublicProductDetail } from '@/lib/products/types';
+import { generateStaticParamsForProducts } from '@/lib/staticExportPaths';
+import { publicApiBaseUrl } from '@/lib/publicApiBaseUrl';
 
 type Props = { params: Promise<{ slug: string }> };
 
 // --- Product detail: SSR fetch + ProductDetailClient ---
 
+export async function generateStaticParams() {
+  return generateStaticParamsForProducts();
+}
+
 function backendBaseUrl() {
-  return process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:5000';
+  return publicApiBaseUrl();
 }
 
 const fetchProduct = cache(async (slug: string): Promise<PublicProductDetail | null> => {

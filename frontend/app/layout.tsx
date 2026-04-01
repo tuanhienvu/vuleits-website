@@ -7,6 +7,8 @@ import '@/app/globals.css';
 import { LocaleProvider } from '@/components/providers/LocaleProvider';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import { ToastProvider } from '@/components/providers/ToastProvider';
+import MarketingManager from '@/components/marketing/MarketingManager';
+import ConsentBanner from '@/components/marketing/ConsentBanner';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -42,7 +44,11 @@ export default function RootLayout({
         </Script>
         <ThemeProvider>
           <LocaleProvider>
-            <ToastProvider>{children}</ToastProvider>
+            <ToastProvider>
+              {children}
+              <ConsentBanner />
+              <MarketingManager />
+            </ToastProvider>
           </LocaleProvider>
         </ThemeProvider>
       </body>

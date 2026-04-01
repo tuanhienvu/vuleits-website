@@ -1,9 +1,5 @@
-'use client';
+import { redirect } from 'next/navigation';
 
-import AboutIntroAdminPanel from '@/components/admin/AboutIntroAdminPanel';
-
-// --- Thin route: About intro admin (titles, body, hero) ---
-
-export default function AdminAboutUsPage() {
-  return <AboutIntroAdminPanel />;
+export default function AdminAboutUsRedirectPage() {
+  redirect('/admin/settings/about?tab=intro');
 }

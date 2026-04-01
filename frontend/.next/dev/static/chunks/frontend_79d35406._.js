@@ -911,6 +911,8 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navi
 var __TURBOPACK__imported__module__$5b$project$5d2f$frontend$2f$components$2f$CompanySocialLinks$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/frontend/components/CompanySocialLinks.tsx [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$frontend$2f$hooks$2f$useCompanyBranding$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/frontend/hooks/useCompanyBranding.ts [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$frontend$2f$lib$2f$navigation$2f$navigateToPublicSection$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/frontend/lib/navigation/navigateToPublicSection.ts [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$frontend$2f$lib$2f$marketing$2f$consent$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/frontend/lib/marketing/consent.ts [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$frontend$2f$components$2f$providers$2f$LocaleProvider$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/frontend/components/providers/LocaleProvider.tsx [app-client] (ecmascript)");
 ;
 var _s = __turbopack_context__.k.signature();
 'use client';
@@ -919,9 +921,12 @@ var _s = __turbopack_context__.k.signature();
 ;
 ;
 ;
+;
+;
 function Footer({ setCurrentPage }) {
     _s();
     const { companyName } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$frontend$2f$hooks$2f$useCompanyBranding$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCompanyBranding"])();
+    const { t } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$frontend$2f$components$2f$providers$2f$LocaleProvider$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useLocale"])();
     const router = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRouter"])();
     const pathname = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["usePathname"])() ?? '/';
     const [socialLinks, setSocialLinks] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])([]);
@@ -988,7 +993,7 @@ function Footer({ setCurrentPage }) {
                                     children: "About"
                                 }, void 0, false, {
                                     fileName: "[project]/frontend/components/Footer.tsx",
-                                    lineNumber: 55,
+                                    lineNumber: 58,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("a", {
@@ -1001,7 +1006,7 @@ function Footer({ setCurrentPage }) {
                                     children: "Privacy"
                                 }, void 0, false, {
                                     fileName: "[project]/frontend/components/Footer.tsx",
-                                    lineNumber: 65,
+                                    lineNumber: 68,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("a", {
@@ -1014,16 +1019,20 @@ function Footer({ setCurrentPage }) {
                                     children: "Terms"
                                 }, void 0, false, {
                                     fileName: "[project]/frontend/components/Footer.tsx",
-                                    lineNumber: 75,
+                                    lineNumber: 78,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("a", {
                                     href: "#",
+                                    onClick: (e)=>{
+                                        e.preventDefault();
+                                        (0, __TURBOPACK__imported__module__$5b$project$5d2f$frontend$2f$lib$2f$marketing$2f$consent$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["openConsentPreferences"])();
+                                    },
                                     className: "text-[color:var(--text-primary)] hover:opacity-80 transition-opacity",
-                                    children: "Sitemap"
+                                    children: t('footer.manageCookies')
                                 }, void 0, false, {
                                     fileName: "[project]/frontend/components/Footer.tsx",
-                                    lineNumber: 85,
+                                    lineNumber: 88,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("a", {
@@ -1036,13 +1045,13 @@ function Footer({ setCurrentPage }) {
                                     children: "Contact"
                                 }, void 0, false, {
                                     fileName: "[project]/frontend/components/Footer.tsx",
-                                    lineNumber: 86,
+                                    lineNumber: 98,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/frontend/components/Footer.tsx",
-                            lineNumber: 54,
+                            lineNumber: 57,
                             columnNumber: 13
                         }, this),
                         socialLinks.length > 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1052,12 +1061,12 @@ function Footer({ setCurrentPage }) {
                                 listClassName: "justify-center"
                             }, void 0, false, {
                                 fileName: "[project]/frontend/components/Footer.tsx",
-                                lineNumber: 100,
+                                lineNumber: 112,
                                 columnNumber: 17
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/frontend/components/Footer.tsx",
-                            lineNumber: 99,
+                            lineNumber: 111,
                             columnNumber: 15
                         }, this) : null,
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1072,46 +1081,47 @@ function Footer({ setCurrentPage }) {
                                         children: companyName
                                     }, void 0, false, {
                                         fileName: "[project]/frontend/components/Footer.tsx",
-                                        lineNumber: 108,
+                                        lineNumber: 120,
                                         columnNumber: 17
                                     }, this),
                                     ". All rights reserved."
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/frontend/components/Footer.tsx",
-                                lineNumber: 106,
+                                lineNumber: 118,
                                 columnNumber: 15
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/frontend/components/Footer.tsx",
-                            lineNumber: 105,
+                            lineNumber: 117,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/frontend/components/Footer.tsx",
-                    lineNumber: 52,
+                    lineNumber: 55,
                     columnNumber: 11
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/frontend/components/Footer.tsx",
-                lineNumber: 51,
+                lineNumber: 54,
                 columnNumber: 9
             }, this)
         }, void 0, false, {
             fileName: "[project]/frontend/components/Footer.tsx",
-            lineNumber: 50,
+            lineNumber: 53,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/frontend/components/Footer.tsx",
-        lineNumber: 49,
+        lineNumber: 52,
         columnNumber: 5
     }, this);
 }
-_s(Footer, "YWlnTDpTLEL0ulL9pX3ueHNJQ8g=", false, function() {
+_s(Footer, "OZgeZGb2GPX1xF8OnXY1AX+k3nE=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$frontend$2f$hooks$2f$useCompanyBranding$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCompanyBranding"],
+        __TURBOPACK__imported__module__$5b$project$5d2f$frontend$2f$components$2f$providers$2f$LocaleProvider$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useLocale"],
         __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRouter"],
         __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["usePathname"]
     ];

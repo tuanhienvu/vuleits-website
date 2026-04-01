@@ -8,12 +8,13 @@ import BrandingLogo from '@/components/BrandingLogo';
 import { useCompanyBranding } from '@/hooks/useCompanyBranding';
 import { useAdminPermissions } from '@/components/admin/AdminPermissionContext';
 import type { AdminUiFeatureId } from '@/lib/adminPermissionModel';
+import { useAdminCompanyProfileNav } from '@/hooks/useAdminCompanyProfileNav';
 
 type SidebarNavItem =
   | { kind: 'tab'; id: AdminUiFeatureId; label: string; icon: string; path: string }
   | {
       kind: 'page';
-      id: 'companyProfile' | 'permissionsPage' | 'aboutUs' | 'privacyPolicy' | 'termsOfService';
+      id: 'permissionsPage' | 'settingsAbout' | 'settingsCompany' | 'settingsSite' | 'settingsSeoMarketing';
       label: string;
       icon: string;
       path: string;
@@ -37,7 +38,8 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
   const brandSubtitle = slogan || t('admin.panel');
   const { can, loading: permsLoading } = useAdminPermissions();
   const allowTab = useCallback((id: AdminUiFeatureId) => permsLoading || can(id, 'read'), [permsLoading, can]);
-  const [showCompanyProfileNav, setShowCompanyProfileNav] = useState(false);
+  const showCompanyProfileNav = useAdminCompanyProfileNav();
+  const [contactNewCount, setContactNewCount] = useState(0);
 
   /** Only meaningful on `/admin/dashboard`; null elsewhere so tab items are not matched against default `overview`. */
   const activeTab = useMemo(() => {
@@ -46,22 +48,28 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
   }, [pathname, searchParams]);
 
   useEffect(() => {
+    if (permsLoading || !can('contacts', 'read')) return;
     let cancelled = false;
-    (async () => {
+    const fetchNew = async () => {
       try {
-        const res = await fetch('/api/admin/me', { credentials: 'include' });
+        const res = await fetch('/api/admin/contact-submissions/new-count', { credentials: 'include' });
         if (!res.ok || cancelled) return;
-        const d = (await res.json()) as { role?: { name?: string } | null };
-        const n = (d.role?.name || '').toUpperCase();
-        if (!cancelled) setShowCompanyProfileNav(n === 'ADMIN' || n === 'SYSADMIN');
+        const j = (await res.json()) as { newCount?: unknown };
+        if (!cancelled) setContactNewCount(Math.min(999, Math.max(0, Number(j.newCount) || 0)));
       } catch {
-        if (!cancelled) setShowCompanyProfileNav(false);
+        if (!cancelled) setContactNewCount(0);
       }
-    })();
+    };
+    void fetchNew();
+    const iv = window.setInterval(() => void fetchNew(), 45_000);
+    const onRefresh = () => void fetchNew();
+    window.addEventListener('vuleits-contact-new-count-refresh', onRefresh);
     return () => {
       cancelled = true;
+      window.clearInterval(iv);
+      window.removeEventListener('vuleits-contact-new-count-refresh', onRefresh);
     };
-  }, []);
+  }, [permsLoading, can]);
 
   const menuGroups: { id: string; label: string; items: SidebarNavItem[] }[] = useMemo(
     () => [
@@ -103,41 +111,32 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
         items: [
           {
             kind: 'page',
-            id: 'companyProfile',
-            label: t('admin.companyProfile'),
-            icon: '🏢',
-            path: '/admin/company-profile',
-          },
-          {
-            kind: 'page',
-            id: 'aboutUs',
-            label: t('admin.aboutUs'),
+            id: 'settingsAbout',
+            label: t('admin.settingsNavAbout'),
             icon: '🎯',
-            path: '/admin/about-us',
+            path: '/admin/settings/about',
           },
           {
             kind: 'page',
-            id: 'privacyPolicy',
-            label: t('admin.privacyPolicy'),
-            icon: '🛡️',
-            path: '/admin/privacy-policy',
+            id: 'settingsCompany',
+            label: t('admin.settingsNavCompany'),
+            icon: '🏢',
+            path: '/admin/settings/company',
           },
           {
             kind: 'page',
-            id: 'termsOfService',
-            label: t('admin.termsOfService'),
-            icon: '📜',
-            path: '/admin/terms-of-service',
-          },
-          {
-            kind: 'tab',
-            id: 'uiTexts',
-            label: t('admin.uiMessages'),
+            id: 'settingsSite',
+            label: t('admin.settingsNavSite'),
             icon: '🌐',
-            path: '/admin/dashboard?tab=uiTexts',
+            path: '/admin/settings/site',
           },
-          { kind: 'tab', id: 'aboutTeam', label: t('admin.aboutTeam'), icon: '👤', path: '/admin/dashboard?tab=aboutTeam' },
-          { kind: 'tab', id: 'aboutStats', label: t('admin.aboutStats'), icon: '📈', path: '/admin/dashboard?tab=aboutStats' },
+          {
+            kind: 'page',
+            id: 'settingsSeoMarketing',
+            label: t('admin.seoMarketing'),
+            icon: '📈',
+            path: '/admin/settings/seo-marketing',
+          },
         ],
       },
     ],
@@ -151,11 +150,14 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
         ...group,
         items: group.items
           .filter((item) => {
-            if (item.kind === 'page' && item.id === 'companyProfile') return showCompanyProfileNav;
             if (item.kind === 'page' && item.id === 'permissionsPage') return allowTab('permissions');
-            if (item.kind === 'page' && item.id === 'aboutUs') return allowTab('aboutTeam');
-            if (item.kind === 'page' && item.id === 'privacyPolicy') return allowTab('aboutTeam');
-            if (item.kind === 'page' && item.id === 'termsOfService') return allowTab('aboutTeam');
+            if (item.kind === 'page' && item.id === 'settingsAbout')
+              return allowTab('aboutTeam') || allowTab('aboutStats');
+            if (item.kind === 'page' && item.id === 'settingsCompany')
+              return showCompanyProfileNav || allowTab('contacts');
+            if (item.kind === 'page' && item.id === 'settingsSite')
+              return allowTab('aboutTeam') || allowTab('uiTexts');
+            if (item.kind === 'page' && item.id === 'settingsSeoMarketing') return allowTab('uiTexts');
             if (item.kind === 'tab') return allowTab(item.id);
             return false;
           })
@@ -317,7 +319,12 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
                                   }`}
                                 >
                                   <span className="text-xl shrink-0">{item.icon}</span>
-                                  <span className="text-sm font-medium truncate">{item.label}</span>
+                                  <span className="text-sm font-medium truncate flex-1 min-w-0 text-left">{item.label}</span>
+                                  {item.kind === 'page' && item.id === 'settingsCompany' && contactNewCount > 0 ? (
+                                    <span className="shrink-0 min-w-[1.35rem] h-6 px-1.5 rounded-full bg-amber-500 text-[11px] font-bold text-slate-900 flex items-center justify-center">
+                                      {contactNewCount > 99 ? '99+' : contactNewCount}
+                                    </span>
+                                  ) : null}
                                 </button>
                               );
                             })}
@@ -342,9 +349,21 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
                                 ? 'bg-white/20 text-white border-b-2 border-white'
                                 : 'text-white/70 hover:bg-white/10 hover:text-white hover:border-b hover:border-white focus:border-b focus:border-white focus:outline-none'
                             }`}
-                            title={item.label}
+                            title={
+                              item.kind === 'page' && item.id === 'settingsCompany' && contactNewCount > 0
+                                ? `${item.label} (${contactNewCount} new)`
+                                : item.label
+                            }
                           >
-                            <span className="text-2xl leading-none shrink-0">{item.icon}</span>
+                            <span className="text-2xl leading-none shrink-0 relative inline-flex">
+                              {item.icon}
+                              {item.kind === 'page' && item.id === 'settingsCompany' && contactNewCount > 0 ? (
+                                <span
+                                  className="absolute -top-0.5 -right-1 w-2 h-2 rounded-full bg-amber-500 ring-2 ring-[color:var(--admin-sidebar-bg)]"
+                                  aria-hidden
+                                />
+                              ) : null}
+                            </span>
                           </button>
                         );
                       })}
@@ -474,7 +493,12 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
                               }`}
                             >
                               <span className="text-xl shrink-0">{item.icon}</span>
-                              <span className="text-sm font-medium">{item.label}</span>
+                              <span className="text-sm font-medium flex-1 min-w-0 text-left truncate">{item.label}</span>
+                              {item.kind === 'page' && item.id === 'settingsCompany' && contactNewCount > 0 ? (
+                                <span className="shrink-0 min-w-[1.35rem] h-6 px-1.5 rounded-full bg-amber-500 text-[11px] font-bold text-slate-900 flex items-center justify-center">
+                                  {contactNewCount > 99 ? '99+' : contactNewCount}
+                                </span>
+                              ) : null}
                             </button>
                           );
                         })}

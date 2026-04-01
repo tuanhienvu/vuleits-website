@@ -2,9 +2,17 @@
 
 import dynamic from 'next/dynamic';
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAdminPermissions } from '@/components/admin/AdminPermissionContext';
 import { useLocale } from '@/components/providers/LocaleProvider';
+
+/** Old dashboard ?tab= values → consolidated settings pages. */
+const LEGACY_DASHBOARD_TAB_REDIRECTS: Record<string, string> = {
+  contacts: '/admin/settings/company?tab=inbox',
+  uiTexts: '/admin/settings/site?tab=ui',
+  aboutTeam: '/admin/settings/about?tab=team',
+  aboutStats: '/admin/settings/about?tab=stats',
+};
 
 function AdminPanelFallback() {
   return (
@@ -40,19 +48,6 @@ const UsersAdminPanel = dynamic(() => import('@/components/admin/UsersAdminPanel
 const PermissionsAdminPanel = dynamic(() => import('@/components/admin/PermissionsAdminPanel'), {
   loading: () => <AdminPanelFallback />,
 });
-const ContactsAdminPanel = dynamic(() => import('@/components/admin/ContactsAdminPanel'), {
-  loading: () => <AdminPanelFallback />,
-});
-const AboutTeamAdminPanel = dynamic(() => import('@/components/admin/AboutTeamAdminPanel'), {
-  loading: () => <AdminPanelFallback />,
-});
-const AboutStatsAdminPanel = dynamic(() => import('@/components/admin/AboutStatsAdminPanel'), {
-  loading: () => <AdminPanelFallback />,
-});
-const TranslationsAdminPanel = dynamic(() => import('@/components/admin/TranslationsAdminPanel'), {
-  loading: () => <AdminPanelFallback />,
-});
-
 const SUPPORTED_TABS = new Set([
   'overview',
   'news',
@@ -63,19 +58,26 @@ const SUPPORTED_TABS = new Set([
   'users',
   'permissions',
   'homeFeatures',
-  'uiTexts',
-  'contacts',
-  'aboutTeam',
-  'aboutStats',
 ]);
 
 // --- DashboardClient: tab router (permission gates + panel mount) | OverviewPanel: count cards ---
 
 export default function DashboardClient() {
+  const { t } = useLocale();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const { can } = useAdminPermissions();
   const tab = searchParams.get('tab') || 'overview';
+  const legacyTarget = LEGACY_DASHBOARD_TAB_REDIRECTS[tab];
   const activeTab = SUPPORTED_TABS.has(tab) ? tab : 'overview';
+
+  useEffect(() => {
+    if (legacyTarget) router.replace(legacyTarget);
+  }, [legacyTarget, router]);
+
+  if (legacyTarget) {
+    return <div className="glass p-6 rounded-2xl text-white/70">{t('admin.redirecting')}</div>;
+  }
 
   const title = useMemo(() => {
     if (activeTab === 'overview') return 'Overview';
@@ -98,13 +100,6 @@ export default function DashboardClient() {
     return <ServicesAdminPanel />;
   }
 
-  if (activeTab === 'uiTexts') {
-    if (!can('uiTexts', 'read')) {
-      return <div className="glass p-6 rounded-2xl text-white/80">You do not have permission to view this section.</div>;
-    }
-    return <TranslationsAdminPanel />;
-  }
-
   if (!can(activeTab as Parameters<typeof can>[0], 'read')) {
     return <div className="glass p-6 rounded-2xl text-white/80">You do not have permission to view this section.</div>;
   }
@@ -116,9 +111,6 @@ export default function DashboardClient() {
   if (activeTab === 'products') return <ProductsAdminPanel />;
   if (activeTab === 'users') return <UsersAdminPanel />;
   if (activeTab === 'permissions') return <PermissionsAdminPanel />;
-  if (activeTab === 'contacts') return <ContactsAdminPanel />;
-  if (activeTab === 'aboutTeam') return <AboutTeamAdminPanel />;
-  if (activeTab === 'aboutStats') return <AboutStatsAdminPanel />;
 
   // --- Fallback placeholder tab (unknown or future tab id) ---
   return (
@@ -142,13 +134,14 @@ function OverviewPanel() {
     let mounted = true;
     (async () => {
       setLoading(true);
-      const tasks: Array<{ label: string; url: string; arrayField?: string }> = [
+      const tasks: Array<{ label: string; url: string; arrayField?: string; totalField?: string }> = [
         { label: 'News', url: '/api/admin/news?take=1' },
         { label: 'Services', url: '/api/admin/services' },
         { label: 'Media', url: '/api/admin/media?take=1&imagesOnly=0' },
         { label: 'Users', url: '/api/admin/users' },
         { label: 'Home Features', url: '/api/admin/home-features' },
         { label: 'Products', url: '/api/products?take=1', arrayField: 'items' },
+        { label: 'Contact messages', url: '/api/admin/contact-submissions?take=1&skip=0', totalField: 'total' },
       ];
       const vals = await Promise.all(
         tasks.map(async (t) => {
@@ -158,6 +151,11 @@ function OverviewPanel() {
             const j = (await r.json()) as unknown;
             if (t.url.includes('/api/admin/news') && typeof j === 'object' && j && Array.isArray((j as { items?: unknown }).items)) {
               return { label: t.label, value: Number((j as { total?: unknown }).total) || (j as { items: unknown[] }).items.length };
+            }
+            if (t.totalField && typeof j === 'object' && j) {
+              const raw = (j as Record<string, unknown>)[t.totalField];
+              const n = typeof raw === 'number' ? raw : Number(raw);
+              return { label: t.label, value: Number.isFinite(n) ? n : 0 };
             }
             if (t.arrayField && typeof j === 'object' && j) {
               const arr = (j as Record<string, unknown>)[t.arrayField];

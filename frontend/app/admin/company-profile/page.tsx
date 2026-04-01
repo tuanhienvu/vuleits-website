@@ -1,9 +1,5 @@
-'use client';
+import { redirect } from 'next/navigation';
 
-import ContactsAdminPanel from '@/components/admin/ContactsAdminPanel';
-
-// --- Thin route: company profile & contacts admin ---
-
-export default function AdminCompanyProfilePage() {
-  return <ContactsAdminPanel />;
+export default function AdminCompanyProfileRedirectPage() {
+  redirect('/admin/settings/company?tab=profile');
 }

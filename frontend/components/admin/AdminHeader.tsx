@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useLocale } from '@/components/providers/LocaleProvider';
 import { useToast } from '@/components/providers/ToastProvider';
 import LocaleSwitcher from '@/components/LocaleSwitcher';
+import { useAdminPermissions } from '@/components/admin/AdminPermissionContext';
 
 interface AdminHeaderProps {
   onMenuClick: () => void;
@@ -44,7 +45,9 @@ export default function AdminHeader({ onMenuClick, mobileMenuOpen }: AdminHeader
   const [newPw, setNewPw] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
   const [passwordSaving, setPasswordSaving] = useState(false);
+  const [contactNewCount, setContactNewCount] = useState(0);
   const menuRef = useRef<HTMLDivElement>(null);
+  const { can } = useAdminPermissions();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -60,6 +63,30 @@ export default function AdminHeader({ onMenuClick, mobileMenuOpen }: AdminHeader
     };
     void fetchUser();
   }, []);
+
+  useEffect(() => {
+    if (!can('contacts', 'read')) return;
+    let cancelled = false;
+    const fetchNew = async () => {
+      try {
+        const res = await fetch('/api/admin/contact-submissions/new-count', { credentials: 'include' });
+        if (!res.ok || cancelled) return;
+        const j = (await res.json()) as { newCount?: unknown };
+        if (!cancelled) setContactNewCount(Math.min(999, Math.max(0, Number(j.newCount) || 0)));
+      } catch {
+        if (!cancelled) setContactNewCount(0);
+      }
+    };
+    void fetchNew();
+    const iv = window.setInterval(() => void fetchNew(), 45_000);
+    const onRefresh = () => void fetchNew();
+    window.addEventListener('vuleits-contact-new-count-refresh', onRefresh);
+    return () => {
+      cancelled = true;
+      window.clearInterval(iv);
+      window.removeEventListener('vuleits-contact-new-count-refresh', onRefresh);
+    };
+  }, [can]);
 
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
@@ -159,6 +186,14 @@ export default function AdminHeader({ onMenuClick, mobileMenuOpen }: AdminHeader
           <div className="min-w-0">
             <h1 className="text-xl lg:text-2xl font-bold text-white truncate">{t('admin.dashboardTitle')}</h1>
             <p className="text-white/60 text-sm hidden sm:block truncate font-zcool">{t('admin.dashboardWelcome')}</p>
+            {contactNewCount > 0 ? (
+              <Link
+                href="/admin/settings/company?tab=inbox"
+                className="text-amber-200/95 text-xs mt-1 hidden sm:inline-block hover:underline underline-offset-2"
+              >
+                {t('admin.contactNewBanner', { count: String(contactNewCount) })}
+              </Link>
+            ) : null}
           </div>
         </div>
 

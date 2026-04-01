@@ -1,17 +1,26 @@
 import type { Metadata } from 'next';
 import ServiceDetailClient from '@/components/services/ServiceDetailClient';
 import type { ServiceDetailResponse } from '@/lib/services/types';
+import { generateStaticParamsForServices, staticExportAwareFetchOptions } from '@/lib/staticExportPaths';
+import { publicApiBaseUrl } from '@/lib/publicApiBaseUrl';
 
 type Props = { params: Promise<{ id: string }> };
 
 // --- Service detail: SSR fetch + ServiceDetailClient ---
 
+export async function generateStaticParams() {
+  return generateStaticParamsForServices();
+}
+
 function backendBaseUrl() {
-  return process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:5000';
+  return publicApiBaseUrl();
 }
 
 async function fetchService(id: string): Promise<ServiceDetailResponse | null> {
-  const res = await fetch(`${backendBaseUrl()}/api/services/${encodeURIComponent(id)}`, { cache: 'no-store' });
+  const res = await fetch(
+    `${backendBaseUrl()}/api/services/${encodeURIComponent(id)}`,
+    staticExportAwareFetchOptions(),
+  );
   if (!res.ok) return null;
   return (await res.json()) as ServiceDetailResponse;
 }

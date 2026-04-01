@@ -1,8 +1,5 @@
-'use client';
+import { redirect } from 'next/navigation';
 
-import LegalPageAdminPanel from '@/components/admin/LegalPageAdminPanel';
-
-export default function AdminTermsOfServicePage() {
-  return <LegalPageAdminPanel kind="terms" />;
+export default function AdminTermsOfServiceRedirectPage() {
+  redirect('/admin/settings/site?tab=terms');
 }
-

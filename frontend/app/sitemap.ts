@@ -1,4 +1,7 @@
 import type { MetadataRoute } from 'next';
+import { publicApiBaseUrl } from '@/lib/publicApiBaseUrl';
+
+export const dynamic = 'force-static';
 
 type ProductListResponse = {
   items?: Array<{ slug?: string | null }>;
@@ -17,15 +20,23 @@ function getSiteUrl(): string {
 }
 
 function getApiBaseUrl(): string {
-  return (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000').replace(/\/+$/, '');
+  return publicApiBaseUrl();
 }
+
+const isStaticExportBuild =
+  process.env.NEXT_PUBLIC_STATIC_EXPORT === '1' ||
+  process.env.NEXT_PUBLIC_STATIC_EXPORT === 'true';
 
 async function fetchJson<T>(url: string): Promise<T | null> {
   try {
-    const res = await fetch(url, {
-      // Revalidate sitemap sources periodically.
-      next: { revalidate: 900 },
-    });
+    const res = await fetch(
+      url,
+      isStaticExportBuild
+        ? {}
+        : {
+            next: { revalidate: 900 },
+          },
+    );
     if (!res.ok) return null;
     return (await res.json()) as T;
   } catch {

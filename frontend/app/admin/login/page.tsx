@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, FormEvent, useEffect } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useToast } from '@/components/providers/ToastProvider';
 import { useLocale } from '@/components/providers/LocaleProvider';
+import BrandingLogo from '@/components/BrandingLogo';
 import { useCompanyBranding } from '@/hooks/useCompanyBranding';
 
 // --- Sections: Redirect if already authed | Branding header | Login form ---
@@ -12,7 +12,7 @@ import { useCompanyBranding } from '@/hooks/useCompanyBranding';
 export default function AdminLogin() {
   const toast = useToast();
   const { t } = useLocale();
-  const { companyName } = useCompanyBranding();
+  const { logoSrc, companyName } = useCompanyBranding();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -59,10 +59,17 @@ export default function AdminLogin() {
         <div className="text-center mb-8">
           <Link
             href="/"
-            className="block w-20 h-20 relative mx-auto mb-4 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--text-primary)]/25"
+            className="block w-20 h-20 mx-auto mb-4 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--text-primary)]/25"
             aria-label={t('nav.home')}
           >
-            <Image src="/vercel.svg" alt="VULE ITS Logo" fill sizes="80px" className="object-contain" priority />
+            <BrandingLogo
+              src={logoSrc}
+              alt={`${companyName} logo`}
+              sizes="80px"
+              className="w-20 h-20"
+              imgClassName="object-contain rounded-full"
+              priority
+            />
           </Link>
           <h1 className="text-3xl font-bold text-white mb-2">
             <span className="font-zcool tracking-wide">{companyName}</span> Admin

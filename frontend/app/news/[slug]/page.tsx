@@ -2,8 +2,14 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import DetailBackButton from '@/components/navigation/DetailBackButton';
+import { generateStaticParamsForNews, staticExportAwareFetchOptions } from '@/lib/staticExportPaths';
+import { publicApiBaseUrl } from '@/lib/publicApiBaseUrl';
 
 // --- News article: fetch detail + JSON-LD | Breadcrumb, article body, related ---
+
+export async function generateStaticParams() {
+  return generateStaticParamsForNews();
+}
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -41,11 +47,14 @@ function publicSiteUrl() {
 }
 
 function backendBaseUrl() {
-  return process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:5000';
+  return publicApiBaseUrl();
 }
 
 async function fetchNewsDetail(slug: string): Promise<NewsDetailPayload | null> {
-  const res = await fetch(`${backendBaseUrl()}/api/news/${encodeURIComponent(slug)}`, { cache: 'no-store' });
+  const res = await fetch(
+    `${backendBaseUrl()}/api/news/${encodeURIComponent(slug)}`,
+    staticExportAwareFetchOptions(),
+  );
   if (!res.ok) return null;
   return (await res.json()) as NewsDetailPayload;
 }

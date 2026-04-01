@@ -39,6 +39,7 @@ export default function ContactPage() {
   });
   const [info, setInfo] = useState<ContactInfo | null>(null);
   const [infoLoading, setInfoLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -102,11 +103,37 @@ export default function ContactPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    toast.success(t('contact.thanks'));
-    setFormData({ name: '', email: '', subject: '', message: '' });
+    if (submitting) return;
+    setSubmitting(true);
+    try {
+      const res = await fetch('/api/contact/submissions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          subject: formData.subject.trim(),
+          message: formData.message.trim(),
+        }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      if (res.status === 429) {
+        toast.error(t('contact.submitRateLimited'));
+        return;
+      }
+      if (!res.ok) {
+        toast.error(data.error || t('contact.submitError'));
+        return;
+      }
+      toast.success(t('contact.thanks'));
+      setFormData({ name: '', email: '', subject: '', message: '' });
+    } catch {
+      toast.error(t('contact.submitNetworkError'));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const emailLine = info?.email?.trim();
@@ -192,8 +219,8 @@ export default function ContactPage() {
               />
             </div>
 
-            <button type="submit" className="public-cta-button w-full text-center">
-              {t('contact.send')}
+            <button type="submit" disabled={submitting} className="public-cta-button w-full text-center disabled:opacity-50 disabled:pointer-events-none">
+              {submitting ? t('contact.sending') : t('contact.send')}
             </button>
           </form>
         </div>

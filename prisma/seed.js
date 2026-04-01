@@ -1157,6 +1157,68 @@ async function main() {
     console.warn('Products seed skipped:', e?.message || e);
   }
 
+  // Contact inbox samples for admin testing (safe to re-seed: only rows with this email suffix)
+  const inboxSeedEmailSuffix = '@seed-inbox.vuleits.local';
+  try {
+    await prisma.contact.deleteMany({
+      where: { email: { endsWith: inboxSeedEmailSuffix } },
+    });
+    const hoursAgo = (h) => new Date(Date.now() - h * 60 * 60 * 1000);
+    // Omit `subject` so seed works before `prisma db push` adds that column; after push you can add subjects manually or extend this block.
+    await prisma.contact.createMany({
+      data: [
+        {
+          name: 'Alex Morgan',
+          email: `new-a${inboxSeedEmailSuffix}`,
+          phone: '+1 415-555-0101',
+          message:
+            '[Partnership inquiry] Hi, we run a mid-size retail chain and are evaluating vendors for a new e-commerce platform. Could someone share a short overview of implementation timelines and ballpark pricing?',
+          status: 'New',
+          createdAt: hoursAgo(2),
+        },
+        {
+          name: 'Minh Anh',
+          email: `new-b${inboxSeedEmailSuffix}`,
+          phone: '0901234567',
+          message:
+            'Chào team, tôi muốn hỏi về dịch vụ tư vấn chuyển đổi số cho doanh nghiệp nhỏ. Có thể gọi lại trong giờ hành chính không ạ?',
+          status: 'New',
+          createdAt: hoursAgo(26),
+        },
+        {
+          name: 'Jordan Lee',
+          email: `read${inboxSeedEmailSuffix}`,
+          phone: null,
+          message:
+            '[Demo access request] Please grant demo access to our engineering team (4 seats). We are particularly interested in the API gateway product from your catalog.',
+          status: 'Read',
+          createdAt: hoursAgo(72),
+        },
+        {
+          name: 'Samira Patel',
+          email: `replied${inboxSeedEmailSuffix}`,
+          phone: '+44 20 7946 0958',
+          message:
+            '[Support: export reports] We need CSV exports for monthly usage summaries. Is this available on the current plan or only on enterprise?',
+          status: 'Replied',
+          createdAt: hoursAgo(168),
+        },
+        {
+          name: 'Chris Weber',
+          email: `archived${inboxSeedEmailSuffix}`,
+          phone: null,
+          message:
+            '[Newsletter] Please add chris@company.example to your newsletter. Thanks!',
+          status: 'Archived',
+          createdAt: hoursAgo(720),
+        },
+      ],
+    });
+    console.log('Seeded contact inbox samples (5 rows).');
+  } catch (e) {
+    console.warn('Contact inbox seed skipped:', e?.message || e);
+  }
+
   console.log('Seeding completed.');
 }
 

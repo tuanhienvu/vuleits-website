@@ -1,8 +1,5 @@
-'use client';
+import { redirect } from 'next/navigation';
 
-import LegalPageAdminPanel from '@/components/admin/LegalPageAdminPanel';
-
-export default function AdminPrivacyPolicyPage() {
-  return <LegalPageAdminPanel kind="privacy" />;
+export default function AdminPrivacyPolicyRedirectPage() {
+  redirect('/admin/settings/site?tab=privacy');
 }
-

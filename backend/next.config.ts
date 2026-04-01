@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   experimental: {
     externalDir: true,
   },
+  output: 'standalone',
   outputFileTracingRoot: path.join(__dirname, '..'),
   serverExternalPackages: ['@prisma/client', 'prisma'],
   devIndicators: false,

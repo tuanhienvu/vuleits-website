@@ -20,10 +20,6 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$frontend$2f$components$2f$pr
 ;
 ;
 ;
-;
-;
-;
-;
 var _s = __turbopack_context__.k.signature(), _s1 = __turbopack_context__.k.signature();
 'use client';
 ;
@@ -31,6 +27,12 @@ var _s = __turbopack_context__.k.signature(), _s1 = __turbopack_context__.k.sign
 ;
 ;
 ;
+/** Old dashboard ?tab= values → consolidated settings pages. */ const LEGACY_DASHBOARD_TAB_REDIRECTS = {
+    contacts: '/admin/settings/company?tab=inbox',
+    uiTexts: '/admin/settings/site?tab=ui',
+    aboutTeam: '/admin/settings/about?tab=team',
+    aboutStats: '/admin/settings/about?tab=stats'
+};
 function AdminPanelFallback() {
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
         className: "glass p-8 rounded-2xl space-y-3 motion-safe:animate-pulse",
@@ -42,34 +44,34 @@ function AdminPanelFallback() {
                 children: "Loading panel"
             }, void 0, false, {
                 fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-                lineNumber: 12,
+                lineNumber: 20,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                 className: "h-8 w-44 rounded-lg bg-white/10"
             }, void 0, false, {
                 fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-                lineNumber: 13,
+                lineNumber: 21,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                 className: "h-4 w-full max-w-md rounded bg-white/5"
             }, void 0, false, {
                 fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-                lineNumber: 14,
+                lineNumber: 22,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                 className: "h-4 w-full max-w-sm rounded bg-white/5"
             }, void 0, false, {
                 fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-                lineNumber: 15,
+                lineNumber: 23,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-        lineNumber: 11,
+        lineNumber: 19,
         columnNumber: 5
     }, this);
 }
@@ -82,7 +84,7 @@ _c = AdminPanelFallback;
     },
     loading: ()=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(AdminPanelFallback, {}, void 0, false, {
             fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-            lineNumber: 22,
+            lineNumber: 30,
             columnNumber: 18
         }, ("TURBOPACK compile-time value", void 0))
 });
@@ -95,7 +97,7 @@ const ServicesAdminPanel = (0, __TURBOPACK__imported__module__$5b$project$5d2f$n
     },
     loading: ()=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(AdminPanelFallback, {}, void 0, false, {
             fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-            lineNumber: 25,
+            lineNumber: 33,
             columnNumber: 18
         }, ("TURBOPACK compile-time value", void 0))
 });
@@ -108,7 +110,7 @@ const MediaAdminPanel = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node
     },
     loading: ()=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(AdminPanelFallback, {}, void 0, false, {
             fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-            lineNumber: 28,
+            lineNumber: 36,
             columnNumber: 18
         }, ("TURBOPACK compile-time value", void 0))
 });
@@ -121,7 +123,7 @@ const HomeFeaturesAdminPanel = (0, __TURBOPACK__imported__module__$5b$project$5d
     },
     loading: ()=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(AdminPanelFallback, {}, void 0, false, {
             fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-            lineNumber: 32,
+            lineNumber: 40,
             columnNumber: 20
         }, ("TURBOPACK compile-time value", void 0))
 });
@@ -134,7 +136,7 @@ const ProductsAdminPanel = (0, __TURBOPACK__imported__module__$5b$project$5d2f$n
     },
     loading: ()=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(AdminPanelFallback, {}, void 0, false, {
             fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-            lineNumber: 35,
+            lineNumber: 43,
             columnNumber: 18
         }, ("TURBOPACK compile-time value", void 0))
 });
@@ -147,7 +149,7 @@ const UsersAdminPanel = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node
     },
     loading: ()=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(AdminPanelFallback, {}, void 0, false, {
             fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-            lineNumber: 38,
+            lineNumber: 46,
             columnNumber: 18
         }, ("TURBOPACK compile-time value", void 0))
 });
@@ -160,63 +162,11 @@ const PermissionsAdminPanel = (0, __TURBOPACK__imported__module__$5b$project$5d2
     },
     loading: ()=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(AdminPanelFallback, {}, void 0, false, {
             fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-            lineNumber: 41,
+            lineNumber: 49,
             columnNumber: 18
         }, ("TURBOPACK compile-time value", void 0))
 });
 _c7 = PermissionsAdminPanel;
-const ContactsAdminPanel = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$shared$2f$lib$2f$app$2d$dynamic$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"])(()=>__turbopack_context__.A("[project]/frontend/components/admin/ContactsAdminPanel.tsx [app-client] (ecmascript, next/dynamic entry, async loader)"), {
-    loadableGenerated: {
-        modules: [
-            "[project]/frontend/components/admin/ContactsAdminPanel.tsx [app-client] (ecmascript, next/dynamic entry)"
-        ]
-    },
-    loading: ()=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(AdminPanelFallback, {}, void 0, false, {
-            fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-            lineNumber: 44,
-            columnNumber: 18
-        }, ("TURBOPACK compile-time value", void 0))
-});
-_c8 = ContactsAdminPanel;
-const AboutTeamAdminPanel = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$shared$2f$lib$2f$app$2d$dynamic$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"])(()=>__turbopack_context__.A("[project]/frontend/components/admin/AboutTeamAdminPanel.tsx [app-client] (ecmascript, next/dynamic entry, async loader)"), {
-    loadableGenerated: {
-        modules: [
-            "[project]/frontend/components/admin/AboutTeamAdminPanel.tsx [app-client] (ecmascript, next/dynamic entry)"
-        ]
-    },
-    loading: ()=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(AdminPanelFallback, {}, void 0, false, {
-            fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-            lineNumber: 47,
-            columnNumber: 18
-        }, ("TURBOPACK compile-time value", void 0))
-});
-_c9 = AboutTeamAdminPanel;
-const AboutStatsAdminPanel = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$shared$2f$lib$2f$app$2d$dynamic$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"])(()=>__turbopack_context__.A("[project]/frontend/components/admin/AboutStatsAdminPanel.tsx [app-client] (ecmascript, next/dynamic entry, async loader)"), {
-    loadableGenerated: {
-        modules: [
-            "[project]/frontend/components/admin/AboutStatsAdminPanel.tsx [app-client] (ecmascript, next/dynamic entry)"
-        ]
-    },
-    loading: ()=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(AdminPanelFallback, {}, void 0, false, {
-            fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-            lineNumber: 50,
-            columnNumber: 18
-        }, ("TURBOPACK compile-time value", void 0))
-});
-_c10 = AboutStatsAdminPanel;
-const TranslationsAdminPanel = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$shared$2f$lib$2f$app$2d$dynamic$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"])(()=>__turbopack_context__.A("[project]/frontend/components/admin/TranslationsAdminPanel.tsx [app-client] (ecmascript, next/dynamic entry, async loader)"), {
-    loadableGenerated: {
-        modules: [
-            "[project]/frontend/components/admin/TranslationsAdminPanel.tsx [app-client] (ecmascript, next/dynamic entry)"
-        ]
-    },
-    loading: ()=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(AdminPanelFallback, {}, void 0, false, {
-            fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-            lineNumber: 53,
-            columnNumber: 18
-        }, ("TURBOPACK compile-time value", void 0))
-});
-_c11 = TranslationsAdminPanel;
 const SUPPORTED_TABS = new Set([
     'overview',
     'news',
@@ -226,18 +176,35 @@ const SUPPORTED_TABS = new Set([
     'products',
     'users',
     'permissions',
-    'homeFeatures',
-    'uiTexts',
-    'contacts',
-    'aboutTeam',
-    'aboutStats'
+    'homeFeatures'
 ]);
 function DashboardClient() {
     _s();
+    const { t } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$frontend$2f$components$2f$providers$2f$LocaleProvider$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useLocale"])();
+    const router = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRouter"])();
     const searchParams = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useSearchParams"])();
     const { can } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$frontend$2f$components$2f$admin$2f$AdminPermissionContext$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useAdminPermissions"])();
     const tab = searchParams.get('tab') || 'overview';
+    const legacyTarget = LEGACY_DASHBOARD_TAB_REDIRECTS[tab];
     const activeTab = SUPPORTED_TABS.has(tab) ? tab : 'overview';
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
+        "DashboardClient.useEffect": ()=>{
+            if (legacyTarget) router.replace(legacyTarget);
+        }
+    }["DashboardClient.useEffect"], [
+        legacyTarget,
+        router
+    ]);
+    if (legacyTarget) {
+        return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+            className: "glass p-6 rounded-2xl text-white/70",
+            children: t('admin.redirecting')
+        }, void 0, false, {
+            fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
+            lineNumber: 79,
+            columnNumber: 12
+        }, this);
+    }
     const title = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMemo"])({
         "DashboardClient.useMemo[title]": ()=>{
             if (activeTab === 'overview') return 'Overview';
@@ -255,13 +222,13 @@ function DashboardClient() {
                 children: "You do not have permission to view this section."
             }, void 0, false, {
                 fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-                lineNumber: 89,
+                lineNumber: 91,
                 columnNumber: 14
             }, this);
         }
         return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(NewsAdminPanel, {}, void 0, false, {
             fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-            lineNumber: 91,
+            lineNumber: 93,
             columnNumber: 12
         }, this);
     }
@@ -272,30 +239,13 @@ function DashboardClient() {
                 children: "You do not have permission to view this section."
             }, void 0, false, {
                 fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-                lineNumber: 96,
+                lineNumber: 98,
                 columnNumber: 14
             }, this);
         }
         return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(ServicesAdminPanel, {}, void 0, false, {
             fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-            lineNumber: 98,
-            columnNumber: 12
-        }, this);
-    }
-    if (activeTab === 'uiTexts') {
-        if (!can('uiTexts', 'read')) {
-            return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                className: "glass p-6 rounded-2xl text-white/80",
-                children: "You do not have permission to view this section."
-            }, void 0, false, {
-                fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-                lineNumber: 103,
-                columnNumber: 14
-            }, this);
-        }
-        return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(TranslationsAdminPanel, {}, void 0, false, {
-            fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-            lineNumber: 105,
+            lineNumber: 100,
             columnNumber: 12
         }, this);
     }
@@ -305,63 +255,48 @@ function DashboardClient() {
             children: "You do not have permission to view this section."
         }, void 0, false, {
             fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-            lineNumber: 109,
+            lineNumber: 104,
             columnNumber: 12
         }, this);
     }
     if (activeTab === 'overview') return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(OverviewPanel, {}, void 0, false, {
         fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-        lineNumber: 112,
+        lineNumber: 107,
         columnNumber: 40
     }, this);
     if (activeTab === 'media') return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(MediaAdminPanel, {}, void 0, false, {
         fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-        lineNumber: 113,
+        lineNumber: 108,
         columnNumber: 37
     }, this);
     if (activeTab === 'banners') return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(HomeFeaturesAdminPanel, {
         heading: "Banners (home features)"
     }, void 0, false, {
         fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-        lineNumber: 114,
+        lineNumber: 109,
         columnNumber: 39
     }, this);
     if (activeTab === 'homeFeatures') return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(HomeFeaturesAdminPanel, {
         heading: "Home features"
     }, void 0, false, {
         fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-        lineNumber: 115,
+        lineNumber: 110,
         columnNumber: 44
     }, this);
     if (activeTab === 'products') return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(ProductsAdminPanel, {}, void 0, false, {
         fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-        lineNumber: 116,
+        lineNumber: 111,
         columnNumber: 40
     }, this);
     if (activeTab === 'users') return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(UsersAdminPanel, {}, void 0, false, {
         fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-        lineNumber: 117,
+        lineNumber: 112,
         columnNumber: 37
     }, this);
     if (activeTab === 'permissions') return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(PermissionsAdminPanel, {}, void 0, false, {
         fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-        lineNumber: 118,
+        lineNumber: 113,
         columnNumber: 43
-    }, this);
-    if (activeTab === 'contacts') return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(ContactsAdminPanel, {}, void 0, false, {
-        fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-        lineNumber: 119,
-        columnNumber: 40
-    }, this);
-    if (activeTab === 'aboutTeam') return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(AboutTeamAdminPanel, {}, void 0, false, {
-        fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-        lineNumber: 120,
-        columnNumber: 41
-    }, this);
-    if (activeTab === 'aboutStats') return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(AboutStatsAdminPanel, {}, void 0, false, {
-        fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-        lineNumber: 121,
-        columnNumber: 42
     }, this);
     // --- Fallback placeholder tab (unknown or future tab id) ---
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
@@ -372,7 +307,7 @@ function DashboardClient() {
                 children: title
             }, void 0, false, {
                 fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-                lineNumber: 126,
+                lineNumber: 118,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -384,30 +319,32 @@ function DashboardClient() {
                         children: "News"
                     }, void 0, false, {
                         fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-                        lineNumber: 128,
+                        lineNumber: 120,
                         columnNumber: 76
                     }, this),
                     " in sidebar to manage content."
                 ]
             }, void 0, true, {
                 fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-                lineNumber: 127,
+                lineNumber: 119,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-        lineNumber: 125,
+        lineNumber: 117,
         columnNumber: 5
     }, this);
 }
-_s(DashboardClient, "jGtnO2Olyq6v/rLK44kE+CBneXA=", false, function() {
+_s(DashboardClient, "G/AFfYMWrlcUPuRJgIw9ZrMdals=", false, function() {
     return [
+        __TURBOPACK__imported__module__$5b$project$5d2f$frontend$2f$components$2f$providers$2f$LocaleProvider$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useLocale"],
+        __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRouter"],
         __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useSearchParams"],
         __TURBOPACK__imported__module__$5b$project$5d2f$frontend$2f$components$2f$admin$2f$AdminPermissionContext$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useAdminPermissions"]
     ];
 });
-_c12 = DashboardClient;
+_c8 = DashboardClient;
 // --- OverviewPanel: aggregate counts from admin/public list endpoints ---
 function OverviewPanel() {
     _s1();
@@ -445,6 +382,11 @@ function OverviewPanel() {
                             label: 'Products',
                             url: '/api/products?take=1',
                             arrayField: 'items'
+                        },
+                        {
+                            label: 'Contact messages',
+                            url: '/api/admin/contact-submissions?take=1&skip=0',
+                            totalField: 'total'
                         }
                     ];
                     const vals = await Promise.all(tasks.map({
@@ -462,6 +404,14 @@ function OverviewPanel() {
                                     return {
                                         label: t.label,
                                         value: Number(j.total) || j.items.length
+                                    };
+                                }
+                                if (t.totalField && typeof j === 'object' && j) {
+                                    const raw = j[t.totalField];
+                                    const n = typeof raw === 'number' ? raw : Number(raw);
+                                    return {
+                                        label: t.label,
+                                        value: Number.isFinite(n) ? n : 0
                                     };
                                 }
                                 if (t.arrayField && typeof j === 'object' && j) {
@@ -504,7 +454,7 @@ function OverviewPanel() {
                 children: t('admin.overview')
             }, void 0, false, {
                 fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-                lineNumber: 185,
+                lineNumber: 183,
                 columnNumber: 7
             }, this),
             loading ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -512,7 +462,7 @@ function OverviewPanel() {
                 children: t('admin.overviewLoadingData')
             }, void 0, false, {
                 fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-                lineNumber: 188,
+                lineNumber: 186,
                 columnNumber: 9
             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                 className: "grid grid-cols-2 md:grid-cols-3 gap-4",
@@ -524,7 +474,7 @@ function OverviewPanel() {
                                 children: c.label
                             }, void 0, false, {
                                 fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-                                lineNumber: 193,
+                                lineNumber: 191,
                                 columnNumber: 15
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -532,24 +482,24 @@ function OverviewPanel() {
                                 children: c.value
                             }, void 0, false, {
                                 fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-                                lineNumber: 194,
+                                lineNumber: 192,
                                 columnNumber: 15
                             }, this)
                         ]
                     }, c.label, true, {
                         fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-                        lineNumber: 192,
+                        lineNumber: 190,
                         columnNumber: 13
                     }, this))
             }, void 0, false, {
                 fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-                lineNumber: 190,
+                lineNumber: 188,
                 columnNumber: 9
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/frontend/app/admin/dashboard/DashboardClient.tsx",
-        lineNumber: 183,
+        lineNumber: 181,
         columnNumber: 5
     }, this);
 }
@@ -558,8 +508,8 @@ _s1(OverviewPanel, "Iu2zHFYdM0xeXv2up5hGfe3yZOY=", false, function() {
         __TURBOPACK__imported__module__$5b$project$5d2f$frontend$2f$components$2f$providers$2f$LocaleProvider$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useLocale"]
     ];
 });
-_c13 = OverviewPanel;
-var _c, _c1, _c2, _c3, _c4, _c5, _c6, _c7, _c8, _c9, _c10, _c11, _c12, _c13;
+_c9 = OverviewPanel;
+var _c, _c1, _c2, _c3, _c4, _c5, _c6, _c7, _c8, _c9;
 __turbopack_context__.k.register(_c, "AdminPanelFallback");
 __turbopack_context__.k.register(_c1, "NewsAdminPanel");
 __turbopack_context__.k.register(_c2, "ServicesAdminPanel");
@@ -568,12 +518,8 @@ __turbopack_context__.k.register(_c4, "HomeFeaturesAdminPanel");
 __turbopack_context__.k.register(_c5, "ProductsAdminPanel");
 __turbopack_context__.k.register(_c6, "UsersAdminPanel");
 __turbopack_context__.k.register(_c7, "PermissionsAdminPanel");
-__turbopack_context__.k.register(_c8, "ContactsAdminPanel");
-__turbopack_context__.k.register(_c9, "AboutTeamAdminPanel");
-__turbopack_context__.k.register(_c10, "AboutStatsAdminPanel");
-__turbopack_context__.k.register(_c11, "TranslationsAdminPanel");
-__turbopack_context__.k.register(_c12, "DashboardClient");
-__turbopack_context__.k.register(_c13, "OverviewPanel");
+__turbopack_context__.k.register(_c8, "DashboardClient");
+__turbopack_context__.k.register(_c9, "OverviewPanel");
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
     __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
 }
