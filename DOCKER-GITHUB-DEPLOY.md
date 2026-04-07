@@ -245,5 +245,45 @@ Anything that must NOT run in CI (e.g. no production DB from GitHub):
 | `HOSTING.md` | Install, build, start, standalone copy, Plesk, pre-built artifacts |
 | `backend/.env.example` | Backend variables |
 | `frontend/.env.example` | Frontend public/build variables |
+| `docker/Dockerfile.backend` | Multi-stage build for the **API** (Next standalone) |
+| `docker-compose.yml` | **api** + **mysql** for local or server stacks |
+| `.dockerignore` | Keeps build context small |
+
+---
+
+## Docker: build and push (this repo)
+
+**Build the API image** (from the repository root):
+
+```bash
+npm run docker:build:backend
+# same as:
+docker build -f docker/Dockerfile.backend -t vuleits-backend:local .
+```
+
+**Run API + MySQL** (set `JWT_SECRET`, `MYSQL_*`, passwords, etc. in your shell or a `.env` in the same directory as `docker-compose.yml`):
+
+```bash
+docker compose up -d --build
+```
+
+**Push to Docker Hub** (replace `YOUR_USERNAME` and tag as needed):
+
+1. Log in: `docker login`
+2. Tag the image you built (Compose uses the name from `image:` in `docker-compose.yml`, or tag `vuleits-backend:local`):
+
+   ```bash
+   docker tag vuleits-backend:local YOUR_USERNAME/vuleits-backend:latest
+   ```
+
+3. Push:
+
+   ```bash
+   docker push YOUR_USERNAME/vuleits-backend:latest
+   ```
+
+**GitHub Container Registry** (`ghcr.io`): create a PAT with `write:packages`, then `echo $TOKEN | docker login ghcr.io -u USERNAME --password-stdin` and tag `ghcr.io/OWNER/REPO/vuleits-backend:latest`.
+
+The **frontend** is not in this image; run it separately (host, another container, or static export) and point `NEXT_PUBLIC_API_BASE_URL` / `CORS_ORIGINS` at the deployed API URL.
 
 After this checklist is filled, you can add concrete **`Dockerfile`**, **`docker-compose.yml`**, and **`.github/workflows/*.yml`** that match your choices.

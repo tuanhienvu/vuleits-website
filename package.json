@@ -24,7 +24,9 @@
     "db:push": "node backend/scripts/prisma-with-db-env.js db push",
     "db:reset": "node backend/scripts/prisma-with-db-env.js db push --force-reset --accept-data-loss",
     "seed": "node prisma/seed.js",
-    "db:ensure-user-display-name": "node prisma/scripts/ensure-user-display-name.js"
+    "db:ensure-user-display-name": "node prisma/scripts/ensure-user-display-name.js",
+    "docker:build:backend": "docker build -f docker/Dockerfile.backend -t vuleits-backend:local .",
+    "docker:compose:up": "docker compose up -d --build"
   },
   "devDependencies": {
     "cross-env": "^10.1.0",

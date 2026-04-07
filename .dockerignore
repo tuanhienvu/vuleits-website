@@ -1,0 +1,28 @@
+# Git / OS
+.git
+.gitignore
+**/.DS_Store
+*.md
+!README.md
+
+# Dependencies & build output (reinstalled / rebuilt in image)
+node_modules
+**/node_modules
+**/.next
+**/out
+**/dist
+*.tsbuildinfo
+
+# Local env (inject at runtime via compose or `-e`)
+**/.env
+**/.env.*
+!**/.env.example
+
+# Archives / junk
+*.zip
+*.log
+backend.zip
+.vscode
+
+# Test & coverage
+coverage
