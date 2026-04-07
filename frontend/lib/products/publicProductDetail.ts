@@ -46,7 +46,7 @@ export async function getPublicProductBySlug(slug: string): Promise<PublicProduc
 
   if (!product) return null;
 
-  const techIds = product.technologies.map((t) => t.technologyId);
+  const techIds = product.technologies.map((t: { technologyId: number }) => t.technologyId);
 
   const relatedRows = await prisma.product.findMany({
     where: {
@@ -65,13 +65,17 @@ export async function getPublicProductBySlug(slug: string): Promise<PublicProduc
   });
 
   const scored = relatedRows
-    .map((p) => {
-      const overlap = p.technologies.filter((t) => techIds.includes(t.technologyId)).length;
+    .map((p: (typeof relatedRows)[number]) => {
+      const overlap = p.technologies.filter((t: { technologyId: number }) =>
+        techIds.includes(t.technologyId),
+      ).length;
       return { p, score: overlap * 10 + (p.categoryId === product.categoryId ? 5 : 0) };
     })
-    .sort((a, b) => b.score - a.score)
+    .sort(
+      (a: { score: number }, b: { score: number }) => b.score - a.score,
+    )
     .slice(0, 4)
-    .map((x) => x.p);
+    .map((x: { p: (typeof relatedRows)[number] }) => x.p);
 
   const images = asStringArray(product.imageUrls);
   const videos = asStringArray(product.videoUrls);
@@ -92,15 +96,24 @@ export async function getPublicProductBySlug(slug: string): Promise<PublicProduc
     demoClickCount: product.demoClickCount,
     isFeatured: product.isFeatured,
     authorName: product.author.displayName ?? '',
-    technologies: product.technologies.map((t) => ({
-      id: t.technology.id,
-      name: t.technology.techName,
-      logo: t.technology.techLogo,
-      description: t.technology.description,
-    })),
+    technologies: product.technologies.map(
+      (t: {
+        technology: {
+          id: number;
+          techName: string;
+          techLogo: string | null;
+          description: string | null;
+        };
+      }) => ({
+        id: t.technology.id,
+        name: t.technology.techName,
+        logo: t.technology.techLogo,
+        description: t.technology.description,
+      }),
+    ),
     seoTitle: product.seoTitle,
     seoDescription: product.seoDescription,
-    related: scored.map((p) => ({
+    related: scored.map((p: (typeof relatedRows)[number]) => ({
       id: p.id,
       productName: p.productName,
       slug: p.slug,

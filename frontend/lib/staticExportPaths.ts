@@ -1,4 +1,4 @@
-/** Used at build time to list paths for `/news/[slug]`, `/products/[slug]`, `/services/[id]`. See HOSTING.md. */
+/** Used at build time to list paths for `/news/[slug]`, `/products/[slug]`, `/services/[id]`. See hosting.md. */
 
 import { publicApiBaseUrl } from '@/lib/publicApiBaseUrl';
 

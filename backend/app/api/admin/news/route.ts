@@ -2,7 +2,12 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { authorize } from '@/lib/adminAuth';
 import { slugify } from '@/lib/news/slugify';
-import type { Prisma } from '@prisma/client';
+
+type NewsAdminListWhere = {
+  OR?: Array<{ title: { contains: string } } | { description: { contains: string } }>;
+  category?: string;
+  status?: string;
+};
 
 export async function GET(req: Request) {
   const auth = await authorize(req, 'news.read');
@@ -15,7 +20,7 @@ export async function GET(req: Request) {
   const take = Math.min(Math.max(Number(searchParams.get('take') ?? 20) || 20, 1), 100);
   const skip = Math.max(Number(searchParams.get('skip') ?? 0) || 0, 0);
 
-  const where: Prisma.NewsWhereInput = {};
+  const where: NewsAdminListWhere = {};
   if (q) where.OR = [{ title: { contains: q } }, { description: { contains: q } }];
   if (category) where.category = category;
   if (status) where.status = status;
@@ -30,7 +35,7 @@ export async function GET(req: Request) {
   });
 
   return NextResponse.json({
-    items: rows.map((n) => ({
+    items: rows.map((n: (typeof rows)[number]) => ({
       id: n.id,
       title: n.title,
       slug: n.slug,

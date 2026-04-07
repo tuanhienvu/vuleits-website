@@ -16,7 +16,7 @@ export async function GET(req: Request) {
   `;
 
   return NextResponse.json(
-    rows.map((r) => ({
+    rows.map((r: AboutStatRow) => ({
       id: Number(r.id),
       number: r.number,
       label: r.label,

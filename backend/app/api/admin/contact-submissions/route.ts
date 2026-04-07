@@ -1,9 +1,30 @@
 import { NextResponse } from 'next/server';
-import type { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { authorize } from '@/lib/adminAuth';
 
 const STATUSES = ['New', 'Read', 'Replied', 'Archived'] as const;
+
+type ContactListWhere = {
+  OR?: Array<
+    | { name: { contains: string } }
+    | { email: { contains: string } }
+    | { subject: { contains: string } }
+    | { message: { contains: string } }
+  >;
+  status?: string;
+};
+
+type ContactListRow = {
+  id: number;
+  name: string;
+  email: string;
+  subject: string | null;
+  phone: string | null;
+  message: string;
+  status: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
 
 export async function GET(req: Request) {
   const auth = await authorize(req, 'contacts.read');
@@ -15,7 +36,7 @@ export async function GET(req: Request) {
   const take = Math.min(Math.max(Number(searchParams.get('take') ?? 25) || 25, 1), 100);
   const skip = Math.max(Number(searchParams.get('skip') ?? 0) || 0, 0);
 
-  const where: Prisma.ContactWhereInput = {};
+  const where: ContactListWhere = {};
   if (q) {
     where.OR = [
       { name: { contains: q } },
@@ -49,7 +70,7 @@ export async function GET(req: Request) {
 
   return NextResponse.json({
     total,
-    items: rows.map((r) => ({
+    items: rows.map((r: ContactListRow) => ({
       id: r.id,
       name: r.name,
       email: r.email,

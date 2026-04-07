@@ -102,7 +102,10 @@ export async function applyRoleDefaultUserPermissions(userId: number, roleName: 
     where: { name: { in: permissionNames } },
     select: { id: true, name: true },
   });
-  const nameToId = new Map(permissions.map((p) => [p.name, p.id]));
+  type PermRow = { id: number; name: string };
+  const nameToId = new Map<string, number>(
+    permissions.map((p: PermRow) => [p.name, p.id]),
+  );
 
   const rows: { userId: number; permissionId: number }[] = [];
   for (const f of UI_FEATURES) {

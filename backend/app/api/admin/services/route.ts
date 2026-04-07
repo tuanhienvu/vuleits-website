@@ -24,7 +24,7 @@ export async function GET(req: Request) {
   `;
 
   return NextResponse.json(
-    rows.map((r) => ({
+    rows.map((r: ServiceRow) => ({
       id: Number(r.id),
       icon: r.icon,
       title: r.title,

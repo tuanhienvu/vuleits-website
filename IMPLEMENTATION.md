@@ -102,8 +102,8 @@ npm install
 npm run db:generate
 npm run db:push
 npm run seed
-npm run dev:backend
-npm run dev:frontend
+# Terminal 1: cd backend && npm run dev
+# Terminal 2: cd frontend && npm run dev
 npm run build
 ```
 
