@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import type { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { asStringArray } from '@/lib/products/jsonArrays';
 import { sanitizeAboutIntroBodyHtml } from '@/lib/sanitizeAboutIntroHtml';
@@ -15,7 +14,11 @@ export async function GET(req: Request) {
     .filter((n) => Number.isFinite(n) && n > 0);
   const take = Math.min(Math.max(Number(searchParams.get('take') ?? 60) || 60, 1), 120);
 
-  const where: Prisma.ProductWhereInput = { status: 'Active' };
+  const where: {
+    status: 'Active';
+    category?: { slug: string };
+    technologies?: { some: { technologyId: { in: number[] } } };
+  } = { status: 'Active' };
   if (categorySlug) where.category = { slug: categorySlug };
   if (techIds.length) where.technologies = { some: { technologyId: { in: techIds } } };
 

@@ -1,0 +1,51 @@
+# Local / server stack: API + MySQL. Override env in backend/.env or use `environment:` below.
+#
+#   docker compose build api
+#   docker compose up -d
+#
+# Push image to Docker Hub (after `docker login`):
+#   docker compose build api
+#   docker tag vuleits-website-api YOUR_DOCKERHUB_USER/vuleits-backend:latest
+#   docker push YOUR_DOCKERHUB_USER/vuleits-backend:latest
+
+services:
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-changeme}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-vuleits_db}
+      MYSQL_USER: ${MYSQL_USER:-vuleits}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-changeme}
+    ports:
+      - "${MYSQL_HOST_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+    image: ${API_IMAGE:-vuleits-backend:local}
+    restart: unless-stopped
+    ports:
+      - "${API_HOST_PORT:-5001}:5001"
+    environment:
+      NODE_ENV: production
+      PORT: "5001"
+      DATABASE_URL: ${DATABASE_URL:-mysql://${MYSQL_USER:-vuleits}:${MYSQL_PASSWORD:-changeme}@mysql:3306/${MYSQL_DATABASE:-vuleits_db}}
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost:3000}
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+volumes:
+  mysql_data:

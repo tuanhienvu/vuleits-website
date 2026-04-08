@@ -36,7 +36,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html
+      lang="en"
+      className="dark"
+      data-scroll-behavior="smooth"
+      suppressHydrationWarning
+    >
       {/* ==================== ROOT: THEME (before paint), LOCALE & TOAST ==================== */}
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <Script id="vuleits-theme-init" strategy="beforeInteractive">

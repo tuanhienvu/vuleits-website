@@ -1,7 +1,9 @@
 import type { NextConfig } from 'next';
 import path from 'path';
+import { resolveLocalBackendApiBaseUrl } from './lib/resolveBackendApiBase';
 
-const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
+/** Base URL for rewrites: `/api/*` and `/uploads/*` → backend. Baked in at build time for `next start`. */
+const apiBase = resolveLocalBackendApiBaseUrl();
 
 /** Must be NEXT_PUBLIC_* so it is available in workers that run generateStaticParams. */
 const isStaticExport =

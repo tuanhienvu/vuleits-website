@@ -24,7 +24,7 @@ export async function GET(req: Request) {
   `;
 
   return NextResponse.json(
-    rows.map((r) => ({
+    rows.map((r: AboutTeamRow) => ({
       id: Number(r.id),
       emoji: r.emoji,
       name: r.name,

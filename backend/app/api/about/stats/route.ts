@@ -11,5 +11,7 @@ export async function GET() {
     ORDER BY \`order\` ASC, id ASC
   `;
   const list = Array.isArray(rows) ? rows : [];
-  return NextResponse.json(list.map((r) => ({ id: Number(r.id), number: r.number, label: r.label })));
+  return NextResponse.json(
+    list.map((r: AboutStatRow) => ({ id: Number(r.id), number: r.number, label: r.label })),
+  );
 }

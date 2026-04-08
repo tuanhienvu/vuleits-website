@@ -27,7 +27,7 @@ function securityHeaders(): Record<string, string> {
   };
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const origin = request.headers.get('origin')?.trim() ?? '';
   const allowlist = allowedOrigins();
   const isAllowedOrigin = !!origin && allowlist.includes(origin);
@@ -59,4 +59,3 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: ['/api/:path*'],
 };
-

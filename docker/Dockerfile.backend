@@ -1,0 +1,40 @@
+# syntax=docker/dockerfile:1
+# Monorepo backend (Next.js standalone API). Build from repository root:
+#   docker build -f docker/Dockerfile.backend -t YOUR_REGISTRY/vuleits-backend:latest .
+
+FROM node:20-bookworm-slim AS deps
+WORKDIR /app
+COPY package.json package-lock.json ./
+COPY frontend/package.json frontend/package.json
+COPY backend/package.json backend/package.json
+# Root `postinstall` runs prisma generate — needs script + schema before `npm ci`
+COPY backend/scripts/prisma-with-db-env.js backend/scripts/prisma-with-db-env.js
+COPY prisma ./prisma
+RUN npm ci
+
+FROM deps AS builder
+WORKDIR /app
+COPY prisma ./prisma
+COPY frontend ./frontend
+COPY backend ./backend
+# postinstall runs prisma generate — needs a syntactically valid URL (not connected during generate)
+ENV DATABASE_URL="mysql://dummy:dummy@127.0.0.1:3306/dummy"
+ENV NODE_ENV=production
+RUN npm run build --workspace @vuleits/backend
+
+FROM node:20-bookworm-slim AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+ENV PORT=5001
+ENV HOSTNAME=0.0.0.0
+
+RUN apt-get update -y && apt-get install -y --no-install-recommends openssl ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
+
+# postbuild script copies static + public into standalone tree
+COPY --from=builder /app/backend/.next/standalone ./.next/standalone
+COPY --from=builder /app/backend/package.json ./package.json
+
+EXPOSE 5001
+# cwd = backend package root (matches local `npm run start:backend`)
+CMD ["node", "-r", "dotenv/config", ".next/standalone/backend/server.js"]

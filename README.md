@@ -61,7 +61,8 @@ Create:
 - `frontend/.env.local` with:
 
 ```env
-NEXT_PUBLIC_API_BASE_URL=http://localhost:5000
+# Optional for local SSR: omit to use PORT from backend/.env (see frontend/.env.example).
+# NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:5001
 ```
 
 ## Install
@@ -83,13 +84,15 @@ npm run seed
 Terminal 1:
 
 ```bash
-npm run dev:backend
+cd backend
+npm run dev
 ```
 
 Terminal 2:
 
 ```bash
-npm run dev:frontend
+cd frontend
+npm run dev
 ```
 
 ## Build
@@ -104,6 +107,10 @@ Or separately:
 npm run build:frontend
 npm run build:backend
 ```
+
+## Hosting
+
+See [hosting.md](hosting.md) for static export, standalone API, `npm run start`, `PORT` per app, nginx, and env variables.
 
 ## Notes
 

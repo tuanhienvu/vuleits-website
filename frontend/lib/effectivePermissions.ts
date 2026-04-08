@@ -55,8 +55,11 @@ export async function getEffectiveFeatureMatrix(userId: number): Promise<AdminCr
     where: { name: { in: permissionNames } },
     select: { id: true, name: true },
   });
-  const nameToId = new Map<string, number>(permissions.map((p) => [p.name, p.id]));
-  const ids = permissions.map((p) => p.id);
+  type PermRow = { id: number; name: string };
+  const nameToId = new Map<string, number>(
+    permissions.map((p: PermRow) => [p.name, p.id]),
+  );
+  const ids = permissions.map((p: PermRow) => p.id);
 
   const userPerms = await prisma.userPermission.findMany({
     where: { userId: user.id, permissionId: { in: ids } },
@@ -67,8 +70,8 @@ export async function getEffectiveFeatureMatrix(userId: number): Promise<AdminCr
     select: { permissionId: true },
   });
 
-  const userSet = new Set(userPerms.map((p) => p.permissionId));
-  const roleSet = new Set(rolePerms.map((p) => p.permissionId));
+  const userSet = new Set(userPerms.map((p: { permissionId: number }) => p.permissionId));
+  const roleSet = new Set(rolePerms.map((p: { permissionId: number }) => p.permissionId));
 
   const matrix = makeEmptyAdminMatrix();
   for (const f of UI_FEATURES) {
