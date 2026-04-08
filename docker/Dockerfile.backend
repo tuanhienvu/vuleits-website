@@ -7,6 +7,9 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY frontend/package.json frontend/package.json
 COPY backend/package.json backend/package.json
+# Root `postinstall` runs prisma generate — needs script + schema before `npm ci`
+COPY backend/scripts/prisma-with-db-env.js backend/scripts/prisma-with-db-env.js
+COPY prisma ./prisma
 RUN npm ci
 
 FROM deps AS builder
