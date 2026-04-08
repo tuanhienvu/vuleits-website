@@ -10,6 +10,8 @@ CORS and security headers for `/api/*` are applied in **`backend/proxy.ts`** (Ne
 
 Use this when you **upload the project source** to the server (FTP, Git pull, Plesk “Git”, zip upload, etc.), then run commands over **SSH** or the host’s **Node.js / Run script** UI.
 
+> For your current setup (`vuleits.com` frontend + `portalapi.vuleits.com` backend on MatBao), jump to **Cloud Node.js hosting → Quick start for your current setup (MatBao)** and follow that block only.
+
 ### 1. What to upload
 
 - Upload the **whole monorepo** so the server has the **repository root** `package.json` plus `frontend/`, `backend/`, `prisma/`, and `package-lock.json`.
@@ -116,76 +118,91 @@ Set **`NODE_ENV=production`** in the panel or `.env` when running **`start`**.
 
 ---
 
-## Pre-built deploy: build elsewhere, run **start** only on hosting
+## Pre-built deploy note (Windows users)
 
-Use this when **install + build on Plesk is slow or fails** (e.g. `EAGAIN`), and you are okay producing a **Linux-built** artifact on CI or another machine, then uploading it and only running **`npm run start:backend`** (or equivalent).
+If your local machine is **Windows** and hosting is **Linux**, do **not** upload Windows-built `node_modules` or standalone artifacts.
 
-### Rules
+Use the **source deploy workflow** in **Cloud Node.js hosting → Quick start for your current setup (MatBao)**:
 
-1. **Build and `npm ci` on the same OS family as production** — typically **Linux x64** for shared hosting. Do **not** zip `node_modules` from **Windows/macOS** and expect Prisma/native addons to run on Linux.
-2. **Any code or dependency change** requires a **new** artifact (re-run `npm ci` + `npm run build:backend` on Linux, re-upload).
-3. Keep the **monorepo layout**: root **`package.json`** + **`package-lock.json`** + hoisted **`node_modules`** (workspaces). The backend start script assumes this.
+1. Upload source folders (`backend/`, `frontend/`, `prisma/`, root `package*.json`)
+2. Create `backend/.env` on server
+3. Run on server (Linux): `npm ci` → `npm run db:push` → `npm run build:backend:hosting` → `npm run start:backend`
 
-### On your build machine (Linux or CI)
-
-```bash
-cd /path/to/repo
-export NODE_ENV=production
-npm ci
-npm run build:backend
-# If the build host is also resource-limited:
-# NEXT_BUILD_LOW_PARALLEL=1 npm run build:backend
-# or: npm run build:backend:hosting
-```
-
-Confirm these exist:
-
-- `backend/.next/standalone/backend/server.js`
-- `backend/.next/standalone/backend/.next/static` (from **`postbuild`**)
-- `backend/.next/standalone/backend/public` (if you use `backend/public`)
-
-### What to put in the upload archive (backend API focus)
-
-Include **from the repo root**:
-
-| Path | Include? |
-|------|----------|
-| `package.json`, `package-lock.json` | Yes |
-| `node_modules/` | Yes — from **`npm ci` on Linux** |
-| `backend/` | Yes — including **`backend/.next/`** (full build + standalone) |
-| `backend/.env` | **No** in the zip — create/edit **`backend/.env` only on the server** (secrets) |
-| `frontend/` | Yes — at least **`frontend/package.json`** (workspace); you may omit **`frontend/.next/`** if this host never runs the frontend |
-| `prisma/` | Recommended — for **`npm run db:push`** / emergencies (optional if DB is already migrated) |
-
-Exclude to save size: **`.git`**, **`frontend/.next`**, local **`*.log`**, **`backend/.env`** (set on server).
-
-### On the server after upload
-
-1. Extract so the **monorepo root** (folder with root `package.json`) matches your Plesk **application root**.
-2. Add **`backend/.env`** (database, `JWT_SECRET`, `PORT`, CORS, etc.).
-3. **First deploy / schema changes:** run **`npm run db:push`** once (needs network access to MySQL from that host).
-4. **Start only** (no install, no build):
-
-   ```bash
-   export NODE_ENV=production
-   npm run start:backend
-   ```
-
-   Or Plesk: startup command **`npm run start:backend`**, cwd = **monorepo root**.
-
-### Frontend (SSR) on the same pattern
-
-If this host also runs the public Next site, build on Linux with **`npm run build`** (or **`npm run build:frontend`** only), include **`frontend/.next`**, and use **`npm run start`** / **`npm run start:frontend`** from the repo root with a **different `PORT`** than the API (or deploy frontend on another vhost).
-
-### CI tip
-
-In GitHub Actions / GitLab CI, use **`runs-on: ubuntu-latest`**, run **`npm ci`** + **`npm run build:backend`**, then **`actions/upload-artifact`** or rsync the tree above to the server. On Plesk, replace files and **Restart App**.
+If your plan cannot build on hosting, use **Linux CI** (GitHub Actions) to build artifacts, then upload that Linux-built output.
 
 ---
 
 ## Cloud Node.js hosting (cPanel / Plesk / “Application URL” panels)
 
 Use this when the provider gives you **Node version**, **Application root**, **Startup file**, and **npm install / build** fields.
+
+### Quick start for your current setup (MatBao)
+
+Use this exact flow when:
+
+- frontend is already live on `vuleits.com`
+- backend API will run on `portalapi.vuleits.com`
+- repo is cloned to `/var/www/vhosts/vuleits.com/httpdocs/portalapi`
+
+#### 0) Keep only these folders/files on server
+
+From your local repo, upload (or `git pull`) to server:
+
+- `package.json`
+- `package-lock.json`
+- `backend/`
+- `frontend/` (required because backend build imports `frontend/components/BrandingLogo.tsx`)
+- `prisma/`
+
+Do **not** upload:
+
+- any Windows `node_modules`
+- `frontend/.next`, `backend/.next`
+- local `.env` secrets from your machine
+
+#### 1) Create backend env on server
+
+Create `/var/www/vhosts/vuleits.com/httpdocs/portalapi/backend/.env`:
+
+```env
+NODE_ENV=production
+PORT=5101
+DATABASE_URL=mysql://USER:PASSWORD@HOST:3306/DB
+JWT_SECRET=replace-with-strong-secret
+CORS_ORIGINS=https://vuleits.com,https://www.vuleits.com
+FRONTEND_ORIGIN=https://vuleits.com
+NEXT_PUBLIC_SITE_URL=https://vuleits.com
+```
+
+#### 2) Run commands from repo root (copy-paste)
+
+```bash
+cd /var/www/vhosts/vuleits.com/httpdocs/portalapi
+node -v
+npm ci
+npm run db:push
+npm run build:backend:hosting
+npm run start:backend
+```
+
+If `npm ci` is unavailable because no lockfile exists, use `npm install`.
+
+#### 3) Configure Node app in MatBao/Plesk panel
+
+- **Application root**: `/var/www/vhosts/vuleits.com/httpdocs/portalapi`
+- **Startup command**: `npm run start:backend`
+- **Mode**: Production
+- **Node version**: 20.x LTS
+- **Domain/proxy target**: `portalapi.vuleits.com` → port `5101`
+
+#### 4) Verify
+
+Open:
+
+- `https://portalapi.vuleits.com/api/company/branding`
+- `https://portalapi.vuleits.com/api/marketing-config`
+
+If browser calls from `vuleits.com` fail, re-check `CORS_ORIGINS` and `FRONTEND_ORIGIN`.
 
 ### What to upload
 
@@ -204,44 +221,76 @@ Use this when the provider gives you **Node version**, **Application root**, **S
 
 If the panel only lets you set **one** “application directory”, use the **monorepo root** (parent of `backend/`), not only `backend/`, so **`npm ci`** installs **workspaces** correctly.
 
-### Install → build → start (backend API only)
+### Install → build → start (backend API only, source deploy)
 
 Run over **SSH** or use the panel’s **deployment / build** UI with the same commands.
 
-1. **Install** (from **monorepo root**):
+#### Step 1) Upload source files/folders
 
-   ```bash
-   cd /path/to/repo-root
-   npm ci
-   ```
+Upload to your backend app root (for example `/var/www/vhosts/vuleits.com/httpdocs/portalapi`) with this shape:
 
-2. **Database** (first time or after schema changes):
+| Path | Upload? | Why |
+|------|---------|-----|
+| `package.json`, `package-lock.json` (repo root) | Yes | Workspace install + scripts run from root |
+| `backend/` | Yes | API source + Next standalone output target |
+| `frontend/` (at least `frontend/package.json`, `frontend/components/BrandingLogo.tsx`) | Yes | Backend build references frontend files via `externalDir` |
+| `prisma/` | Yes | Prisma schema for `postinstall` / `db:push` |
+| `node_modules/` from **Windows** | **No** | Wrong OS binaries for Linux hosting |
+| `backend/.env` | **No in upload** | Create/edit directly on server (secrets) |
 
-   ```bash
-   npm run db:push
-   ```
+> If you built on Windows and run on Linux hosting, always install dependencies on Linux (`npm ci` on server) or use a Linux CI artifact.
 
-3. **Build backend** (from **monorepo root**):
+#### Step 2) Create backend environment file on hosting
 
-   ```bash
-   export NODE_ENV=production
-   npm run build:backend
-   ```
+Create `backend/.env` from `backend/.env.example`, set at least:
 
-   On **Plesk / shared hosting**, if you see **`spawn … EAGAIN`** during the build, use **`npm run build:backend:hosting`** instead.
+- `NODE_ENV=production`
+- `PORT=<api-port>`
+- `DATABASE_URL` (or `DB_*` variables)
+- `JWT_SECRET`
+- `CORS_ORIGINS` and `FRONTEND_ORIGIN` (your frontend domains)
 
-   This runs **`prebuild`** (cleans `backend/.next`), **`next build`**, then **`postbuild`**, which copies **`backend/.next/static`** and **`backend/public`** into **`backend/.next/standalone/backend/`** so standalone does not 404 on `/_next/static`.
+#### Step 3) Install dependencies (from monorepo root)
 
-4. **Start** — pick **one** approach:
+```bash
+cd /path/to/repo-root
+npm ci
+# If no lockfile is available on the server, use: npm install
+```
 
-   | Approach | Application root (cwd) | Start command / “Application startup” |
-   |----------|-------------------------|----------------------------------------|
-   **A (recommended)** | Monorepo root | **`npm run start:backend`** |
-   **B** | `backend/` | **`npm run start`** |
+#### Step 4) Database schema (first deploy or schema changes)
 
-   Set **`NODE_ENV=production`**. Set **`PORT`** in the panel or in **`backend/.env`** (must match what nginx / the proxy forwards to).
+```bash
+npm run db:push
+```
 
-   **Do not** use **`next dev`** in production.
+#### Step 5) Build backend (resource-safe for shared hosting)
+
+```bash
+export NODE_ENV=production
+npm run build:backend:hosting
+```
+
+Use `build:backend:hosting` on Plesk/MatBao to reduce worker/process pressure (`spawn ... EAGAIN`).
+
+This runs **`prebuild`** (clean `backend/.next`) + **`next build`** + **`postbuild`** (copy static/public into standalone) so `backend/.next/standalone/backend/server.js` is runnable.
+
+#### Step 6) Start backend process
+
+| Approach | Application root (cwd) | Start command / “Application startup” |
+|----------|-------------------------|----------------------------------------|
+| **A (recommended)** | Monorepo root | **`npm run start:backend`** |
+| **B** | `backend/` | **`npm run start`** |
+
+Set **`NODE_ENV=production`**. Set **`PORT`** in panel env or `backend/.env` (must match proxy target port).
+
+**Do not** use **`next dev`** in production.
+
+#### Step 7) Verify deployment
+
+- Open `https://portalapi.your-domain.com/api/company/branding`
+- Check any other list endpoint your frontend calls
+- If CORS errors appear, re-check `CORS_ORIGINS` and `FRONTEND_ORIGIN`
 
 ### If the panel requires a “startup file” (path to one `.js` file)
 

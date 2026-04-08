@@ -2,6 +2,9 @@
   "name": "@vuleits/backend",
   "private": true,
   "version": "0.1.0",
+  "workspaces": [
+    "."
+  ],
   "scripts": {
     "clean": "node scripts/clean-next.js",
     "prebuild": "node scripts/clean-next.js",
@@ -31,6 +34,7 @@
   },
   "devDependencies": {
     "cross-env": "^10.1.0",
+    "@tailwindcss/postcss": "^4.1.13",
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^20",
@@ -41,6 +45,7 @@
     "baseline-browser-mapping": "^2.10.12",
     "eslint": "^9",
     "eslint-config-next": "16.2.2",
+    "tailwindcss": "^4.1.13",
     "typescript": "^5"
   }
 }
