@@ -21,7 +21,7 @@ export default function LocaleSwitcher({ className, alignWithProfileAvatar }: Lo
 
   const triggerClass =
     className ??
-    'rounded-lg border border-[color:var(--locale-switch-border)] bg-[color:var(--locale-switch-bg)] px-2 py-1.5 text-sm text-[color:var(--text-primary)] hover:bg-[color:var(--locale-switch-bg-hover)]';
+    'rounded-lg border border-[color:var(--locale-switch-border)] bg-[color:var(--locale-switch-bg)] px-2 py-1.5 text-sm text-(--text-primary) hover:bg-[color:var(--locale-switch-bg-hover)]';
   const fullWidth = Boolean(className?.includes('w-full'));
 
   const flagWrapBase = alignWithProfileAvatar
@@ -32,6 +32,7 @@ export default function LocaleSwitcher({ className, alignWithProfileAvatar }: Lo
   const imgH = alignWithProfileAvatar ? 40 : 20;
 
   const nextLocale: Locale = locale === 'en-US' ? 'vi-VN' : 'en-US';
+  const currentLabel = locale === 'en-US' ? 'EN' : 'VI';
 
   function toggle() {
     setLocale(nextLocale);
@@ -44,12 +45,12 @@ export default function LocaleSwitcher({ className, alignWithProfileAvatar }: Lo
     <div className={fullWidth ? 'relative block w-full' : 'relative inline-block'}>
       <button
         type="button"
-        className={`flex items-center justify-center text-sm text-[color:var(--text-primary)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--text-primary)]/25 ${fullWidth ? 'w-full' : ''} ${triggerClass}`}
+        className={`flex items-center justify-center text-sm text-(--text-primary) transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-(--text-primary)/25 ${fullWidth ? 'w-full' : ''} ${triggerClass}`}
         onClick={toggle}
         aria-label={ariaLabel}
         title={ariaLabel}
       >
-        <span className={flagWrapTrigger}>
+        <span className={`${flagWrapTrigger} ${fullWidth ? 'mr-2' : 'mr-1.5'}`}>
           <Image
             src={FLAG[locale].src}
             alt=""
@@ -57,6 +58,9 @@ export default function LocaleSwitcher({ className, alignWithProfileAvatar }: Lo
             height={imgH}
             className="h-full w-full object-cover object-center"
           />
+        </span>
+        <span className={`${alignWithProfileAvatar ? 'text-sm font-medium' : 'text-xs font-semibold'} tracking-wide`}>
+          {currentLabel}
         </span>
       </button>
     </div>

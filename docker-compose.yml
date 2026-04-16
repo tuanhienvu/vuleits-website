@@ -1,12 +1,8 @@
-# Local / server stack: API + MySQL. Override env in backend/.env or use `environment:` below.
+# Local stack: MySQL + API. Override env in `backend/.env` or use `environment:` below.
 #
-#   docker compose build api
-#   docker compose up -d
+#   docker compose up -d --build
 #
-# Push image to Docker Hub (after `docker login`):
-#   docker compose build api
-#   docker tag vuleits-website-api YOUR_DOCKERHUB_USER/vuleits-backend:latest
-#   docker push YOUR_DOCKERHUB_USER/vuleits-backend:latest
+# API is exposed on host port ${API_HOST_PORT:-5001} (match `BACKEND_PORT` in `frontend/.env.local`).
 
 services:
   mysql:
@@ -40,9 +36,6 @@ services:
       PORT: "5001"
       DATABASE_URL: ${DATABASE_URL:-mysql://${MYSQL_USER:-vuleits}:${MYSQL_PASSWORD:-changeme}@mysql:3306/${MYSQL_DATABASE:-vuleits_db}}
       JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
-      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost:3000}
-      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
     depends_on:
       mysql:
         condition: service_healthy

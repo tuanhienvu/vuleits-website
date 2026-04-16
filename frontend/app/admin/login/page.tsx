@@ -1,39 +1,30 @@
 'use client';
 
-import { useState, FormEvent, useEffect } from 'react';
+import { useState, FormEvent } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/providers/ToastProvider';
 import { useLocale } from '@/components/providers/LocaleProvider';
 import BrandingLogo from '@/components/BrandingLogo';
 import { useCompanyBranding } from '@/hooks/useCompanyBranding';
+import { apiPath } from '@/lib/apiRoutes';
 
 // --- Sections: Redirect if already authed | Branding header | Login form ---
 
 export default function AdminLogin() {
+  const router = useRouter();
   const toast = useToast();
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const { logoSrc, companyName } = useCompanyBranding();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const res = await fetch('/api/admin/me', { credentials: 'include' });
-        if (res.ok) window.location.href = '/admin/dashboard';
-      } catch {
-        // ignore
-      }
-    };
-    void checkAuth();
-  }, []);
-
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/login', {
+      const res = await fetch(apiPath('admin/login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email.trim(), password }),
@@ -41,13 +32,13 @@ export default function AdminLogin() {
       });
       const data = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
-        toast.error(data.error || 'Login failed');
+        toast.error(data.error || (locale === 'vi-VN' ? 'Đăng nhập thất bại' : 'Login failed'));
         setLoading(false);
         return;
       }
-      window.location.href = '/admin/dashboard';
+      router.replace('/admin/dashboard');
     } catch {
-      toast.error('Server error');
+      toast.error(locale === 'vi-VN' ? 'Lỗi máy chủ' : 'Server error');
       setLoading(false);
     }
   };
@@ -59,7 +50,7 @@ export default function AdminLogin() {
         <div className="text-center mb-8">
           <Link
             href="/"
-            className="block w-20 h-20 mx-auto mb-4 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--text-primary)]/25"
+            className="block w-20 h-20 mx-auto mb-4 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-(--text-primary)/25"
             aria-label={t('nav.home')}
           >
             <BrandingLogo
@@ -72,16 +63,19 @@ export default function AdminLogin() {
             />
           </Link>
           <h1 className="text-3xl font-bold text-white mb-2">
-            <span className="font-zcool tracking-wide">{companyName}</span> Admin
+            <span className="font-zcool tracking-wide">{companyName}</span>{' '}
+            {locale === 'vi-VN' ? 'Quản trị' : 'Admin'}
           </h1>
-          <p className="text-white/70">Content Management System</p>
+          <p className="text-white/70">
+            {locale === 'vi-VN' ? 'Hệ thống quản trị nội dung' : 'Content Management System'}
+          </p>
         </div>
 
         {/* ==================== CREDENTIALS FORM ==================== */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="email" className="text-white font-medium block mb-2">
-              Email Address
+              {locale === 'vi-VN' ? 'Địa chỉ email' : 'Email Address'}
             </label>
             <input
               type="email"
@@ -90,12 +84,13 @@ export default function AdminLogin() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="admin@vuleits.com"
               className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-white/50"
+              autoComplete="username"
               disabled={loading}
             />
           </div>
           <div>
             <label htmlFor="password" className="text-white font-medium block mb-2">
-              Password
+              {locale === 'vi-VN' ? 'Mật khẩu' : 'Password'}
             </label>
             <input
               type="password"
@@ -104,14 +99,20 @@ export default function AdminLogin() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-white/50"
+              autoComplete="current-password"
               disabled={loading}
             />
           </div>
           <button type="submit" disabled={loading} className="w-full public-cta-button py-3 font-semibold text-center mt-6 disabled:opacity-50">
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading
+              ? locale === 'vi-VN'
+                ? 'Đang đăng nhập...'
+                : 'Signing in...'
+              : locale === 'vi-VN'
+                ? 'Đăng nhập'
+                : 'Sign In'}
           </button>
         </form>
-        <p className="text-white/60 text-sm text-center mt-6">For trial: user: demo@vuleits.com | password: demo</p>
       </div>
     </div>
   );

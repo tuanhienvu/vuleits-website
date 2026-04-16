@@ -6,12 +6,14 @@ import {
   defaultMessagesByLocale,
   UI_LOCALES,
 } from '@/lib/locale/defaultMessages';
+import { apiPath } from '@/lib/apiRoutes';
 
 export type { Locale };
 
 type Messages = Record<string, string>;
 
 type Overrides = Partial<Record<Locale, Partial<Messages>>>;
+type CachedOverridesPayload = { ts: number; data: Overrides };
 
 type LocaleContextValue = {
   locale: Locale;
@@ -24,6 +26,8 @@ type LocaleContextValue = {
 const LocaleContext = createContext<LocaleContextValue | null>(null);
 
 const STORAGE_KEY = 'app_locale';
+const OVERRIDES_CACHE_KEY = 'vuleits:ui-messages-cache:v1';
+const OVERRIDES_TTL_MS = 5 * 60 * 1000;
 
 function parseOverridesPayload(data: unknown): Overrides {
   if (data === null || typeof data !== 'object' || Array.isArray(data)) return {};
@@ -53,20 +57,39 @@ function resolveString(
 
 export function LocaleProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>('en-US');
+  const [hydrated, setHydrated] = useState(false);
   const [overrides, setOverrides] = useState<Overrides | null>(null);
 
   const refreshUiMessages = useCallback(async () => {
     try {
-      const res = await fetch('/api/ui-messages', { cache: 'no-store' });
+      const res = await fetch(apiPath('ui-messages'));
       if (!res.ok) return;
       const data = (await res.json()) as unknown;
-      setOverrides(parseOverridesPayload(data));
+      const parsed = parseOverridesPayload(data);
+      setOverrides(parsed);
+      try {
+        const payload: CachedOverridesPayload = { ts: Date.now(), data: parsed };
+        window.localStorage.setItem(OVERRIDES_CACHE_KEY, JSON.stringify(payload));
+      } catch {
+        // ignore storage errors
+      }
     } catch {
       // keep built-in defaults
     }
   }, []);
 
   useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(OVERRIDES_CACHE_KEY);
+      if (raw) {
+        const cached = JSON.parse(raw) as CachedOverridesPayload;
+        if (Date.now() - cached.ts < OVERRIDES_TTL_MS && cached.data) {
+          setOverrides(cached.data);
+        }
+      }
+    } catch {
+      // ignore cache parse/storage errors
+    }
     const id = requestAnimationFrame(() => {
       void refreshUiMessages();
     });
@@ -74,24 +97,41 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
   }, [refreshUiMessages]);
 
   useEffect(() => {
-    const saved = typeof window !== 'undefined' ? window.localStorage.getItem(STORAGE_KEY) : null;
-    if (saved === 'en-US' || saved === 'vi-VN') {
-      setLocaleState(saved);
+    try {
+      const saved = window.localStorage.getItem(STORAGE_KEY);
+      if (saved === 'vi-VN' || saved === 'en-US') {
+        setLocaleState(saved);
+      }
+    } catch {
+      // ignore storage read errors
+    } finally {
+      setHydrated(true);
     }
   }, []);
 
+  const effectiveLocale: Locale = hydrated ? locale : 'en-US';
+
   useEffect(() => {
-    if (typeof window !== 'undefined') window.localStorage.setItem(STORAGE_KEY, locale);
-    if (typeof document !== 'undefined') document.documentElement.lang = locale;
-  }, [locale]);
+    if (typeof document !== 'undefined') document.documentElement.lang = effectiveLocale;
+  }, [effectiveLocale]);
+
+  const setLocale = useCallback((next: Locale) => {
+    setLocaleState(next);
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(STORAGE_KEY, next);
+    }
+    if (typeof document !== 'undefined') {
+      document.documentElement.lang = next;
+    }
+  }, []);
 
   const value = useMemo<LocaleContextValue>(
     () => ({
-      locale,
-      setLocale: (next) => setLocaleState(next),
+      locale: effectiveLocale,
+      setLocale,
       refreshUiMessages,
       t: (key, vars) => {
-        let s = resolveString(locale, key, defaultMessagesByLocale, overrides);
+        let s = resolveString(effectiveLocale, key, defaultMessagesByLocale, overrides);
         if (vars) {
           for (const [k, v] of Object.entries(vars)) {
             s = s.split(`{{${k}}}`).join(v);
@@ -101,7 +141,7 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
       },
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- refreshUiMessages is useCallback([]) stable
-    [locale, overrides],
+    [effectiveLocale, overrides, setLocale],
   );
 
   return <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>;
