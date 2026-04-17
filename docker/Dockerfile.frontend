@@ -1,0 +1,40 @@
+# syntax=docker/dockerfile:1
+# Monorepo frontend (Next.js). Build from repository root:
+#   docker build -f docker/Dockerfile.frontend -t YOUR_REGISTRY/vuleits-frontend:latest .
+#
+# At runtime set BACKEND_INTERNAL_URL to your API base (no trailing slash), e.g. http://backend:5001
+# on Docker network, or https://api.example.com for subdomain split.
+
+FROM node:20-bookworm-slim AS deps
+WORKDIR /app
+COPY package.json package-lock.json ./
+COPY frontend/package.json frontend/package.json
+COPY backend/package.json backend/package.json
+COPY backend/scripts/prisma-with-db-env.js backend/scripts/prisma-with-db-env.js
+COPY prisma ./prisma
+RUN npm ci
+
+FROM deps AS builder
+WORKDIR /app
+COPY frontend ./frontend
+ENV DATABASE_URL="mysql://dummy:dummy@127.0.0.1:3306/dummy"
+ENV NODE_ENV=production
+ARG BACKEND_INTERNAL_URL=http://backend:5001
+ENV BACKEND_INTERNAL_URL=${BACKEND_INTERNAL_URL}
+RUN npm run build --workspace @vuleits/frontend
+
+FROM node:20-bookworm-slim AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+ENV PORT=3001
+ENV HOSTNAME=0.0.0.0
+
+RUN apt-get update -y && apt-get install -y --no-install-recommends openssl ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/frontend ./frontend
+
+EXPOSE 3001
+CMD ["npm", "run", "start", "--workspace", "@vuleits/frontend"]

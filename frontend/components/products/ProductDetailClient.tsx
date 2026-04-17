@@ -14,6 +14,7 @@ import {
 } from '@/components/products/interactive/productTransitionStorage';
 import type { PublicProductDetail } from '@/lib/products/types';
 import { youtubeEmbedFromUrl } from '@/lib/products/videoEmbed';
+import { apiPath } from '@/lib/apiRoutes';
 
 const RelatedProductsRow = dynamic(() => import('@/components/products/related/RelatedProductsRow'), {
   ssr: false,
@@ -53,7 +54,7 @@ export default function ProductDetailClient({ initial }: { initial: PublicProduc
   useEffect(() => {
     if (viewTrackedRef.current) return;
     viewTrackedRef.current = true;
-    void fetch('/api/products/analytics', {
+    void fetch(apiPath('products/analytics'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ slug: initial.slug, action: 'view' }),
@@ -181,7 +182,7 @@ export default function ProductDetailClient({ initial }: { initial: PublicProduc
             type="button"
             className="rounded-lg border border-white/20 bg-white/5 px-3 py-1.5 text-sm text-fg-muted transition hover:bg-white/10"
             onClick={() => {
-              void fetch('/api/products/analytics', {
+              void fetch(apiPath('products/analytics'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ slug: initial.slug, action: 'share' }),
@@ -430,7 +431,7 @@ function DemoButton({ href, label, slug }: { href: string; label: string; slug: 
       target="_blank"
       rel="noopener noreferrer"
       onClick={() => {
-        void fetch('/api/products/analytics', {
+        void fetch(apiPath('products/analytics'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ slug, action: 'click_demo' }),

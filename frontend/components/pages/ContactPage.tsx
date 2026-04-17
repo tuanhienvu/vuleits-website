@@ -4,6 +4,7 @@ import { useState, FormEvent, useEffect } from 'react';
 import { useLocale, type Locale } from '@/components/providers/LocaleProvider';
 import { useToast } from '@/components/providers/ToastProvider';
 import CompanySocialLinks, { type PublicSocialLink } from '@/components/CompanySocialLinks';
+import { apiPath } from '@/lib/apiRoutes';
 
 type ContactInfo = {
   companyName: string;
@@ -45,7 +46,7 @@ export default function ContactPage() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch('/api/company/contact');
+        const res = await fetch(apiPath('company/contact'));
         const data = (await res.json().catch(() => null)) as Record<string, unknown> | null;
         if (!cancelled && data && typeof data === 'object') {
           const src = data.mapEmbedSrc;
@@ -108,7 +109,7 @@ export default function ContactPage() {
     if (submitting) return;
     setSubmitting(true);
     try {
-      const res = await fetch('/api/contact/submissions', {
+      const res = await fetch(apiPath('contact/submissions'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

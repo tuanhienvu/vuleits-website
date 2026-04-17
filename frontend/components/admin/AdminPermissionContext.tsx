@@ -11,9 +11,11 @@ import {
 } from 'react';
 import {
   makeEmptyAdminMatrix,
+  normalizeAdminMatrix,
   type AdminCrudMatrix,
   type AdminUiFeatureId,
 } from '@/lib/adminPermissionModel';
+import { apiPath } from '@/lib/apiRoutes';
 
 type AdminPermissionContextValue = {
   matrix: AdminCrudMatrix;
@@ -24,7 +26,7 @@ type AdminPermissionContextValue = {
 
 const AdminPermissionContext = createContext<AdminPermissionContextValue | null>(null);
 
-// --- Admin permissions: fetch /api/admin/me-permissions, matrix + can() ---
+// --- Admin permissions: fetch admin/me-permissions, matrix + can() ---
 
 export function AdminPermissionProvider({ children }: { children: ReactNode }) {
   const [matrix, setMatrix] = useState<AdminCrudMatrix>(() => makeEmptyAdminMatrix());
@@ -32,14 +34,14 @@ export function AdminPermissionProvider({ children }: { children: ReactNode }) {
 
   const refresh = useCallback(async () => {
     try {
-      const res = await fetch('/api/admin/me-permissions', { credentials: 'include' });
+      const res = await fetch(apiPath('admin/me-permissions'), { credentials: 'include' });
       if (!res.ok) {
         if (res.status === 401) window.location.href = '/admin/login';
         return;
       }
       const data = (await res.json()) as { features?: AdminCrudMatrix };
       if (data?.features && typeof data.features === 'object') {
-        setMatrix(data.features);
+        setMatrix(normalizeAdminMatrix(data.features));
       }
     } catch {
       // keep matrix as empty

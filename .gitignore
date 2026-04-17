@@ -20,6 +20,9 @@
 /public/uploads/**
 !/public/uploads/**/.gitkeep
 
+# Static HTML export (`output: 'export'`) — not used; ignore if present
+out/
+
 # misc
 .DS_Store
 *.pem

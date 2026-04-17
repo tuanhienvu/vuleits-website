@@ -6,6 +6,7 @@ import { useAdminPermissions } from '@/components/admin/AdminPermissionContext';
 import { useToast } from '@/components/providers/ToastProvider';
 import { useLocale } from '@/components/providers/LocaleProvider';
 import AdminTinyMceEditor from '@/components/admin/AdminTinyMceEditor';
+import { apiPath } from '@/lib/apiRoutes';
 
 // --- Sections (UI): Sticky header | Titles | Intro (TinyMCE) | Hero image & preview ---
 
@@ -21,7 +22,7 @@ export default function AboutIntroAdminPanel() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/about-intro', { credentials: 'include' });
+      const res = await fetch(apiPath('admin/about-intro'), { credentials: 'include' });
       if (res.status === 401) {
         window.location.href = '/admin/login';
         return;
@@ -47,7 +48,7 @@ export default function AboutIntroAdminPanel() {
     if (!can('aboutTeam', 'update')) return;
     setSaving(true);
     try {
-      const res = await fetch('/api/admin/about-intro', {
+      const res = await fetch(apiPath('admin/about-intro'), {
         method: 'PUT',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useAdminPermissions } from '@/components/admin/AdminPermissionContext';
 import { useToast } from '@/components/providers/ToastProvider';
+import { apiPath } from '@/lib/apiRoutes';
 
 type ContactRow = {
   id: number;
@@ -47,7 +48,7 @@ export default function ContactMessagesAdminPanel() {
       sp.set('skip', String(skip));
       if (q.trim()) sp.set('q', q.trim());
       if (statusFilter) sp.set('status', statusFilter);
-      const res = await fetch(`/api/admin/contact-submissions?${sp.toString()}`, { credentials: 'include' });
+      const res = await fetch(`${apiPath('admin/contact-submissions')}?${sp.toString()}`, { credentials: 'include' });
       if (res.status === 401) {
         window.location.href = '/admin/login';
         return;
@@ -77,7 +78,7 @@ export default function ContactMessagesAdminPanel() {
   const setStatus = async (id: number, status: string) => {
     if (!can('contacts', 'update')) return;
     try {
-      const res = await fetch(`/api/admin/contact-submissions/${id}`, {
+      const res = await fetch(apiPath(`admin/contact-submissions/${id}`), {
         method: 'PATCH',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -96,7 +97,7 @@ export default function ContactMessagesAdminPanel() {
     if (!can('contacts', 'delete')) return;
     if (!window.confirm('Delete this message permanently?')) return;
     try {
-      const res = await fetch(`/api/admin/contact-submissions/${id}`, { method: 'DELETE', credentials: 'include' });
+      const res = await fetch(apiPath(`admin/contact-submissions/${id}`), { method: 'DELETE', credentials: 'include' });
       if (!res.ok) throw new Error('Delete failed');
       toast.success('Deleted');
       setExpandedId((cur) => (cur === id ? null : cur));

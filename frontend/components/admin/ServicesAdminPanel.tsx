@@ -13,6 +13,7 @@ import AdminTinyMceEditor from '@/components/admin/AdminTinyMceEditor';
 import AdminEmojiPickerField from '@/components/admin/AdminEmojiPickerField';
 import { AdminFilterSearchIconButton, adminFilterPanelClass } from '@/components/admin/AdminFilterBarMobile';
 import { richTextAsPlain } from '@/lib/richTextAdmin';
+import { apiPath } from '@/lib/apiRoutes';
 
 // --- Sections (UI): Header & filters | List & pager | Edit modal | Delete modal ---
 // --- Sections (logic): Paged list state | CRUD handlers ---
@@ -84,7 +85,7 @@ export default function ServicesAdminPanel() {
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/services', { credentials: 'include' });
+      const res = await fetch(apiPath('admin/services'), { credentials: 'include' });
       if (!res.ok) {
         if (res.status === 401 || res.status === 403) window.location.href = '/admin/login';
         throw new Error('Load failed');
@@ -193,7 +194,7 @@ export default function ServicesAdminPanel() {
         isActive: form.isActive,
       };
       const isEdit = form.id != null;
-      const res = await fetch(isEdit ? `/api/admin/services/${form.id}` : '/api/admin/services', {
+      const res = await fetch(isEdit ? apiPath(`admin/services/${form.id}`) : apiPath('admin/services'), {
         method: isEdit ? 'PUT' : 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -222,7 +223,7 @@ export default function ServicesAdminPanel() {
     if (!deleteTarget || !can('services', 'delete')) return;
     setDeleting(true);
     try {
-      const res = await fetch(`/api/admin/services/${deleteTarget.id}`, {
+      const res = await fetch(apiPath(`admin/services/${deleteTarget.id}`), {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -252,7 +253,7 @@ export default function ServicesAdminPanel() {
     setDeleting(true);
     try {
       for (const id of ids) {
-        const res = await fetch(`/api/admin/services/${id}`, { method: 'DELETE', credentials: 'include' });
+        const res = await fetch(apiPath(`admin/services/${id}`), { method: 'DELETE', credentials: 'include' });
         if (!res.ok) throw new Error('Delete failed');
       }
       toast.success(isVi ? `Đã xóa ${ids.length} dịch vụ` : `Deleted ${ids.length} services`);

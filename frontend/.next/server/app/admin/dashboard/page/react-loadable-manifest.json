@@ -1,48 +1,44 @@
 {
-  "55725": {
-    "id": 55725,
+  "76166": {
+    "id": 76166,
     "files": [
-      "static/chunks/5341f1a118322ea5.js"
-    ]
-  },
-  "37796": {
-    "id": 37796,
-    "files": [
-      "static/chunks/5774207f9973b39f.js"
-    ]
-  },
-  "37265": {
-    "id": 37265,
-    "files": [
-      "static/chunks/7929ac05ecd88fe8.js",
-      "static/chunks/5af4b4cbf48c785a.js"
-    ]
-  },
-  "56448": {
-    "id": 56448,
-    "files": [
-      "static/chunks/9a49f8f898f7b54c.js",
-      "static/chunks/5af4b4cbf48c785a.js"
-    ]
-  },
-  "94583": {
-    "id": 94583,
-    "files": [
-      "static/chunks/cbb3793de7eb3014.js"
+      "static/chunks/0q7t07o.o18rg.js"
     ]
   },
   "79176": {
     "id": 79176,
     "files": [
-      "static/chunks/c1c83683a5f0b174.js",
-      "static/chunks/5af4b4cbf48c785a.js"
+      "static/chunks/0_gwb2wcakx96.js"
     ]
   },
-  "76166": {
-    "id": 76166,
+  "94583": {
+    "id": 94583,
     "files": [
-      "static/chunks/3204501cfe99ea11.js",
-      "static/chunks/5af4b4cbf48c785a.js"
+      "static/chunks/0ubws9s9t73~t.js"
+    ]
+  },
+  "56448": {
+    "id": 56448,
+    "files": [
+      "static/chunks/0w2j688e.brz-.js"
+    ]
+  },
+  "37265": {
+    "id": 37265,
+    "files": [
+      "static/chunks/0azh8rsqwyiem.js"
+    ]
+  },
+  "37796": {
+    "id": 37796,
+    "files": [
+      "static/chunks/0-lh7~-50do8n.js"
+    ]
+  },
+  "55725": {
+    "id": 55725,
+    "files": [
+      "static/chunks/0lsm-ldczb4sg.js"
     ]
   }
 }

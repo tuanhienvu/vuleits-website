@@ -17,6 +17,7 @@ import { useLocale } from '@/components/providers/LocaleProvider';
 import AdminTinyMceEditor from '@/components/admin/AdminTinyMceEditor';
 import { AdminFilterSearchIconButton, adminFilterPanelClass } from '@/components/admin/AdminFilterBarMobile';
 import { richTextAsPlain } from '@/lib/richTextAdmin';
+import { apiPath } from '@/lib/apiRoutes';
 
 // --- Sections (UI): Toolbar & table | Edit modal | Image library picker | Delete confirm ---
 // --- Sections (logic): List/meta state | Form & image modes | Save/delete | Media picker ---
@@ -184,7 +185,7 @@ export default function ProductsAdminPanel() {
       const fd = new FormData();
       fd.append('file', file);
       fd.append('folder', 'products');
-      const res = await fetch('/api/admin/media', { method: 'POST', credentials: 'include', body: fd });
+      const res = await fetch(apiPath('admin/media'), { method: 'POST', credentials: 'include', body: fd });
       if (!res.ok) {
         const j = (await res.json().catch(() => ({}))) as { error?: string };
         throw new Error(j.error || 'Upload failed');
@@ -210,7 +211,7 @@ export default function ProductsAdminPanel() {
     setImagePickerOpen(true);
     setImagePickerLoading(true);
     try {
-      const res = await fetch('/api/admin/media?take=200&imagesOnly=1', { credentials: 'include' });
+      const res = await fetch(`${apiPath('admin/media')}?take=200&imagesOnly=1`, { credentials: 'include' });
       if (!res.ok) throw new Error('load failed');
       const list = (await res.json()) as MediaRow[];
       setImagePickerList(Array.isArray(list) ? list : []);
@@ -242,7 +243,7 @@ export default function ProductsAdminPanel() {
 
   const loadMeta = useCallback(async () => {
     try {
-      const res = await fetch('/api/products?take=1', { credentials: 'include' });
+      const res = await fetch(`${apiPath('products')}?take=1`, { credentials: 'include' });
       if (!res.ok) return;
       const j = (await res.json()) as Meta;
       setMeta({
@@ -261,7 +262,7 @@ export default function ProductsAdminPanel() {
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/products?take=200', { credentials: 'include' });
+      const res = await fetch(`${apiPath('admin/products')}?take=200`, { credentials: 'include' });
       if (!res.ok) {
         if (res.status === 401) window.location.href = '/admin/login';
         throw new Error('Load failed');
@@ -396,7 +397,7 @@ export default function ProductsAdminPanel() {
       if (form.slug.trim()) payload.slug = form.slug.trim();
 
       if (editingId == null) {
-        const res = await fetch('/api/admin/products', {
+        const res = await fetch(apiPath('admin/products'), {
           method: 'POST',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
@@ -408,7 +409,7 @@ export default function ProductsAdminPanel() {
         }
         toast.success(isVi ? 'Đã tạo sản phẩm' : 'Product created');
       } else {
-        const res = await fetch(`/api/admin/products/${editingId}`, {
+        const res = await fetch(apiPath(`admin/products/${editingId}`), {
           method: 'PUT',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
@@ -433,7 +434,7 @@ export default function ProductsAdminPanel() {
     if (!can('products', 'delete')) return;
     setDeleting(true);
     try {
-      const res = await fetch(`/api/admin/products/${p.id}`, { method: 'DELETE', credentials: 'include' });
+      const res = await fetch(apiPath(`admin/products/${p.id}`), { method: 'DELETE', credentials: 'include' });
       if (!res.ok) throw new Error('Delete failed');
       toast.success('Deleted');
       setDeleteTarget(null);
@@ -455,7 +456,7 @@ export default function ProductsAdminPanel() {
     setDeleting(true);
     try {
       for (const id of ids) {
-        const res = await fetch(`/api/admin/products/${id}`, { method: 'DELETE', credentials: 'include' });
+        const res = await fetch(apiPath(`admin/products/${id}`), { method: 'DELETE', credentials: 'include' });
         if (!res.ok) throw new Error('Delete failed');
       }
       toast.success(isVi ? `Đã xóa ${ids.length} sản phẩm` : `Deleted ${ids.length} products`);

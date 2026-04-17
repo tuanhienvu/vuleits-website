@@ -8,6 +8,7 @@ import { useLocale } from '@/components/providers/LocaleProvider';
 import { useToast } from '@/components/providers/ToastProvider';
 import AdminConfirmDialog from '@/components/admin/AdminConfirmDialog';
 import { getModalOriginFromElement, type ModalOriginPoint } from '@/components/admin/useAnimatedOriginModal';
+import { apiPath } from '@/lib/apiRoutes';
 
 // --- Sections (UI): Toolbar (search, upload) | Media grid | Delete confirm ---
 
@@ -42,7 +43,7 @@ export default function MediaAdminPanel() {
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/media?take=200&imagesOnly=0', { credentials: 'include' });
+      const res = await fetch(`${apiPath('admin/media')}?take=200&imagesOnly=0`, { credentials: 'include' });
       if (!res.ok) {
         if (res.status === 401 || res.status === 403) window.location.href = '/admin/login';
         throw new Error('Load failed');
@@ -107,7 +108,7 @@ export default function MediaAdminPanel() {
       const fd = new FormData();
       fd.append('file', file);
       fd.append('folder', folder);
-      const res = await fetch('/api/admin/media', { method: 'POST', credentials: 'include', body: fd });
+      const res = await fetch(apiPath('admin/media'), { method: 'POST', credentials: 'include', body: fd });
       if (!res.ok) throw new Error('Upload failed');
       toast.success(isVi ? 'Đã tải lên' : 'Uploaded');
       await refresh();
@@ -123,7 +124,7 @@ export default function MediaAdminPanel() {
     if (!can('media', 'delete')) return;
     setDeleting(true);
     try {
-      const res = await fetch(`/api/admin/media/${id}`, { method: 'DELETE', credentials: 'include' });
+      const res = await fetch(apiPath(`admin/media/${id}`), { method: 'DELETE', credentials: 'include' });
       if (!res.ok) throw new Error('Delete failed');
       toast.success(isVi ? 'Đã xóa' : 'Deleted');
       setDeleteTarget(null);
@@ -145,7 +146,7 @@ export default function MediaAdminPanel() {
     setDeleting(true);
     try {
       for (const id of ids) {
-        const res = await fetch(`/api/admin/media/${id}`, { method: 'DELETE', credentials: 'include' });
+        const res = await fetch(apiPath(`admin/media/${id}`), { method: 'DELETE', credentials: 'include' });
         if (!res.ok) throw new Error('Delete failed');
       }
       toast.success(isVi ? `Đã xóa ${ids.length} tệp` : `Deleted ${ids.length} files`);

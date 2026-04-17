@@ -1,36 +1,48 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 
-function navPageFromPath(pathname: string | null): string {
-  if (!pathname || pathname === '/') return 'home';
-  if (pathname.startsWith('/products')) return 'products';
-  if (pathname.startsWith('/news')) return 'news';
-  if (pathname.startsWith('/services')) return 'services';
-  return 'home';
-}
-
-// --- Public route shell: nav synced to path | main | footer ---
+// --- Public route shell: gradient, decorative shapes, skip link, nav, main, footer ---
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const [currentPage, setCurrentPage] = useState(() => navPageFromPath(pathname));
-
-  useEffect(() => {
-    setCurrentPage(navPageFromPath(pathname));
-  }, [pathname]);
-
   return (
     <div className="public-shell flex min-h-screen flex-col theme-page-gradient">
-      {/* ==================== PUBLIC NAVIGATION ==================== */}
-      <Navigation currentPage={currentPage} setCurrentPage={setCurrentPage} />
-      {/* ==================== PAGE CONTENT (`flex-1` keeps footer at bottom when main has no in-flow height, e.g. fixed product shell) ==================== */}
-      <main className="relative z-10 flex min-h-0 flex-1 flex-col">{children}</main>
-      {/* ==================== FOOTER ==================== */}
-      <Footer setCurrentPage={setCurrentPage} />
+      <div className="fixed top-0 left-0 w-full h-full -z-10 overflow-hidden pointer-events-none">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <div
+            key={i}
+            className="absolute bg-white/10 shadow-lg"
+            style={{
+              width: ['120px', '90px', '100px', '80px', '110px', '95px'][i - 1],
+              height: ['80px', '140px', '60px', '120px', '70px', '95px'][i - 1],
+              borderRadius: ['15px', '12px', '10px', '8px', '14px', '20px'][i - 1],
+              top: ['20%', '60%', 'auto', '10%', 'auto', '40%'][i - 1],
+              bottom: ['auto', 'auto', '20%', 'auto', '40%', 'auto'][i - 1],
+              left: ['10%', 'auto', '20%', 'auto', 'auto', '5%'][i - 1],
+              right: ['auto', '15%', 'auto', '30%', '20%', 'auto'][i - 1],
+              transform: ['rotate(15deg)', 'rotate(-20deg)', 'rotate(25deg)', 'rotate(-10deg)', 'rotate(30deg)', 'rotate(0)'][i - 1],
+              animation: `float 6s ease-in-out infinite`,
+              animationDelay: [`0s`, '2s', '4s', '1s', '3s', '5s'][i - 1],
+            }}
+          />
+        ))}
+      </div>
+
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:bg-white/10 focus:text-white focus:px-3 focus:py-2 rounded z-[60]"
+      >
+        Skip to content
+      </a>
+
+      <Navigation />
+
+      <main id="main-content" className="relative z-10 flex min-h-0 flex-1 flex-col">
+        {children}
+      </main>
+
+      <Footer />
     </div>
   );
 }

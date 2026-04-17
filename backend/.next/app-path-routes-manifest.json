@@ -19,6 +19,8 @@
   "/api/admin/home-features/route": "/api/admin/home-features",
   "/api/admin/login/route": "/api/admin/login",
   "/api/admin/logout/route": "/api/admin/logout",
+  "/api/admin/logs/[id]/route": "/api/admin/logs/[id]",
+  "/api/admin/logs/route": "/api/admin/logs",
   "/api/admin/marketing-config/route": "/api/admin/marketing-config",
   "/api/admin/me-permissions/route": "/api/admin/me-permissions",
   "/api/admin/me/password/route": "/api/admin/me/password",

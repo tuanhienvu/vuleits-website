@@ -18,6 +18,7 @@ import AdminTinyMceEditor from '@/components/admin/AdminTinyMceEditor';
 import AdminEmojiPickerField from '@/components/admin/AdminEmojiPickerField';
 import { AdminFilterSearchIconButton, adminFilterPanelClass } from '@/components/admin/AdminFilterBarMobile';
 import { isRichTextEmpty, richTextAsPlain } from '@/lib/richTextAdmin';
+import { apiPath } from '@/lib/apiRoutes';
 
 // --- Sections (UI): Header & table | Edit modal | Delete confirm ---
 
@@ -61,7 +62,7 @@ export default function AboutTeamAdminPanel() {
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/about-team', { credentials: 'include' });
+      const res = await fetch(apiPath('admin/about-team'), { credentials: 'include' });
       if (!res.ok) {
         if (res.status === 401) window.location.href = '/admin/login';
         throw new Error('Load failed');
@@ -152,7 +153,7 @@ export default function AboutTeamAdminPanel() {
         setSaving(false);
         return;
       }
-      const url = editingId == null ? '/api/admin/about-team' : `/api/admin/about-team/${editingId}`;
+      const url = editingId == null ? apiPath('admin/about-team') : apiPath(`admin/about-team/${editingId}`);
       const method = editingId == null ? 'POST' : 'PUT';
       const res = await fetch(url, {
         method,
@@ -175,7 +176,7 @@ export default function AboutTeamAdminPanel() {
     if (!can('aboutTeam', 'delete')) return;
     setDeleting(true);
     try {
-      const res = await fetch(`/api/admin/about-team/${id}`, { method: 'DELETE', credentials: 'include' });
+      const res = await fetch(apiPath(`admin/about-team/${id}`), { method: 'DELETE', credentials: 'include' });
       if (!res.ok) throw new Error('Delete failed');
       toast.success('Deleted');
       setDeleteTarget(null);
@@ -197,7 +198,7 @@ export default function AboutTeamAdminPanel() {
     setDeleting(true);
     try {
       for (const id of ids) {
-        const res = await fetch(`/api/admin/about-team/${id}`, { method: 'DELETE', credentials: 'include' });
+        const res = await fetch(apiPath(`admin/about-team/${id}`), { method: 'DELETE', credentials: 'include' });
         if (!res.ok) throw new Error('Delete failed');
       }
       toast.success(isVi ? `Đã xóa ${ids.length} mục` : `Deleted ${ids.length} items`);

@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { safeArray } from '@/lib/safe-array';
 import { useLocale } from '@/components/providers/LocaleProvider';
 import { defaultAboutIntroPayload, toPublicIntro } from '@/lib/aboutIntroSetting';
+import { apiPath } from '@/lib/apiRoutes';
 
 type StatRow = { number: string; label: string };
 type TeamRow = { name: string; role: string; emoji: string; bio: string };
@@ -80,9 +81,9 @@ export default function AboutPage() {
     (async () => {
       try {
         const [statsRes, teamRes, introRes] = await Promise.all([
-          fetch('/api/about/stats'),
-          fetch('/api/about/team'),
-          fetch(`/api/about/intro?locale=${encodeURIComponent(locale)}`),
+          fetch(apiPath('about/stats')),
+          fetch(apiPath('about/team')),
+          fetch(`${apiPath('about/intro')}?locale=${encodeURIComponent(locale)}`),
         ]);
         if (!cancelled) {
           if (statsRes.ok) {

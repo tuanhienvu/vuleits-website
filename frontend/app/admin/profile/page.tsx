@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { apiPath } from '@/lib/apiRoutes';
 
 type Me = {
   id: number;
@@ -10,7 +11,7 @@ type Me = {
   role: { name: string } | null;
 };
 
-// --- Sections: Load /api/admin/me | Profile summary ---
+// --- Sections: Load admin/me | Profile summary ---
 
 export default function AdminProfilePage() {
   const [me, setMe] = useState<Me | null>(null);
@@ -20,7 +21,7 @@ export default function AdminProfilePage() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch('/api/admin/me', { credentials: 'include' });
+        const res = await fetch(apiPath('admin/me'), { credentials: 'include' });
         if (!res.ok) {
           window.location.href = '/admin/login';
           return;

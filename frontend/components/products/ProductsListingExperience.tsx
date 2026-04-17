@@ -17,7 +17,7 @@ type CardItem = {
   technologies: { id: number; name: string; logo: string | null }[];
 };
 
-type ApiResponse = {
+export type ProductsApiResponse = {
   items: CardItem[];
   trending: CardItem[];
   popular: CardItem[];
@@ -26,33 +26,61 @@ type ApiResponse = {
 };
 
 import { ProductList } from '@/components/products/interactive/ProductList';
+import { apiPath } from '@/lib/apiRoutes';
 
 // --- Sections: Filters | Trending / popular / featured | Interactive card grid → /products/[slug] ---
+const PRODUCTS_CACHE_TTL_MS = 60_000;
+const productsCache = new Map<string, { ts: number; data: ProductsApiResponse }>();
 
-export default function ProductsListingExperience() {
-  const [data, setData] = useState<ApiResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+export default function ProductsListingExperience({
+  initialData = null,
+}: {
+  initialData?: ProductsApiResponse | null;
+}) {
+  const [data, setData] = useState<ProductsApiResponse | null>(initialData);
+  const [loading, setLoading] = useState(initialData == null);
   const [q, setQ] = useState('');
   const [category, setCategory] = useState('');
   const [techIds, setTechIds] = useState<number[]>([]);
+  const [debouncedQ, setDebouncedQ] = useState('');
+
+  useEffect(() => {
+    if (initialData) {
+      productsCache.set('', { ts: Date.now(), data: initialData });
+    }
+  }, [initialData]);
+
+  useEffect(() => {
+    const id = window.setTimeout(() => setDebouncedQ(q), 300);
+    return () => window.clearTimeout(id);
+  }, [q]);
 
   const fetchList = useCallback(async () => {
-    setLoading(true);
+    setLoading((prev) => prev || data == null);
     try {
       const params = new URLSearchParams();
-      if (q.trim()) params.set('q', q.trim());
+      if (debouncedQ.trim()) params.set('q', debouncedQ.trim());
       if (category.trim()) params.set('category', category.trim());
       if (techIds.length) params.set('tech', techIds.join(','));
-      const res = await fetch(`/api/products?${params.toString()}`);
+      const key = params.toString();
+      const now = Date.now();
+      const hit = productsCache.get(key);
+      if (hit && now - hit.ts < PRODUCTS_CACHE_TTL_MS) {
+        setData(hit.data);
+        setLoading(false);
+        return;
+      }
+      const res = await fetch(`${apiPath('products')}?${key}`);
       if (!res.ok) throw new Error('fetch failed');
-      const json = (await res.json()) as ApiResponse;
+      const json = (await res.json()) as ProductsApiResponse;
+      productsCache.set(key, { ts: now, data: json });
       setData(json);
     } catch {
       setData(null);
     } finally {
       setLoading(false);
     }
-  }, [q, category, techIds]);
+  }, [debouncedQ, category, techIds, data]);
 
   useEffect(() => {
     void fetchList();

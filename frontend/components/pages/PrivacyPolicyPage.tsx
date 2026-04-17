@@ -6,6 +6,7 @@ import {
   defaultLegalPagePayload,
   type LegalPagePublic,
 } from '@/lib/legalPageSetting';
+import { apiPath } from '@/lib/apiRoutes';
 
 // --- Sections: Policy header | Numbered policy sections ---
 
@@ -22,7 +23,7 @@ export default function PrivacyPolicyPage() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(`/api/privacy-policy?locale=${encodeURIComponent(locale)}`);
+        const res = await fetch(`${apiPath('privacy-policy')}?locale=${encodeURIComponent(locale)}`);
         if (!res.ok || cancelled) return;
         const payload = (await res.json()) as LegalPagePublic;
         if (!cancelled) setData(payload);

@@ -1,6 +1,6 @@
 'use client';
 
-import BrandingLogo from '../../../frontend/components/BrandingLogo';
+import BrandingLogo from './BrandingLogo';
 
 type Props = {
   logoUrl: string;
@@ -14,36 +14,58 @@ export default function BackendHomeBranding({ logoUrl, companyName, slogan }: Pr
     <header
       style={{
         display: 'flex',
+        flexDirection: 'row',
+        flexWrap: 'nowrap',
         alignItems: 'center',
-        gap: 16,
-        flexWrap: 'wrap',
+        justifyContent: 'flex-start',
+        gap: 20,
         marginBottom: 8,
       }}
     >
       {showLogo ? (
-        <div style={{ width: 56, height: 56, flexShrink: 0 }}>
+        <div
+          style={{
+            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
           <BrandingLogo
             src={logoUrl}
             alt=""
-            sizes="56px"
-            className="backend-root-logo"
+            sizes="50px"
+            width={50}
+            height={50}
             imgClassName="object-contain rounded-full"
             priority
           />
         </div>
       ) : null}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          gap: 4,
+          minWidth: 0,
+          flex: '1 1 auto',
+        }}
+      >
         <h1
           className="font-zcool"
-          style={{ margin: 0, fontSize: '1.75rem', fontWeight: 700, letterSpacing: '0.02em' }}
+          style={{
+            margin: 0,
+            fontSize: '1.75rem',
+            fontWeight: 700,
+            letterSpacing: '0.02em',
+            color: '#1d1c63',
+          }}
         >
           {companyName}
         </h1>
         {slogan ? (
-          <p
-            className="font-zcool"
-            style={{ margin: 0, fontSize: '1.125rem', opacity: 0.88, letterSpacing: '0.03em' }}
-          >
+          <p className="font-zcool backend-brand-slogan" style={{ margin: 0, fontSize: '1.125rem', letterSpacing: '0.03em' }}>
             {slogan}
           </p>
         ) : null}

@@ -3,29 +3,57 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import type { ServiceCard, ServicesListResponse } from '@/lib/services/types';
+import { apiPath } from '@/lib/apiRoutes';
 
 // --- Sections: Search filter | Spotlight | Service cards grid ---
+const SERVICES_CACHE_TTL_MS = 60_000;
+const servicesCache = new Map<string, { ts: number; data: ServicesListResponse }>();
 
-export default function ServicesListingExperience() {
-  const [data, setData] = useState<ServicesListResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+export default function ServicesListingExperience({
+  initialData = null,
+}: {
+  initialData?: ServicesListResponse | null;
+}) {
+  const [data, setData] = useState<ServicesListResponse | null>(initialData);
+  const [loading, setLoading] = useState(initialData == null);
   const [q, setQ] = useState('');
+  const [debouncedQ, setDebouncedQ] = useState('');
+
+  useEffect(() => {
+    if (initialData) {
+      servicesCache.set('', { ts: Date.now(), data: initialData });
+    }
+  }, [initialData]);
+
+  useEffect(() => {
+    const id = window.setTimeout(() => setDebouncedQ(q), 300);
+    return () => window.clearTimeout(id);
+  }, [q]);
 
   const fetchList = useCallback(async () => {
-    setLoading(true);
+    setLoading((prev) => prev || data == null);
     try {
       const params = new URLSearchParams();
-      if (q.trim()) params.set('q', q.trim());
-      const res = await fetch(`/api/services?${params.toString()}`);
+      if (debouncedQ.trim()) params.set('q', debouncedQ.trim());
+      const key = params.toString();
+      const now = Date.now();
+      const hit = servicesCache.get(key);
+      if (hit && now - hit.ts < SERVICES_CACHE_TTL_MS) {
+        setData(hit.data);
+        setLoading(false);
+        return;
+      }
+      const res = await fetch(`${apiPath('services')}?${key}`);
       if (!res.ok) throw new Error('fetch failed');
       const json = (await res.json()) as ServicesListResponse;
+      servicesCache.set(key, { ts: now, data: json });
       setData(json);
     } catch {
       setData(null);
     } finally {
       setLoading(false);
     }
-  }, [q]);
+  }, [debouncedQ, data]);
 
   useEffect(() => {
     void fetchList();

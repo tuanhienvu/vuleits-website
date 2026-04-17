@@ -633,10 +633,10 @@ html.light .admin-app .admin-brand-slogan {
   --font-mono: var(--font-geist-mono);
   /*
    * Tailwind v4 maps --font-{name} → utility `font-{name}`.
-   * Use --font-zcool (not --font-zcool-xiaowei) so `font-zcool` is generated.
-   * @fontsource/zcool-xiaowei in root layout registers the "ZCOOL XiaoWei" family.
+   * Root layout registers --font-zcool via next/font/local with preload disabled.
+   * Keep the utility name as `font-zcool`.
    */
-  --font-zcool: "ZCOOL XiaoWei", ui-serif, Georgia, "Times New Roman", serif;
+  --font-zcool: var(--font-zcool-family), ui-serif, Georgia, "Times New Roman", serif;
   /* Desktop / mobile split: below 1080px use compact (mobile) layouts for all `lg:` utilities */
   --breakpoint-lg: 67.5rem;
 }
@@ -644,7 +644,7 @@ html.light .admin-app .admin-brand-slogan {
 /* Explicit rule: ensures `font-zcool` works even if v4 theme token alone does not emit the utility */
 @layer utilities {
   .font-zcool {
-    font-family: "ZCOOL XiaoWei", ui-serif, Georgia, "Times New Roman", serif;
+    font-family: var(--font-zcool-family), ui-serif, Georgia, "Times New Roman", serif;
   }
 
   /* Utility used by admin sidebar to match header height precisely */

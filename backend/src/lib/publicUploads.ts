@@ -1,6 +1,7 @@
 import { mkdir, unlink, writeFile } from 'fs/promises';
 import path from 'path';
 import { randomBytes } from 'crypto';
+import { fileTypeFromBuffer } from 'file-type';
 
 /** Web path prefix (served from `public/uploads`). */
 export const UPLOADS_PUBLIC_BASE = '/uploads';
@@ -56,6 +57,8 @@ export type SavedPublicUpload = {
   publicUrl: string;
   fsPath: string;
   folder: string;
+  /** MIME from magic-byte sniffing (authoritative). */
+  verifiedMime: string;
 };
 
 /**
@@ -74,7 +77,23 @@ export async function savePublicUpload(params: {
     throw new PublicUploadError(`File too large (max ${mb}MB)`, 413);
   }
 
-  const ext = extensionForMime(params.mimeType);
+  const sniff = await fileTypeFromBuffer(params.buffer.subarray(0, Math.min(params.buffer.length, 65_536)));
+  const declared = params.mimeType.toLowerCase().split(';')[0].trim();
+  const detectedMime = sniff?.mime;
+
+  if (!detectedMime) {
+    throw new PublicUploadError('Could not verify file type (unrecognized or empty content)', 415);
+  }
+
+  if (!extensionForMime(detectedMime)) {
+    throw new PublicUploadError('Unsupported file type', 415);
+  }
+
+  if (declared && declared !== detectedMime) {
+    throw new PublicUploadError('File content does not match declared type', 415);
+  }
+
+  const ext = extensionForMime(detectedMime);
   if (!ext) {
     throw new PublicUploadError('Unsupported file type', 415);
   }
@@ -87,7 +106,7 @@ export async function savePublicUpload(params: {
   await writeFile(fsPath, params.buffer);
 
   const publicUrl = `${UPLOADS_PUBLIC_BASE}/${folder}/${filename}`;
-  return { filename, publicUrl, fsPath, folder };
+  return { filename, publicUrl, fsPath, folder, verifiedMime: detectedMime };
 }
 
 export async function removePublicUploadFile(fsPath: string): Promise<void> {

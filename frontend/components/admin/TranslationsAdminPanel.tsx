@@ -16,6 +16,7 @@ import {
   parseTranslationSheet,
   type UiMessagesDraft,
 } from '@/lib/locale/uiMessagesExcel';
+import { apiPath } from '@/lib/apiRoutes';
 
 const SAVE_CHUNK = 100;
 
@@ -25,7 +26,7 @@ async function putEntriesChunked(
 ): Promise<void> {
   for (let i = 0; i < entries.length; i += chunkSize) {
     const chunk = entries.slice(i, i + chunkSize);
-    const res = await fetch('/api/admin/ui-messages', {
+    const res = await fetch(apiPath('admin/ui-messages'), {
       method: 'PUT',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
@@ -91,7 +92,7 @@ export default function TranslationsAdminPanel() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/ui-messages', { credentials: 'include' });
+      const res = await fetch(apiPath('admin/ui-messages'), { credentials: 'include' });
       if (res.status === 401 || res.status === 403) {
         window.location.href = '/admin/login';
         return;

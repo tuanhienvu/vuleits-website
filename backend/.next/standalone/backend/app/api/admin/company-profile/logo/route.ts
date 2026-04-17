@@ -45,7 +45,7 @@ export async function POST(req: Request) {
   const media = await prisma.media.create({
     data: {
       filename: saved.filename,
-      mimeType: file.type,
+      mimeType: saved.verifiedMime,
       size: buf.length,
       folder: saved.folder,
       url: saved.publicUrl,

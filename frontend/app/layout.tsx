@@ -1,8 +1,7 @@
 import type { Metadata } from 'next';
 import Script from 'next/script';
 import { Geist, Geist_Mono } from 'next/font/google';
-/** Latin subset only (~one woff2) — full `index.css` pulls 60+ unicode slices. Vietnamese diacritics fall back to Geist. */
-import '@fontsource/zcool-xiaowei/latin-400.css';
+import localFont from 'next/font/local';
 import '@/app/globals.css';
 import { LocaleProvider } from '@/components/providers/LocaleProvider';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
@@ -18,6 +17,15 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
   subsets: ['latin'],
+  /** Mono is only used in admin / `.font-mono` — avoid unused preload warnings on public pages. */
+  preload: false,
+});
+
+const zcool = localFont({
+  src: '../../node_modules/@fontsource/zcool-xiaowei/files/zcool-xiaowei-latin-400-normal.woff2',
+  variable: '--font-zcool-family',
+  display: 'swap',
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -43,7 +51,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       {/* ==================== ROOT: THEME (before paint), LOCALE & TOAST ==================== */}
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${zcool.variable} antialiased`}>
         <Script id="vuleits-theme-init" strategy="beforeInteractive">
           {`(function(){try{var d=document.documentElement;d.classList.remove('light','dark');d.classList.add('dark');d.style.colorScheme='dark';try{localStorage.setItem('vuleits-theme','dark');}catch(e){} }catch(e){document.documentElement.classList.add('dark');document.documentElement.style.colorScheme='dark';}})();`}
         </Script>

@@ -5,6 +5,7 @@ import { useAdminPermissions } from '@/components/admin/AdminPermissionContext';
 import { useToast } from '@/components/providers/ToastProvider';
 import { useLocale } from '@/components/providers/LocaleProvider';
 import type { MarketingConfig } from '@/lib/marketing/config';
+import { apiPath } from '@/lib/apiRoutes';
 
 const emptyConfig: MarketingConfig = {
   enabled: false,
@@ -27,7 +28,7 @@ export default function SeoMarketingAdminPanel() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/marketing-config', { credentials: 'include' });
+      const res = await fetch(apiPath('admin/marketing-config'), { credentials: 'include' });
       if (res.status === 401 || res.status === 403) {
         window.location.href = '/admin/login';
         return;
@@ -51,7 +52,7 @@ export default function SeoMarketingAdminPanel() {
     if (!canSave) return;
     setSaving(true);
     try {
-      const res = await fetch('/api/admin/marketing-config', {
+      const res = await fetch(apiPath('admin/marketing-config'), {
         method: 'PUT',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

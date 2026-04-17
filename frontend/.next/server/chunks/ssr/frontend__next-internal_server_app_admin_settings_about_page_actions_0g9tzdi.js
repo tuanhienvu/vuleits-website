@@ -1,0 +1,3 @@
+module.exports=[63575,(a,b,c)=>{}];
+
+//# sourceMappingURL=frontend__next-internal_server_app_admin_settings_about_page_actions_0g9tzdi.js.map

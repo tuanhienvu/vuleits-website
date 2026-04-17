@@ -15,6 +15,7 @@ export const UI_FEATURES = [
   'users',
   'userPassword',
   'permissions',
+  'auditLogs',
 ] as const;
 
 export type AdminUiFeatureId = (typeof UI_FEATURES)[number];
@@ -30,4 +31,21 @@ export function makeEmptyAdminMatrix(): AdminCrudMatrix {
     out[f] = { create: false, read: false, update: false, delete: false };
   }
   return out;
+}
+
+/** Merge API/partial matrices into a full matrix so every `UI_FEATURES` row exists (avoids undefined `.read`). */
+export function normalizeAdminMatrix(input: Partial<AdminCrudMatrix> | AdminCrudMatrix | null | undefined): AdminCrudMatrix {
+  const base = makeEmptyAdminMatrix();
+  for (const f of UI_FEATURES) {
+    const row = input?.[f];
+    if (row && typeof row === 'object') {
+      base[f] = {
+        create: Boolean((row as { create?: unknown }).create),
+        read: Boolean((row as { read?: unknown }).read),
+        update: Boolean((row as { update?: unknown }).update),
+        delete: Boolean((row as { delete?: unknown }).delete),
+      };
+    }
+  }
+  return base;
 }

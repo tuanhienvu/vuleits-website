@@ -16,6 +16,7 @@ import { useToast } from '@/components/providers/ToastProvider';
 import { NEWS_CATEGORIES } from '@/lib/news/newsCategories';
 import { slugify } from '@/lib/news/slugify';
 import { AdminFilterSearchIconButton, adminFilterPanelClass } from '@/components/admin/AdminFilterBarMobile';
+import { apiPath } from '@/lib/apiRoutes';
 
 // --- Sections (UI): Header & filters | Article list & pagination | Edit/create modal | Thumbnail picker | Delete confirm ---
 // --- Sections (logic): State & loaders | Handlers | Submit & media helpers | Thumbnail preview ---
@@ -148,7 +149,7 @@ export default function NewsAdminPanel() {
       if (categoryFilter.trim()) params.set('category', categoryFilter.trim());
       if (statusFilter.trim()) params.set('status', statusFilter.trim());
 
-      const res = await fetch(`/api/admin/news?${params.toString()}`, { credentials: 'include' });
+      const res = await fetch(`${apiPath('admin/news')}?${params.toString()}`, { credentials: 'include' });
       if (!res.ok) {
         if (res.status === 401 || res.status === 403) window.location.href = '/admin/login';
         return;
@@ -279,7 +280,7 @@ export default function NewsAdminPanel() {
     if (!deletePending) return;
     setDeleting(true);
     try {
-      const res = await fetch(`/api/admin/news/${deletePending.id}`, { method: 'DELETE', credentials: 'include' });
+      const res = await fetch(apiPath(`admin/news/${deletePending.id}`), { method: 'DELETE', credentials: 'include' });
       if (!res.ok) throw new Error('Delete failed');
       await deleteModal.closeAnimated();
       toast.success('Deleted');
@@ -302,7 +303,7 @@ export default function NewsAdminPanel() {
       setDeleting(true);
       try {
         for (const id of ids) {
-          const res = await fetch(`/api/admin/news/${id}`, { method: 'DELETE', credentials: 'include' });
+          const res = await fetch(apiPath(`admin/news/${id}`), { method: 'DELETE', credentials: 'include' });
           if (!res.ok) throw new Error('Delete failed');
         }
         toast.success(isVi ? `Đã xóa ${ids.length} bài` : `Deleted ${ids.length} articles`);
@@ -326,7 +327,7 @@ export default function NewsAdminPanel() {
     setThumbPickerOpen(true);
     setThumbPickerLoading(true);
     try {
-      const res = await fetch('/api/admin/media?take=120&imagesOnly=1', { credentials: 'include' });
+      const res = await fetch(`${apiPath('admin/media')}?take=120&imagesOnly=1`, { credentials: 'include' });
       if (!res.ok) throw new Error('Load media failed');
       const data = (await res.json()) as MediaLibraryRow[];
       setThumbList(Array.isArray(data) ? data : []);
@@ -367,7 +368,7 @@ export default function NewsAdminPanel() {
       };
 
       const isEdit = form.id != null;
-      const url = isEdit ? `/api/admin/news/${form.id}` : '/api/admin/news';
+      const url = isEdit ? apiPath(`admin/news/${form.id}`) : apiPath('admin/news');
       const method = isEdit ? 'PUT' : 'POST';
 
       const res = await fetch(url, {

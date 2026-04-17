@@ -7,6 +7,7 @@ import { useLocale } from '@/components/providers/LocaleProvider';
 import { useToast } from '@/components/providers/ToastProvider';
 import LocaleSwitcher from '@/components/LocaleSwitcher';
 import { useAdminPermissions } from '@/components/admin/AdminPermissionContext';
+import { apiPath } from '@/lib/apiRoutes';
 
 interface AdminHeaderProps {
   onMenuClick: () => void;
@@ -52,7 +53,7 @@ export default function AdminHeader({ onMenuClick, mobileMenuOpen }: AdminHeader
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await fetch('/api/admin/me', { credentials: 'include' });
+        const res = await fetch(apiPath('admin/me'), { credentials: 'include' });
         if (res.ok) {
           const data = (await res.json()) as Me;
           if (data?.email) setMe(data);
@@ -69,7 +70,7 @@ export default function AdminHeader({ onMenuClick, mobileMenuOpen }: AdminHeader
     let cancelled = false;
     const fetchNew = async () => {
       try {
-        const res = await fetch('/api/admin/contact-submissions/new-count', { credentials: 'include' });
+        const res = await fetch(apiPath('admin/contact-submissions/new-count'), { credentials: 'include' });
         if (!res.ok || cancelled) return;
         const j = (await res.json()) as { newCount?: unknown };
         if (!cancelled) setContactNewCount(Math.min(999, Math.max(0, Number(j.newCount) || 0)));
@@ -112,7 +113,7 @@ export default function AdminHeader({ onMenuClick, mobileMenuOpen }: AdminHeader
   const handleLogout = async () => {
     setMenuOpen(false);
     try {
-      const res = await fetch('/api/admin/logout', {
+      const res = await fetch(apiPath('admin/logout'), {
         method: 'POST',
         credentials: 'include',
       });
@@ -139,7 +140,7 @@ export default function AdminHeader({ onMenuClick, mobileMenuOpen }: AdminHeader
     }
     setPasswordSaving(true);
     try {
-      const res = await fetch('/api/admin/me/password', {
+      const res = await fetch(apiPath('admin/me/password'), {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

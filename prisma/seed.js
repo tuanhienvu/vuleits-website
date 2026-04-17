@@ -1,7 +1,6 @@
-// Load environment variables first (monorepo: prefer backend/.env, then repo root)
+// Load environment variables from `backend/.env` (see `backend/.env.example`).
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', 'backend', '.env') });
-require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 if (!process.env.DATABASE_URL) {
   const { DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD } = process.env;
@@ -35,6 +34,7 @@ async function main() {
     'users',
     'userPassword',
     'permissions',
+    'auditLogs',
   ];
 
   // Map sidebar feature ids -> permission name prefixes in DB
@@ -53,6 +53,7 @@ async function main() {
     users: 'users',
     userPassword: 'userPassword',
     permissions: 'permissions',
+    auditLogs: 'auditLogs',
   };
 
   const actions = ['create', 'read', 'update', 'delete'];
@@ -116,7 +117,9 @@ async function main() {
   // These match the "Role Permission Matrix (CRUD)" logic you requested, but stored per-user.
   const roleCrudDefaults = {
     SYSADMIN: Object.fromEntries(uiFeatures.map((f) => [f, { create: true, read: true, update: true, delete: true }])),
-    ADMIN: Object.fromEntries(uiFeatures.map((f) => [f, { create: true, read: true, update: true, delete: true }])),
+    ADMIN: Object.fromEntries(
+      uiFeatures.map((f) => [f, { create: true, read: true, update: true, delete: true }]),
+    ),
     MANAGER: (() => {
       const base = Object.fromEntries(uiFeatures.map((f) => [f, { create: false, read: false, update: false, delete: false }])); // start empty
       for (const f of ['overview', 'services', 'products', 'news', 'media', 'banners', 'homeFeatures', 'uiTexts', 'contacts', 'aboutTeam', 'aboutStats']) {
@@ -161,6 +164,7 @@ async function main() {
   readOnlyMatrix.users = { create: false, read: false, update: false, delete: false };
   readOnlyMatrix.userPassword = { create: false, read: false, update: false, delete: false };
   readOnlyMatrix.permissions = { create: false, read: false, update: false, delete: false };
+  readOnlyMatrix.auditLogs = { create: false, read: true, update: false, delete: false };
 
   await prisma.user.deleteMany({ where: { email: 'demo' } });
 

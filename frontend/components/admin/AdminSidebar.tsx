@@ -9,16 +9,196 @@ import { useCompanyBranding } from '@/hooks/useCompanyBranding';
 import { useAdminPermissions } from '@/components/admin/AdminPermissionContext';
 import type { AdminUiFeatureId } from '@/lib/adminPermissionModel';
 import { useAdminCompanyProfileNav } from '@/hooks/useAdminCompanyProfileNav';
+import { apiPath } from '@/lib/apiRoutes';
+
+/** Sidebar section ids (fixed order). */
+const GROUP = {
+  OVERVIEW: 0,
+  CONTENTS: 1,
+  PRODUCTS: 2,
+  AUTHORITY: 3,
+  SETTINGS: 4,
+} as const;
+
+/** Nav row ids (unique; integers per request). */
+const NAV = {
+  TAB_OVERVIEW: 100,
+  TAB_NEWS: 101,
+  TAB_MEDIA: 102,
+  TAB_BANNERS: 103,
+  TAB_PRODUCTS: 104,
+  TAB_SERVICES: 105,
+  TAB_USERS: 106,
+  PAGE_PERMISSIONS: 200,
+  PAGE_SETTINGS_ABOUT: 201,
+  PAGE_SETTINGS_COMPANY: 202,
+  PAGE_SETTINGS_SITE: 203,
+  PAGE_SETTINGS_SEO: 204,
+  PAGE_SETTINGS_LOGS: 205,
+} as const;
+
+type MenuTemplateItem =
+  | { kind: 'tab'; id: number; featureId: AdminUiFeatureId; labelKey: string; icon: string; path: string }
+  | { kind: 'page'; id: number; labelKey: string; icon: string; path: string };
+
+/**
+ * Single source of truth for section and row order. Locale only changes translated labels;
+ * this array order is never derived from sorting (avoids EN vs vi-VN reordering).
+ */
+const ADMIN_MENU_TEMPLATE: { groupId: number; labelKey: string; items: MenuTemplateItem[] }[] = [
+  {
+    groupId: GROUP.OVERVIEW,
+    labelKey: 'admin.overview',
+    items: [
+      {
+        kind: 'tab',
+        id: NAV.TAB_OVERVIEW,
+        featureId: 'overview',
+        labelKey: 'admin.overview',
+        icon: '📊',
+        path: '/admin/dashboard?tab=overview',
+      },
+    ],
+  },
+  {
+    groupId: GROUP.CONTENTS,
+    labelKey: 'admin.contents',
+    items: [
+      {
+        kind: 'tab',
+        id: NAV.TAB_NEWS,
+        featureId: 'news',
+        labelKey: 'admin.news',
+        icon: '📰',
+        path: '/admin/dashboard?tab=news',
+      },
+      {
+        kind: 'tab',
+        id: NAV.TAB_MEDIA,
+        featureId: 'media',
+        labelKey: 'admin.media',
+        icon: '🖼️',
+        path: '/admin/dashboard?tab=media',
+      },
+      {
+        kind: 'tab',
+        id: NAV.TAB_BANNERS,
+        featureId: 'banners',
+        labelKey: 'admin.banners',
+        icon: '🎬',
+        path: '/admin/dashboard?tab=banners',
+      },
+    ],
+  },
+  {
+    groupId: GROUP.PRODUCTS,
+    labelKey: 'admin.productGroup',
+    items: [
+      {
+        kind: 'tab',
+        id: NAV.TAB_SERVICES,
+        featureId: 'services',
+        labelKey: 'admin.services',
+        icon: '🧩',
+        path: '/admin/dashboard?tab=services',
+      },
+      {
+        kind: 'tab',
+        id: NAV.TAB_PRODUCTS,
+        featureId: 'products',
+        labelKey: 'admin.products',
+        icon: '📦',
+        path: '/admin/dashboard?tab=products',
+      },
+    ],
+  },
+  {
+    groupId: GROUP.AUTHORITY,
+    labelKey: 'admin.permissionGroup',
+    items: [
+      {
+        kind: 'tab',
+        id: NAV.TAB_USERS,
+        featureId: 'users',
+        labelKey: 'admin.users',
+        icon: '👥',
+        path: '/admin/dashboard?tab=users',
+      },
+      {
+        kind: 'page',
+        id: NAV.PAGE_PERMISSIONS,
+        labelKey: 'admin.permissions',
+        icon: '🔐',
+        path: '/admin/permissions',
+      },
+    ],
+  },
+  {
+    groupId: GROUP.SETTINGS,
+    labelKey: 'admin.settings',
+    items: [
+      {
+        kind: 'page',
+        id: NAV.PAGE_SETTINGS_ABOUT,
+        labelKey: 'admin.settingsNavAbout',
+        icon: '🎯',
+        path: '/admin/settings/about',
+      },
+      {
+        kind: 'page',
+        id: NAV.PAGE_SETTINGS_COMPANY,
+        labelKey: 'admin.settingsNavCompany',
+        icon: '🏢',
+        path: '/admin/settings/company',
+      },
+      {
+        kind: 'page',
+        id: NAV.PAGE_SETTINGS_SITE,
+        labelKey: 'admin.settingsNavSite',
+        icon: '🌐',
+        path: '/admin/settings/site',
+      },
+      {
+        kind: 'page',
+        id: NAV.PAGE_SETTINGS_SEO,
+        labelKey: 'admin.seoMarketing',
+        icon: '📈',
+        path: '/admin/settings/seo-marketing',
+      },
+      {
+        kind: 'page',
+        id: NAV.PAGE_SETTINGS_LOGS,
+        labelKey: 'admin.settingsNavLogs',
+        icon: '📋',
+        path: '/admin/settings/logs',
+      },
+    ],
+  },
+];
 
 type SidebarNavItem =
-  | { kind: 'tab'; id: AdminUiFeatureId; label: string; icon: string; path: string }
-  | {
-      kind: 'page';
-      id: 'permissionsPage' | 'settingsAbout' | 'settingsCompany' | 'settingsSite' | 'settingsSeoMarketing';
-      label: string;
-      icon: string;
-      path: string;
+  | { kind: 'tab'; id: number; featureId: AdminUiFeatureId; label: string; icon: string; path: string }
+  | { kind: 'page'; id: number; label: string; icon: string; path: string };
+
+function templateItemToSidebarItem(t: (key: string) => string, item: MenuTemplateItem): SidebarNavItem {
+  if (item.kind === 'tab') {
+    return {
+      kind: 'tab',
+      id: item.id,
+      featureId: item.featureId,
+      label: t(item.labelKey),
+      icon: item.icon,
+      path: item.path,
     };
+  }
+  return {
+    kind: 'page',
+    id: item.id,
+    label: t(item.labelKey),
+    icon: item.icon,
+    path: item.path,
+  };
+}
 
 interface AdminSidebarProps {
   isOpen: boolean;
@@ -27,13 +207,37 @@ interface AdminSidebarProps {
   onMobileToggle: () => void;
 }
 
+function itemAllowed(
+  item: MenuTemplateItem | SidebarNavItem,
+  allowTab: (id: AdminUiFeatureId) => boolean,
+  showCompanyProfileNav: boolean,
+): boolean {
+  if (item.kind === 'tab') return allowTab(item.featureId);
+  switch (item.id) {
+    case NAV.PAGE_PERMISSIONS:
+      return allowTab('permissions');
+    case NAV.PAGE_SETTINGS_ABOUT:
+      return allowTab('aboutTeam') || allowTab('aboutStats');
+    case NAV.PAGE_SETTINGS_COMPANY:
+      return showCompanyProfileNav || allowTab('contacts');
+    case NAV.PAGE_SETTINGS_SITE:
+      return allowTab('aboutTeam') || allowTab('uiTexts');
+    case NAV.PAGE_SETTINGS_SEO:
+      return allowTab('uiTexts');
+    case NAV.PAGE_SETTINGS_LOGS:
+      return allowTab('auditLogs');
+    default:
+      return false;
+  }
+}
+
 // --- Sections: Desktop sidebar (brand, nav, collapse) | Mobile drawer | Shared nav groups ---
 
 export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileToggle }: AdminSidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { t, locale } = useLocale();
+  const { t } = useLocale();
   const { logoSrc, companyName, slogan } = useCompanyBranding();
   const brandSubtitle = slogan || t('admin.panel');
   const { can, loading: permsLoading } = useAdminPermissions();
@@ -52,7 +256,7 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
     let cancelled = false;
     const fetchNew = async () => {
       try {
-        const res = await fetch('/api/admin/contact-submissions/new-count', { credentials: 'include' });
+        const res = await fetch(apiPath('admin/contact-submissions/new-count'), { credentials: 'include' });
         if (!res.ok || cancelled) return;
         const j = (await res.json()) as { newCount?: unknown };
         if (!cancelled) setContactNewCount(Math.min(999, Math.max(0, Number(j.newCount) || 0)));
@@ -71,145 +275,44 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
     };
   }, [permsLoading, can]);
 
-  const menuGroups: { id: string; label: string; items: SidebarNavItem[] }[] = useMemo(
-    () => [
-      {
-        id: 'overview',
-        label: t('admin.overview'),
-        items: [
-          { kind: 'tab', id: 'overview', label: t('admin.overview'), icon: '📊', path: '/admin/dashboard?tab=overview' },
-        ],
-      },
-      {
-        id: 'contents',
-        label: t('admin.contents'),
-        items: [
-          { kind: 'tab', id: 'news', label: t('admin.news'), icon: '📰', path: '/admin/dashboard?tab=news' },
-          { kind: 'tab', id: 'media', label: t('admin.media'), icon: '🖼️', path: '/admin/dashboard?tab=media' },
-          { kind: 'tab', id: 'banners', label: t('admin.banners'), icon: '🎬', path: '/admin/dashboard?tab=banners' },
-        ],
-      },
-      {
-        id: 'products',
-        label: t('admin.productGroup'),
-        items: [
-          { kind: 'tab', id: 'services', label: t('admin.services'), icon: '🧩', path: '/admin/dashboard?tab=services' },
-          { kind: 'tab', id: 'products', label: t('admin.products'), icon: '📦', path: '/admin/dashboard?tab=products' },
-        ],
-      },
-      {
-        id: 'authority',
-        label: t('admin.permissionGroup'),
-        items: [
-          { kind: 'tab', id: 'users', label: t('admin.users'), icon: '👥', path: '/admin/dashboard?tab=users' },
-          { kind: 'page', id: 'permissionsPage', label: t('admin.permissions'), icon: '🔐', path: '/admin/permissions' },
-        ],
-      },
-      {
-        id: 'settings',
-        label: t('admin.settings'),
-        items: [
-          {
-            kind: 'page',
-            id: 'settingsAbout',
-            label: t('admin.settingsNavAbout'),
-            icon: '🎯',
-            path: '/admin/settings/about',
-          },
-          {
-            kind: 'page',
-            id: 'settingsCompany',
-            label: t('admin.settingsNavCompany'),
-            icon: '🏢',
-            path: '/admin/settings/company',
-          },
-          {
-            kind: 'page',
-            id: 'settingsSite',
-            label: t('admin.settingsNavSite'),
-            icon: '🌐',
-            path: '/admin/settings/site',
-          },
-          {
-            kind: 'page',
-            id: 'settingsSeoMarketing',
-            label: t('admin.seoMarketing'),
-            icon: '📈',
-            path: '/admin/settings/seo-marketing',
-          },
-        ],
-      },
-    ],
-    [t],
-  );
-
   const visibleGroups = useMemo(() => {
-    const collator = new Intl.Collator(locale, { sensitivity: 'base' });
-    const filtered = menuGroups
-      .map((group) => ({
-        ...group,
-        items: group.items
-          .filter((item) => {
-            if (item.kind === 'page' && item.id === 'permissionsPage') return allowTab('permissions');
-            if (item.kind === 'page' && item.id === 'settingsAbout')
-              return allowTab('aboutTeam') || allowTab('aboutStats');
-            if (item.kind === 'page' && item.id === 'settingsCompany')
-              return showCompanyProfileNav || allowTab('contacts');
-            if (item.kind === 'page' && item.id === 'settingsSite')
-              return allowTab('aboutTeam') || allowTab('uiTexts');
-            if (item.kind === 'page' && item.id === 'settingsSeoMarketing') return allowTab('uiTexts');
-            if (item.kind === 'tab') return allowTab(item.id);
-            return false;
-          })
-          .sort((a, b) => collator.compare(a.label, b.label)),
-      }))
-      .filter((g) => g.items.length > 0);
-
-    const byLabel = [...filtered].sort((a, b) => collator.compare(a.label, b.label));
-    const overview = byLabel.find((g) => g.id === 'overview');
-    const contents = byLabel.find((g) => g.id === 'contents');
-    const authority = byLabel.find((g) => g.id === 'authority');
-
-    const baseOrdered = [...byLabel];
-    if (overview && contents) {
-      const overviewIdx = baseOrdered.findIndex((g) => g.id === 'overview');
-      const contentsIdx = baseOrdered.findIndex((g) => g.id === 'contents');
-      if (overviewIdx > contentsIdx && contentsIdx >= 0) {
-        baseOrdered.splice(overviewIdx, 1);
-        baseOrdered.splice(contentsIdx, 0, overview);
-      }
+    const out: { id: number; label: string; items: SidebarNavItem[] }[] = [];
+    for (const tpl of ADMIN_MENU_TEMPLATE) {
+      const items = tpl.items
+        .filter((item) => itemAllowed(item, allowTab, showCompanyProfileNav))
+        .sort((a, b) => a.id - b.id)
+        .map((item) => templateItemToSidebarItem(t, item));
+      if (items.length === 0) continue;
+      out.push({
+        id: tpl.groupId,
+        label: t(tpl.labelKey),
+        items,
+      });
     }
-
-    if (!authority) return baseOrdered;
-
-    const withoutAuthority = baseOrdered.filter((g) => g.id !== 'authority');
-    const settingsIdx = withoutAuthority.findIndex((g) => g.id === 'settings');
-    if (settingsIdx >= 0) {
-      withoutAuthority.splice(settingsIdx, 0, authority);
-      return withoutAuthority;
-    }
-    return [...withoutAuthority, authority];
-  }, [menuGroups, showCompanyProfileNav, allowTab, locale]);
+    return out;
+  }, [t, allowTab, showCompanyProfileNav]);
 
   const activeGroupId = useMemo(() => {
     for (const g of visibleGroups) {
       for (const item of g.items) {
         const isActive =
-          item.kind === 'page' ? pathname === item.path : activeTab != null && activeTab === item.id;
+          item.kind === 'page'
+            ? pathname === item.path
+            : activeTab != null && activeTab === item.featureId;
         if (isActive) return g.id;
       }
     }
     return null;
   }, [visibleGroups, pathname, activeTab]);
 
-  const [expandedGroupId, setExpandedGroupId] = useState<string | null>(activeGroupId);
+  const [expandedGroupId, setExpandedGroupId] = useState<number | null>(activeGroupId ?? null);
 
   useEffect(() => {
     setExpandedGroupId(activeGroupId);
   }, [activeGroupId]);
 
   const toggleGroupHeader = useCallback(
-    (groupId: string) => {
+    (groupId: number) => {
       setExpandedGroupId((cur) => {
         if (cur === groupId) {
           return groupId === activeGroupId ? cur : null;
@@ -306,10 +409,10 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
                               const isActive =
                                 item.kind === 'page'
                                   ? pathname === item.path
-                                  : activeTab != null && activeTab === item.id;
+                                  : activeTab != null && activeTab === item.featureId;
                               return (
                                 <button
-                                  key={`${item.kind}-${item.id}`}
+                                  key={item.id}
                                   type="button"
                                   onClick={() => handleNavigation(item.path)}
                                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${
@@ -320,7 +423,7 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
                                 >
                                   <span className="text-xl shrink-0">{item.icon}</span>
                                   <span className="text-sm font-medium truncate flex-1 min-w-0 text-left">{item.label}</span>
-                                  {item.kind === 'page' && item.id === 'settingsCompany' && contactNewCount > 0 ? (
+                                  {item.kind === 'page' && item.id === NAV.PAGE_SETTINGS_COMPANY && contactNewCount > 0 ? (
                                     <span className="shrink-0 min-w-[1.35rem] h-6 px-1.5 rounded-full bg-amber-500 text-[11px] font-bold text-slate-900 flex items-center justify-center">
                                       {contactNewCount > 99 ? '99+' : contactNewCount}
                                     </span>
@@ -338,10 +441,10 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
                         const isActive =
                           item.kind === 'page'
                             ? pathname === item.path
-                            : activeTab != null && activeTab === item.id;
+                            : activeTab != null && activeTab === item.featureId;
                         return (
                           <button
-                            key={`${item.kind}-${item.id}`}
+                            key={item.id}
                             type="button"
                             onClick={() => handleNavigation(item.path)}
                             className={`w-full flex items-center justify-center px-1.5 py-2.5 rounded-lg transition-all duration-200 ${
@@ -350,14 +453,14 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
                                 : 'text-white/70 hover:bg-white/10 hover:text-white hover:border-b hover:border-white focus:border-b focus:border-white focus:outline-none'
                             }`}
                             title={
-                              item.kind === 'page' && item.id === 'settingsCompany' && contactNewCount > 0
+                              item.kind === 'page' && item.id === NAV.PAGE_SETTINGS_COMPANY && contactNewCount > 0
                                 ? `${item.label} (${contactNewCount} new)`
                                 : item.label
                             }
                           >
                             <span className="text-2xl leading-none shrink-0 relative inline-flex">
                               {item.icon}
-                              {item.kind === 'page' && item.id === 'settingsCompany' && contactNewCount > 0 ? (
+                              {item.kind === 'page' && item.id === NAV.PAGE_SETTINGS_COMPANY && contactNewCount > 0 ? (
                                 <span
                                   className="absolute -top-0.5 -right-1 w-2 h-2 rounded-full bg-amber-500 ring-2 ring-[color:var(--admin-sidebar-bg)]"
                                   aria-hidden
@@ -480,10 +583,10 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
                           const isActive =
                             item.kind === 'page'
                               ? pathname === item.path
-                              : activeTab != null && activeTab === item.id;
+                              : activeTab != null && activeTab === item.featureId;
                           return (
                             <button
-                              key={`${item.kind}-${item.id}`}
+                              key={item.id}
                               type="button"
                               onClick={() => handleNavigation(item.path)}
                               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${
@@ -494,7 +597,7 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
                             >
                               <span className="text-xl shrink-0">{item.icon}</span>
                               <span className="text-sm font-medium flex-1 min-w-0 text-left truncate">{item.label}</span>
-                              {item.kind === 'page' && item.id === 'settingsCompany' && contactNewCount > 0 ? (
+                              {item.kind === 'page' && item.id === NAV.PAGE_SETTINGS_COMPANY && contactNewCount > 0 ? (
                                 <span className="shrink-0 min-w-[1.35rem] h-6 px-1.5 rounded-full bg-amber-500 text-[11px] font-bold text-slate-900 flex items-center justify-center">
                                   {contactNewCount > 99 ? '99+' : contactNewCount}
                                 </span>
@@ -514,4 +617,3 @@ export default function AdminSidebar({ isOpen, onToggle, mobileOpen, onMobileTog
     </>
   );
 }
-

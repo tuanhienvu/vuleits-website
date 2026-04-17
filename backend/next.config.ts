@@ -1,5 +1,6 @@
 import type { NextConfig } from 'next';
 import path from 'path';
+import { buildApiContentSecurityPolicy } from './src/lib/contentSecurityPolicy';
 
 /**
  * Shared hosting (Plesk, CloudLinux LVE) often hits `spawn EAGAIN` / `kill EPERM` during
@@ -22,7 +23,6 @@ const cpus = buildCpus();
 
 const nextConfig: NextConfig = {
   experimental: {
-    externalDir: true,
     ...(lowParallelBuild
       ? {
           cpus,
@@ -32,6 +32,7 @@ const nextConfig: NextConfig = {
         ? { cpus }
         : {}),
   },
+  turbopack: {},
   output: 'standalone',
   outputFileTracingRoot: path.join(__dirname, '..'),
   serverExternalPackages: ['@prisma/client', 'prisma'],
@@ -51,6 +52,7 @@ const nextConfig: NextConfig = {
           { key: 'X-Frame-Options', value: 'DENY' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+          { key: 'Content-Security-Policy', value: buildApiContentSecurityPolicy() },
         ],
       },
     ];

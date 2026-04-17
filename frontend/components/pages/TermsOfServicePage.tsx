@@ -6,6 +6,7 @@ import {
   defaultLegalPagePayload,
   type LegalPagePublic,
 } from '@/lib/legalPageSetting';
+import { apiPath } from '@/lib/apiRoutes';
 
 // --- Sections: Terms header | Rich body from admin-managed API ---
 
@@ -22,7 +23,7 @@ export default function TermsOfServicePage() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(`/api/terms-of-service?locale=${encodeURIComponent(locale)}`);
+        const res = await fetch(`${apiPath('terms-of-service')}?locale=${encodeURIComponent(locale)}`);
         if (!res.ok || cancelled) return;
         const payload = (await res.json()) as LegalPagePublic;
         if (!cancelled) setData(payload);

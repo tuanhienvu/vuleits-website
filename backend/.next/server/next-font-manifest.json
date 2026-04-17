@@ -1,5 +1,8 @@
 {
-  "app": {},
+  "app": {
+    "[project]/backend/app/_not-found/page": [],
+    "[project]/backend/app/page": []
+  },
   "appUsingSizeAdjust": false,
   "pages": {},
   "pagesUsingSizeAdjust": false

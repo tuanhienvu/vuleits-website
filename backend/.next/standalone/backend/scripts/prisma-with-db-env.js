@@ -3,10 +3,8 @@ const { spawnSync } = require('child_process');
 const path = require('path');
 const dotenv = require('dotenv');
 
-// Prefer backend-local env in monorepo split.
+// Prisma and DB scripts use `backend/.env` only (see `backend/.env.example`).
 dotenv.config({ path: path.join(__dirname, '..', '.env') });
-// Backward compatibility if root .env still exists.
-dotenv.config({ path: path.join(__dirname, '..', '..', '.env') });
 
 if (!process.env.DATABASE_URL) {
   const { DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD } = process.env;

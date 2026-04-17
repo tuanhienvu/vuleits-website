@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAdminPermissions } from '@/components/admin/AdminPermissionContext';
 import { useLocale } from '@/components/providers/LocaleProvider';
+import { apiPath } from '@/lib/apiRoutes';
 
 /** Old dashboard ?tab= values → consolidated settings pages. */
 const LEGACY_DASHBOARD_TAB_REDIRECTS: Record<string, string> = {
@@ -135,13 +136,13 @@ function OverviewPanel() {
     (async () => {
       setLoading(true);
       const tasks: Array<{ label: string; url: string; arrayField?: string; totalField?: string }> = [
-        { label: 'News', url: '/api/admin/news?take=1' },
-        { label: 'Services', url: '/api/admin/services' },
-        { label: 'Media', url: '/api/admin/media?take=1&imagesOnly=0' },
-        { label: 'Users', url: '/api/admin/users' },
-        { label: 'Home Features', url: '/api/admin/home-features' },
-        { label: 'Products', url: '/api/products?take=1', arrayField: 'items' },
-        { label: 'Contact messages', url: '/api/admin/contact-submissions?take=1&skip=0', totalField: 'total' },
+        { label: 'News', url: `${apiPath('admin/news')}?take=1` },
+        { label: 'Services', url: apiPath('admin/services') },
+        { label: 'Media', url: `${apiPath('admin/media')}?take=1&imagesOnly=0` },
+        { label: 'Users', url: apiPath('admin/users') },
+        { label: 'Home Features', url: apiPath('admin/home-features') },
+        { label: 'Products', url: `${apiPath('products')}?take=1`, arrayField: 'items' },
+        { label: 'Contact messages', url: `${apiPath('admin/contact-submissions')}?take=1&skip=0`, totalField: 'total' },
       ];
       const vals = await Promise.all(
         tasks.map(async (t) => {
@@ -149,7 +150,7 @@ function OverviewPanel() {
             const r = await fetch(t.url, { credentials: 'include' });
             if (!r.ok) return { label: t.label, value: 0 };
             const j = (await r.json()) as unknown;
-            if (t.url.includes('/api/admin/news') && typeof j === 'object' && j && Array.isArray((j as { items?: unknown }).items)) {
+            if (t.url.includes(apiPath('admin/news')) && typeof j === 'object' && j && Array.isArray((j as { items?: unknown }).items)) {
               return { label: t.label, value: Number((j as { total?: unknown }).total) || (j as { items: unknown[] }).items.length };
             }
             if (t.totalField && typeof j === 'object' && j) {

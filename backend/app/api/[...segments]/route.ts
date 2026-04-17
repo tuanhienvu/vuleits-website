@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server';
 
-function withCors(resp: Response) {
+function withCors(resp: Response, requestOrigin: string | null) {
   const out = new Response(resp.body, resp);
-  const frontendOrigin = process.env.FRONTEND_ORIGIN || 'https://vuleits.com';
-  out.headers.set('Access-Control-Allow-Origin', frontendOrigin);
-  out.headers.set('Access-Control-Allow-Credentials', 'true');
+  if (requestOrigin) {
+    out.headers.set('Access-Control-Allow-Origin', requestOrigin);
+    out.headers.set('Access-Control-Allow-Credentials', 'true');
+    out.headers.set('Vary', 'Origin');
+  }
   out.headers.set('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
   out.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  out.headers.set('Vary', 'Origin');
   out.headers.set('X-Content-Type-Options', 'nosniff');
   out.headers.set('X-Frame-Options', 'DENY');
   out.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
@@ -16,10 +17,11 @@ function withCors(resp: Response) {
 }
 
 async function dispatch(req: Request) {
-  if (req.method === 'OPTIONS') return withCors(new NextResponse(null, { status: 204 }));
+  const requestOrigin = req.headers.get('origin');
+  if (req.method === 'OPTIONS') return withCors(new NextResponse(null, { status: 204 }), requestOrigin);
   // All known API endpoints are now native route files in apps/backend/app/api.
   // Keep this catch-all only as a CORS-aware fallback for unknown paths.
-  return withCors(NextResponse.json({ error: 'Not found' }, { status: 404 }));
+  return withCors(NextResponse.json({ error: 'Not found' }, { status: 404 }), requestOrigin);
 }
 
 export async function GET(req: Request, ctx: { params: Promise<{ segments: string[] }> }) {

@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { apiPath } from '@/lib/apiRoutes';
+import { normalizePublicAssetUrlForBrowser } from '@/lib/normalizePublicAssetUrl';
 
 export type CompanyBrandingPayload = {
   companyName: string;
@@ -8,28 +10,45 @@ export type CompanyBrandingPayload = {
   logoUrl: string;
 };
 
-export const DEFAULT_BRAND_LOGO = '/vercel.svg';
+export const DEFAULT_BRAND_LOGO = '/favicon.ico';
 export const FALLBACK_COMPANY_NAME = 'VULE ITS';
 
+const EMPTY_BRANDING: CompanyBrandingPayload = { companyName: '', slogan: '', logoUrl: '' };
+let brandingCache: CompanyBrandingPayload | null = null;
+let brandingRequest: Promise<CompanyBrandingPayload> | null = null;
+
+async function loadCompanyBranding(): Promise<CompanyBrandingPayload> {
+  if (brandingCache) return brandingCache;
+  if (!brandingRequest) {
+    brandingRequest = (async () => {
+      try {
+        const res = await fetch(apiPath('company/branding'), { cache: 'no-store' });
+        if (!res.ok) return EMPTY_BRANDING;
+        const j = (await res.json()) as Record<string, unknown>;
+        const rawLogo = typeof j.logoUrl === 'string' ? j.logoUrl : '';
+        return {
+          companyName: typeof j.companyName === 'string' ? j.companyName : '',
+          slogan: typeof j.slogan === 'string' ? j.slogan : '',
+          logoUrl: normalizePublicAssetUrlForBrowser(rawLogo),
+        };
+      } catch {
+        return EMPTY_BRANDING;
+      }
+    })();
+  }
+  const loaded = await brandingRequest;
+  brandingCache = loaded;
+  return loaded;
+}
+
 export function useCompanyBranding() {
-  const [payload, setPayload] = useState<CompanyBrandingPayload | null>(null);
+  const [payload, setPayload] = useState<CompanyBrandingPayload | null>(brandingCache);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      try {
-        const res = await fetch('/api/company/branding');
-        if (!res.ok || cancelled) return;
-        const j = (await res.json()) as Record<string, unknown>;
-        if (cancelled) return;
-        setPayload({
-          companyName: typeof j.companyName === 'string' ? j.companyName : '',
-          slogan: typeof j.slogan === 'string' ? j.slogan : '',
-          logoUrl: typeof j.logoUrl === 'string' ? j.logoUrl : '',
-        });
-      } catch {
-        if (!cancelled) setPayload({ companyName: '', slogan: '', logoUrl: '' });
-      }
+      const loaded = await loadCompanyBranding();
+      if (!cancelled) setPayload(loaded);
     })();
     return () => {
       cancelled = true;

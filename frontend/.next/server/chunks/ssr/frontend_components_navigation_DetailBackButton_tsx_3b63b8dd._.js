@@ -1,3 +1,0 @@
-module.exports=[42016,a=>{"use strict";var b=a.i(87924),c=a.i(50944);function d({fallbackHref:a,label:d="Back",className:e,onCustomNavigate:f}){let g=(0,c.useRouter)();return(0,b.jsxs)("button",{type:"button",onClick:()=>{f?f():g.push(a)},className:e??"mb-4 inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-sm font-medium text-white/90 transition hover:bg-white/10",children:[(0,b.jsx)("span",{"aria-hidden":!0,children:"←"})," ",d]})}a.s(["default",()=>d])}];
-
-//# sourceMappingURL=frontend_components_navigation_DetailBackButton_tsx_3b63b8dd._.js.map

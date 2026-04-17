@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
 datasource db {
@@ -307,6 +308,23 @@ model UserPermission {
   permission  Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
 
   @@unique([userId, permissionId])
+}
+
+// -------------------- Admin audit log (DB-backed; view ADMIN+, mutate SYSADMIN only in API) --------------------
+model AdminLogEntry {
+  id        Int       @id @default(autoincrement())
+  level     String    @db.VarChar(20)
+  category  String?   @db.VarChar(120)
+  message   String    @db.VarChar(2000)
+  metadata  Json?
+  traceId   String?   @map("trace_id") @db.VarChar(64)
+  note      String?   @db.Text
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@index([createdAt])
+  @@map("admin_log_entries")
 }
 
 // -------------------- Home Page Models --------------------

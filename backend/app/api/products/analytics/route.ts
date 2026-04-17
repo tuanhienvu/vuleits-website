@@ -6,7 +6,7 @@ const ACTIONS = new Set(['view', 'click_demo', 'share']);
 
 export async function POST(req: Request) {
   const ip = getClientIp(req);
-  const rate = checkRateLimit(`product-analytics:${ip}`, 120, 60 * 1000);
+  const rate = await checkRateLimit(`product-analytics:${ip}`, 120, 60 * 1000);
   if (!rate.allowed) {
     return NextResponse.json(
       { error: 'Too many requests' },

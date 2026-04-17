@@ -9,7 +9,7 @@ function clampStr(s: string, max: number): string {
 
 export async function POST(req: Request) {
   const ip = getClientIp(req);
-  const rate = checkRateLimit(`contact-form:${ip}`, 8, 15 * 60 * 1000);
+  const rate = await checkRateLimit(`contact-form:${ip}`, 8, 15 * 60 * 1000);
   if (!rate.allowed) {
     return NextResponse.json(
       { error: 'Too many submissions. Please try again later.' },

@@ -1,0 +1,6 @@
+1:"$Sreact.fragment"
+2:I[94547,["/_next/static/chunks/17bdlkhpn1i4n.js","/_next/static/chunks/0d3shmwh5_nmn.js","/_next/static/chunks/0ia89g3v0a~f7.js","/_next/static/chunks/0a_68-5_m8_gm.js","/_next/static/chunks/0r9b19b.9dxmg.js","/_next/static/chunks/0gsxr1jy16kn6.js"],"default"]
+3:I[97367,["/_next/static/chunks/17bdlkhpn1i4n.js","/_next/static/chunks/0d3shmwh5_nmn.js"],"OutletBoundary"]
+4:"$Sreact.suspense"
+0:{"rsc":["$","$1","c",{"children":[["$","div",null,{"className":"container mx-auto px-4 py-8","children":[["$","section",null,{"className":"glass p-8 md:p-12 rounded-3xl mb-8 border border-white/10","children":[["$","h1",null,{"className":"text-4xl md:text-5xl font-bold text-white mb-4","children":"Our Products"}],["$","p",null,{"className":"text-white/80 text-lg max-w-2xl","children":"Filter by launch type and stack, explore trending picks, and open live demos—all in one place."}]]}],["$","$L2",null,{"initialData":null}]]}],[["$","script","script-0",{"src":"/_next/static/chunks/0r9b19b.9dxmg.js","async":true}],["$","script","script-1",{"src":"/_next/static/chunks/0gsxr1jy16kn6.js","async":true}]],["$","$L3",null,{"children":["$","$4",null,{"name":"Next.MetadataOutlet","children":"$@5"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"6d4j14QeHCgTYbHZ096-C"}
+5:null

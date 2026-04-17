@@ -1,7 +1,9 @@
 import type { MetadataRoute } from 'next';
 import { publicApiBaseUrl } from '@/lib/publicApiBaseUrl';
+import { joinApiOrigin } from '@/lib/apiRoutes';
 
 export const dynamic = 'force-static';
+const SITE_URL = 'https://vuleits.com';
 
 type ProductListResponse = {
   items?: Array<{ slug?: string | null }>;
@@ -16,27 +18,18 @@ type ServicesListResponse = {
 };
 
 function getSiteUrl(): string {
-  return (process.env.NEXT_PUBLIC_SITE_URL || 'https://vuleits.com').replace(/\/+$/, '');
+  return SITE_URL;
 }
 
 function getApiBaseUrl(): string {
   return publicApiBaseUrl();
 }
 
-const isStaticExportBuild =
-  process.env.NEXT_PUBLIC_STATIC_EXPORT === '1' ||
-  process.env.NEXT_PUBLIC_STATIC_EXPORT === 'true';
-
 async function fetchJson<T>(url: string): Promise<T | null> {
   try {
-    const res = await fetch(
-      url,
-      isStaticExportBuild
-        ? {}
-        : {
-            next: { revalidate: 900 },
-          },
-    );
+    const res = await fetch(url, {
+      next: { revalidate: 900 },
+    });
     if (!res.ok) return null;
     return (await res.json()) as T;
   } catch {
@@ -50,13 +43,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
   const [productsData, newsData, servicesData] = await Promise.all([
-    fetchJson<ProductListResponse>(`${apiBaseUrl}/api/products?take=120`),
-    fetchJson<NewsListResponse>(`${apiBaseUrl}/api/news?limit=100`),
-    fetchJson<ServicesListResponse>(`${apiBaseUrl}/api/services?take=120`),
+    fetchJson<ProductListResponse>(joinApiOrigin(apiBaseUrl, 'products?take=120')),
+    fetchJson<NewsListResponse>(joinApiOrigin(apiBaseUrl, 'news?limit=100')),
+    fetchJson<ServicesListResponse>(joinApiOrigin(apiBaseUrl, 'services?take=120')),
   ]);
 
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: `${siteUrl}/`, changeFrequency: 'weekly', priority: 1 },
+    { url: `${siteUrl}/about`, changeFrequency: 'monthly', priority: 0.85 },
+    { url: `${siteUrl}/contact`, changeFrequency: 'monthly', priority: 0.85 },
+    { url: `${siteUrl}/privacy`, changeFrequency: 'yearly', priority: 0.5 },
+    { url: `${siteUrl}/terms`, changeFrequency: 'yearly', priority: 0.5 },
     { url: `${siteUrl}/products`, changeFrequency: 'daily', priority: 0.9 },
     { url: `${siteUrl}/news`, changeFrequency: 'daily', priority: 0.9 },
     { url: `${siteUrl}/services`, changeFrequency: 'weekly', priority: 0.8 },

@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
 import { prisma } from '@/lib/prisma';
 import { COMPANY_PROFILE_SETTING_KEY, parseCompanyProfileJson } from '@/lib/companyProfileTypes';
+import { log } from '@/lib/logger';
 
 export type ContactFormPayload = {
   name: string;
@@ -123,9 +124,10 @@ export async function sendContactFormNotification(
     const err = e as Error & { response?: string; responseCode?: number };
     const parts = [err.message, err.responseCode != null ? `code ${err.responseCode}` : '', err.response?.trim()].filter(Boolean);
     const msg = parts.length ? parts.join(' — ') : 'send failed';
-    if (process.env.NODE_ENV === 'development') {
-      console.error('[contact notification email]', msg);
-    }
+    log.exception('email.contact_notification_failed', e, {
+      event: { category: 'email', action: 'send', outcome: 'failure' },
+      smtp: err.responseCode != null ? { response_code: err.responseCode } : undefined,
+    });
     return { ok: false, error: msg };
   }
 }

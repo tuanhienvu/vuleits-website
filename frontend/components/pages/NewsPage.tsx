@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { NEWS_CATEGORIES } from '@/lib/news/newsCategories';
 import NewsCarouselRow from '@/components/news/NewsCarouselRow';
+import { apiPath } from '@/lib/apiRoutes';
 
 interface NewsArticle {
   id: number;
@@ -17,34 +18,60 @@ interface NewsArticle {
 }
 
 // --- Sections: Data + filters | Hero | Search/filters | List + carousel rows (see JSX) ---
+const NEWS_CACHE_TTL_MS = 60_000;
+const newsCache = new Map<string, { ts: number; items: NewsArticle[] }>();
 
-export default function NewsPage() {
-  const [articles, setArticles] = useState<NewsArticle[]>([]);
-  const [loading, setLoading] = useState(false);
+export default function NewsPage({ initialArticles = [] }: { initialArticles?: NewsArticle[] }) {
+  const [articles, setArticles] = useState<NewsArticle[]>(initialArticles);
+  const [loading, setLoading] = useState(initialArticles.length === 0);
 
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  useEffect(() => {
+    if (initialArticles.length > 0) {
+      newsCache.set('limit=100', { ts: Date.now(), items: initialArticles });
+    }
+  }, [initialArticles]);
+
+  useEffect(() => {
+    const id = window.setTimeout(() => setDebouncedSearch(search), 300);
+    return () => window.clearTimeout(id);
+  }, [search]);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      setLoading(true);
+      setLoading((prev) => prev || articles.length === 0);
       try {
         const params = new URLSearchParams();
-        if (search.trim()) params.set('q', search.trim());
+        if (debouncedSearch.trim()) params.set('q', debouncedSearch.trim());
         if (category.trim()) params.set('category', category.trim());
         if (fromDate.trim()) params.set('from', fromDate.trim());
         if (toDate.trim()) params.set('to', toDate.trim());
         // Fetch enough rows so each category section can exceed 3 cards
         // (required for the carousel + auto-slide).
         params.set('limit', '100');
+        const key = params.toString();
+        const now = Date.now();
+        const hit = newsCache.get(key);
+        if (hit && now - hit.ts < NEWS_CACHE_TTL_MS) {
+          if (!cancelled) {
+            setArticles(hit.items);
+            setLoading(false);
+          }
+          return;
+        }
 
-        const res = await fetch(`/api/news?${params.toString()}`);
+        const res = await fetch(`${apiPath('news')}?${key}`);
         if (!res.ok) return;
         const data = (await res.json()) as { items?: NewsArticle[] };
-        if (!cancelled) setArticles(Array.isArray(data.items) ? data.items : []);
+        const nextItems = Array.isArray(data.items) ? data.items : [];
+        newsCache.set(key, { ts: now, items: nextItems });
+        if (!cancelled) setArticles(nextItems);
       } catch {
         if (!cancelled) setArticles([]);
       } finally {
@@ -54,7 +81,7 @@ export default function NewsPage() {
     return () => {
       cancelled = true;
     };
-  }, [search, category, fromDate, toDate]);
+  }, [debouncedSearch, category, fromDate, toDate, articles.length]);
 
   const byCategory = useMemo(() => {
     const primary = ['Politics', 'Economy', 'Technology', 'Entertainment'] as const;

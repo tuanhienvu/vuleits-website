@@ -10,6 +10,7 @@ import {
   type LegalPageKind,
   type LegalPagePayload,
 } from '@/lib/legalPageSetting';
+import { apiPath } from '@/lib/apiRoutes';
 
 type LegalPageAdminPanelProps = {
   kind: LegalPageKind;
@@ -24,7 +25,7 @@ export default function LegalPageAdminPanel({ kind }: LegalPageAdminPanelProps) 
   const [form, setForm] = useState<LegalPagePayload>(() => defaultLegalPagePayload(kind));
   const [baseline, setBaseline] = useState('');
 
-  const endpoint = kind === 'privacy' ? '/api/admin/privacy-policy' : '/api/admin/terms-of-service';
+  const endpoint = kind === 'privacy' ? apiPath('admin/privacy-policy') : apiPath('admin/terms-of-service');
   const heading = kind === 'privacy' ? t('admin.privacyPolicy') : t('admin.termsOfService');
 
   const load = useCallback(async () => {

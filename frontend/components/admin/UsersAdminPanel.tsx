@@ -15,6 +15,7 @@ import {
 import { useEscapeToClose } from '@/components/admin/useEscapeToClose';
 import { useLocale } from '@/components/providers/LocaleProvider';
 import { AdminFilterSearchIconButton, adminFilterPanelClass } from '@/components/admin/AdminFilterBarMobile';
+import { apiPath } from '@/lib/apiRoutes';
 
 type UserRow = {
   id: number;
@@ -63,8 +64,8 @@ export default function UsersAdminPanel() {
     setLoading(true);
     try {
       const [uRes, rRes] = await Promise.all([
-        fetch('/api/admin/users', { credentials: 'include' }),
-        fetch('/api/admin/roles', { credentials: 'include' }),
+        fetch(apiPath('admin/users'), { credentials: 'include' }),
+        fetch(apiPath('admin/roles'), { credentials: 'include' }),
       ]);
       if (!uRes.ok) {
         if (uRes.status === 401) window.location.href = '/admin/login';
@@ -185,7 +186,7 @@ export default function UsersAdminPanel() {
     setSaving(true);
     try {
       if (editingId == null) {
-        const res = await fetch('/api/admin/users', {
+        const res = await fetch(apiPath('admin/users'), {
           method: 'POST',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
@@ -221,7 +222,7 @@ export default function UsersAdminPanel() {
             return;
           }
         }
-        const res = await fetch(`/api/admin/users/${editingId}`, {
+        const res = await fetch(apiPath(`admin/users/${editingId}`), {
           method: 'PUT',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
@@ -246,7 +247,7 @@ export default function UsersAdminPanel() {
     if (!can('users', 'delete')) return;
     setDeleting(true);
     try {
-      const res = await fetch(`/api/admin/users/${u.id}`, { method: 'DELETE', credentials: 'include' });
+      const res = await fetch(apiPath(`admin/users/${u.id}`), { method: 'DELETE', credentials: 'include' });
       if (!res.ok) throw new Error('Delete failed');
       toast.success('Deleted');
       setDeleteTarget(null);
@@ -273,7 +274,7 @@ export default function UsersAdminPanel() {
     setDeleting(true);
     try {
       for (const id of allowed) {
-        const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE', credentials: 'include' });
+        const res = await fetch(apiPath(`admin/users/${id}`), { method: 'DELETE', credentials: 'include' });
         if (!res.ok) throw new Error('Delete failed');
       }
       toast.success(isVi ? `Đã xóa ${allowed.length} người dùng` : `Deleted ${allowed.length} users`);

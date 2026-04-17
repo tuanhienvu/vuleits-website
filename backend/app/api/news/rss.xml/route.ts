@@ -1,12 +1,14 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+const SITE_URL = 'https://vuleits.com';
+
 function escapeXml(s: string): string {
   return s.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&apos;');
 }
 
 export async function GET() {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://vuleits.com';
+  const baseUrl = SITE_URL;
   const now = new Date();
   const items = await prisma.news.findMany({
     where: {

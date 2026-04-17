@@ -11,6 +11,7 @@ import { resolveMapPreviewSrc } from '@/lib/googleMapsEmbed';
 import { useAdminPermissions } from '@/components/admin/AdminPermissionContext';
 import { useEscapeToClose } from '@/components/admin/useEscapeToClose';
 import { useToast } from '@/components/providers/ToastProvider';
+import { apiPath } from '@/lib/apiRoutes';
 
 // --- Sections (UI): Sticky header | Identity & map | Logo & social | Media library picker ---
 // --- Sections (logic): Load/save profile | Logo modes | Map preview | Social rows ---
@@ -58,7 +59,7 @@ export default function CompanyProfileAdminPanel() {
     setLoading(true);
     setForbidden(false);
     try {
-      const res = await fetch('/api/admin/company-profile', { credentials: 'include' });
+      const res = await fetch(apiPath('admin/company-profile'), { credentials: 'include' });
       if (res.status === 403) {
         setForbidden(true);
         return;
@@ -91,7 +92,7 @@ export default function CompanyProfileAdminPanel() {
     if (!can('contacts', 'update')) return;
     setSaving(true);
     try {
-      const res = await fetch('/api/admin/company-profile', {
+      const res = await fetch(apiPath('admin/company-profile'), {
         method: 'PUT',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -141,7 +142,7 @@ export default function CompanyProfileAdminPanel() {
     try {
       const fd = new FormData();
       fd.append('file', file);
-      const res = await fetch('/api/admin/company-profile/logo', { method: 'POST', credentials: 'include', body: fd });
+      const res = await fetch(apiPath('admin/company-profile/logo'), { method: 'POST', credentials: 'include', body: fd });
       if (!res.ok) {
         const j = (await res.json().catch(() => ({}))) as { error?: string };
         throw new Error(j.error || 'Upload failed');
@@ -169,7 +170,7 @@ export default function CompanyProfileAdminPanel() {
     setMediaPickerOpen(true);
     setMediaLoading(true);
     try {
-      const res = await fetch('/api/admin/media?take=200&imagesOnly=1', { credentials: 'include' });
+      const res = await fetch(`${apiPath('admin/media')}?take=200&imagesOnly=1`, { credentials: 'include' });
       if (!res.ok) throw new Error('Failed');
       const list = (await res.json()) as MediaRow[];
       setMediaList(Array.isArray(list) ? list : []);

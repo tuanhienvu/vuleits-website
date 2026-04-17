@@ -81,7 +81,6 @@ async function main() {
   const port = await pickPort(preferred);
   const portStr = String(port);
   process.env.PORT = portStr;
-
   if (port !== preferred) {
     console.warn(
       `[frontend] Port ${preferred} is in use; using ${port}. Open http://127.0.0.1:${port}`,
@@ -93,7 +92,7 @@ async function main() {
   const nextBin = resolveNextBin();
   const args =
     mode === 'dev'
-      ? [nextBin, 'dev', '-H', '0.0.0.0', '-p', portStr]
+      ? [nextBin, 'dev', '--turbopack', '-H', '0.0.0.0', '-p', portStr]
       : [nextBin, 'start', '-p', portStr];
   const child = spawn(process.execPath, args, {
     cwd: frontendRoot,

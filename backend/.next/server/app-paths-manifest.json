@@ -19,6 +19,8 @@
   "/api/admin/home-features/route": "app/api/admin/home-features/route.js",
   "/api/admin/login/route": "app/api/admin/login/route.js",
   "/api/admin/logout/route": "app/api/admin/logout/route.js",
+  "/api/admin/logs/[id]/route": "app/api/admin/logs/[id]/route.js",
+  "/api/admin/logs/route": "app/api/admin/logs/route.js",
   "/api/admin/marketing-config/route": "app/api/admin/marketing-config/route.js",
   "/api/admin/me-permissions/route": "app/api/admin/me-permissions/route.js",
   "/api/admin/me/password/route": "app/api/admin/me/password/route.js",

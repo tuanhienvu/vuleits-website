@@ -5,7 +5,7 @@ import type { SocialPlatformId } from '@/lib/companyProfileTypes';
 
 // --- Sections: SocialGlyph (per platform) | Public link row list ---
 
-/** Public JSON shape from `/api/company/contact`; `type` matches company profile social platforms. */
+/** Public JSON shape from GET `company/contact` (see `apiPath`); `type` matches company profile social platforms. */
 export type PublicSocialLink = { type: string; url: string };
 
 const PLATFORM_NAMES: Record<SocialPlatformId, string> = {

@@ -6,11 +6,13 @@ import {
   type AdminCrudMatrix,
   type AdminUiFeatureId,
   makeEmptyAdminMatrix,
+  normalizeAdminMatrix,
 } from '@/lib/adminPermissionModel';
 import { useAdminPermissions } from '@/components/admin/AdminPermissionContext';
 import AdminConfirmDialog from '@/components/admin/AdminConfirmDialog';
 import { getModalOriginFromElement, type ModalOriginPoint } from '@/components/admin/useAnimatedOriginModal';
 import { useToast } from '@/components/providers/ToastProvider';
+import { apiPath } from '@/lib/apiRoutes';
 
 const ACTIONS = ['create', 'read', 'update', 'delete'] as const;
 
@@ -29,6 +31,7 @@ const FEATURE_LABELS: Record<AdminUiFeatureId, string> = {
   users: 'Users',
   userPassword: 'User passwords',
   permissions: 'Permissions',
+  auditLogs: 'Audit logs',
 };
 
 type UserOpt = { id: number; email: string; roleId: number; isActive: boolean; isProtected: boolean };
@@ -58,8 +61,8 @@ export default function PermissionsAdminPanel() {
     setLoading(true);
     try {
       const [usersRes, rolesRes] = await Promise.all([
-        fetch('/api/admin/users', { credentials: 'include' }),
-        fetch('/api/admin/roles', { credentials: 'include' }),
+        fetch(apiPath('admin/users'), { credentials: 'include' }),
+        fetch(apiPath('admin/roles'), { credentials: 'include' }),
       ]);
       if (!usersRes.ok) throw new Error('Failed');
       const data = (await usersRes.json()) as UserOpt[];
@@ -101,11 +104,11 @@ export default function PermissionsAdminPanel() {
     async (roleId: number) => {
       setDetailLoading(true);
       try {
-        const res = await fetch(`/api/admin/roles/${roleId}/permissions`, { credentials: 'include' });
+        const res = await fetch(apiPath(`admin/roles/${roleId}/permissions`), { credentials: 'include' });
         if (!res.ok) throw new Error('Failed');
         const data = (await res.json()) as { features?: AdminCrudMatrix; editable?: boolean };
         if (data.features && typeof data.features === 'object') {
-          setMatrix(data.features);
+          setMatrix(normalizeAdminMatrix(data.features));
         } else {
           setMatrix(makeEmptyAdminMatrix());
         }
@@ -124,11 +127,11 @@ export default function PermissionsAdminPanel() {
     async (userId: number) => {
       setDetailLoading(true);
       try {
-        const res = await fetch(`/api/admin/permissions/${userId}`, { credentials: 'include' });
+        const res = await fetch(apiPath(`admin/permissions/${userId}`), { credentials: 'include' });
         if (!res.ok) throw new Error('Failed');
         const data = (await res.json()) as { features?: AdminCrudMatrix; editable?: boolean };
         if (data.features && typeof data.features === 'object') {
-          setMatrix(data.features);
+          setMatrix(normalizeAdminMatrix(data.features));
         } else {
           setMatrix(makeEmptyAdminMatrix());
         }
@@ -155,10 +158,13 @@ export default function PermissionsAdminPanel() {
 
   const toggle = (f: AdminUiFeatureId, a: (typeof ACTIONS)[number]) => {
     if (locked || !can('permissions', 'update')) return;
-    setMatrix((m) => ({
-      ...m,
-      [f]: { ...m[f], [a]: !m[f][a] },
-    }));
+    setMatrix((m) => {
+      const prev = m[f] ?? { create: false, read: false, update: false, delete: false };
+      return {
+        ...m,
+        [f]: { ...prev, [a]: !prev[a] },
+      };
+    });
   };
 
   const canRunActions =
@@ -171,7 +177,7 @@ export default function PermissionsAdminPanel() {
     setSaving(true);
     try {
       if (userTarget === 'all' && selectedRoleId != null) {
-        const res = await fetch(`/api/admin/roles/${selectedRoleId}/permissions`, {
+        const res = await fetch(apiPath(`admin/roles/${selectedRoleId}/permissions`), {
           method: 'PUT',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
@@ -184,7 +190,7 @@ export default function PermissionsAdminPanel() {
         toast.success('Group permissions saved');
         await loadRoleDetail(selectedRoleId);
       } else if (typeof userTarget === 'number') {
-        const res = await fetch(`/api/admin/permissions/${userTarget}`, {
+        const res = await fetch(apiPath(`admin/permissions/${userTarget}`), {
           method: 'PUT',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
@@ -216,7 +222,7 @@ export default function PermissionsAdminPanel() {
     setSaving(true);
     try {
       if (userTarget === 'all' && selectedRoleId != null) {
-        const res = await fetch(`/api/admin/roles/${selectedRoleId}/permissions`, {
+        const res = await fetch(apiPath(`admin/roles/${selectedRoleId}/permissions`), {
           method: 'POST',
           credentials: 'include',
         });
@@ -227,7 +233,7 @@ export default function PermissionsAdminPanel() {
         toast.success('Group permissions reset');
         await loadRoleDetail(selectedRoleId);
       } else if (typeof userTarget === 'number') {
-        const res = await fetch(`/api/admin/permissions/${userTarget}`, {
+        const res = await fetch(apiPath(`admin/permissions/${userTarget}`), {
           method: 'POST',
           credentials: 'include',
         });
