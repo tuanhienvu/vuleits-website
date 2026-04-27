@@ -10,6 +10,8 @@
   "/api/admin/about-stats/route": "/api/admin/about-stats",
   "/api/admin/about-team/[id]/route": "/api/admin/about-team/[id]",
   "/api/admin/about-team/route": "/api/admin/about-team",
+  "/api/admin/categories/[entity]/[id]/route": "/api/admin/categories/[entity]/[id]",
+  "/api/admin/categories/[entity]/route": "/api/admin/categories/[entity]",
   "/api/admin/company-profile/logo/route": "/api/admin/company-profile/logo",
   "/api/admin/company-profile/route": "/api/admin/company-profile",
   "/api/admin/contact-submissions/[id]/route": "/api/admin/contact-submissions/[id]",

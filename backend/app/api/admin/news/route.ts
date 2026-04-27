@@ -4,7 +4,12 @@ import { authorize } from '@/lib/adminAuth';
 import { slugify } from '@/lib/news/slugify';
 
 type NewsAdminListWhere = {
-  OR?: Array<{ title: { contains: string } } | { description: { contains: string } }>;
+  OR?: Array<
+    | { title: { contains: string } }
+    | { description: { contains: string } }
+    | { titleVi: { contains: string } }
+    | { descriptionVi: { contains: string } }
+  >;
   category?: string;
   status?: string;
 };
@@ -21,7 +26,13 @@ export async function GET(req: Request) {
   const skip = Math.max(Number(searchParams.get('skip') ?? 0) || 0, 0);
 
   const where: NewsAdminListWhere = {};
-  if (q) where.OR = [{ title: { contains: q } }, { description: { contains: q } }];
+  if (q)
+    where.OR = [
+      { title: { contains: q } },
+      { description: { contains: q } },
+      { titleVi: { contains: q } },
+      { descriptionVi: { contains: q } },
+    ];
   if (category) where.category = category;
   if (status) where.status = status;
 
@@ -38,9 +49,12 @@ export async function GET(req: Request) {
     items: rows.map((n: (typeof rows)[number]) => ({
       id: n.id,
       title: n.title,
+      titleVi: n.titleVi ?? '',
       slug: n.slug,
       description: n.description,
+      descriptionVi: n.descriptionVi ?? '',
       content: n.content,
+      contentVi: n.contentVi ?? '',
       category: n.category,
       tags: n.tags,
       status: n.status,
@@ -70,8 +84,11 @@ export async function POST(req: Request) {
   }
   const o = body as Record<string, unknown>;
   const title = typeof o.title === 'string' ? o.title.trim() : '';
+  const titleVi = typeof o.titleVi === 'string' ? o.titleVi.trim() : '';
   const description = typeof o.description === 'string' ? o.description.trim() : '';
+  const descriptionVi = typeof o.descriptionVi === 'string' ? o.descriptionVi.trim() : '';
   const content = typeof o.content === 'string' ? o.content.trim() : '';
+  const contentVi = typeof o.contentVi === 'string' ? o.contentVi.trim() : '';
   const category = typeof o.category === 'string' && o.category.trim() ? o.category.trim() : 'General';
   const status = typeof o.status === 'string' && o.status.trim() ? o.status.trim() : 'Active';
   if (!title || !description || !content) return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -104,9 +121,12 @@ export async function POST(req: Request) {
   const created = await prisma.news.create({
     data: {
       title,
+      titleVi: titleVi || null,
       slug,
       description,
+      descriptionVi: descriptionVi || null,
       content,
+      contentVi: contentVi || null,
       category,
       imageId: imageId != null && Number.isFinite(Number(imageId)) ? Number(imageId) : null,
       tags,

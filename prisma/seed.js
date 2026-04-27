@@ -1,6 +1,7 @@
 // Load environment variables from `backend/.env` (see `backend/.env.example`).
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', 'backend', '.env') });
+const dbSnapshot = require('./seed.db.snapshot.json');
 
 if (!process.env.DATABASE_URL) {
   const { DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD } = process.env;
@@ -342,6 +343,65 @@ async function main() {
         'Compliance Management',
       ])}, 5, true, NOW(), NOW())
     `;
+  }
+
+  // Seed generic categories (stored in SiteSetting) for admin/categories:
+  // services, news, medias, banners with EN + VI labels.
+  const genericCategoryDefaults = {
+    services: [
+      { id: 1, name: 'Consulting', nameVi: 'Tư vấn', slug: 'consulting', sortOrder: 0, isActive: true },
+      { id: 2, name: 'Development', nameVi: 'Phát triển', slug: 'development', sortOrder: 1, isActive: true },
+      { id: 3, name: 'Design', nameVi: 'Thiết kế', slug: 'design', sortOrder: 2, isActive: true },
+      { id: 4, name: 'Operations', nameVi: 'Vận hành', slug: 'operations', sortOrder: 3, isActive: true },
+      { id: 5, name: 'Security', nameVi: 'Bảo mật', slug: 'security', sortOrder: 4, isActive: true },
+      { id: 6, name: 'Training', nameVi: 'Đào tạo', slug: 'training', sortOrder: 5, isActive: true },
+    ],
+    news: [
+      { id: 1, name: 'Technology', nameVi: 'Công nghệ', slug: 'technology', sortOrder: 0, isActive: true },
+      { id: 2, name: 'Business', nameVi: 'Kinh doanh', slug: 'business', sortOrder: 1, isActive: true },
+      { id: 3, name: 'Product Updates', nameVi: 'Cập nhật sản phẩm', slug: 'product-updates', sortOrder: 2, isActive: true },
+      { id: 4, name: 'Case Studies', nameVi: 'Dự án tiêu biểu', slug: 'case-studies', sortOrder: 3, isActive: true },
+      { id: 5, name: 'Events', nameVi: 'Sự kiện', slug: 'events', sortOrder: 4, isActive: true },
+      { id: 6, name: 'Insights', nameVi: 'Góc nhìn', slug: 'insights', sortOrder: 5, isActive: true },
+    ],
+    medias: [
+      { id: 1, name: 'Images', nameVi: 'Hình ảnh', slug: 'images', sortOrder: 0, isActive: true },
+      { id: 2, name: 'Videos', nameVi: 'Video', slug: 'videos', sortOrder: 1, isActive: true },
+      { id: 3, name: 'Documents', nameVi: 'Tài liệu', slug: 'documents', sortOrder: 2, isActive: true },
+      { id: 4, name: 'Logos', nameVi: 'Logo', slug: 'logos', sortOrder: 3, isActive: true },
+      { id: 5, name: 'Banners', nameVi: 'Banner', slug: 'banners', sortOrder: 4, isActive: true },
+      { id: 6, name: 'Downloads', nameVi: 'Tải về', slug: 'downloads', sortOrder: 5, isActive: true },
+    ],
+    banners: [
+      { id: 1, name: 'Homepage Hero', nameVi: 'Hero trang chủ', slug: 'homepage-hero', sortOrder: 0, isActive: true },
+      { id: 2, name: 'Homepage Promo', nameVi: 'Khuyến mãi trang chủ', slug: 'homepage-promo', sortOrder: 1, isActive: true },
+      { id: 3, name: 'Product Campaign', nameVi: 'Chiến dịch sản phẩm', slug: 'product-campaign', sortOrder: 2, isActive: true },
+      { id: 4, name: 'Service Campaign', nameVi: 'Chiến dịch dịch vụ', slug: 'service-campaign', sortOrder: 3, isActive: true },
+      { id: 5, name: 'News Spotlight', nameVi: 'Điểm nhấn tin tức', slug: 'news-spotlight', sortOrder: 4, isActive: true },
+      { id: 6, name: 'Seasonal', nameVi: 'Theo mùa', slug: 'seasonal', sortOrder: 5, isActive: true },
+    ],
+  };
+
+  for (const [entity, defaults] of Object.entries(genericCategoryDefaults)) {
+    const key = `admin.categories.${entity}`;
+    const existing = await prisma.siteSetting.findUnique({ where: { key } });
+    let hasAny = false;
+    if (existing?.value) {
+      try {
+        const parsed = JSON.parse(existing.value);
+        hasAny = Array.isArray(parsed) && parsed.length > 0;
+      } catch {
+        hasAny = false;
+      }
+    }
+    if (!hasAny) {
+      await prisma.siteSetting.upsert({
+        where: { key },
+        update: { value: JSON.stringify(defaults) },
+        create: { key, value: JSON.stringify(defaults) },
+      });
+      console.log(`Seeded default categories: ${entity}`);
+    }
   }
 
   // Seed News (sample data for testing)
@@ -1221,6 +1281,158 @@ async function main() {
     console.log('Seeded contact inbox samples (5 rows).');
   } catch (e) {
     console.warn('Contact inbox seed skipped:', e?.message || e);
+  }
+
+  // ------------------------------------------------------------
+  // Snapshot seeding from current DB export (content tables only)
+  // Excludes Users, Permissions, UserPermission by design.
+  // ------------------------------------------------------------
+  try {
+    const snapshot = dbSnapshot && typeof dbSnapshot === 'object' ? dbSnapshot : null;
+    if (snapshot) {
+      const withViFallback = (row) => {
+        if (!row || typeof row !== 'object') return row;
+        const out = { ...row };
+        for (const key of Object.keys(out)) {
+          if (!key.endsWith('Vi')) continue;
+          const base = key.slice(0, -2);
+          if ((out[key] == null || out[key] === '') && typeof out[base] === 'string' && out[base].trim()) {
+            out[key] = out[base];
+          }
+        }
+        return out;
+      };
+
+      const seedIfEmpty = async (countFn, createFn, label) => {
+        const count = await countFn();
+        if (count > 0) return;
+        await createFn();
+        console.log(`Seeded from snapshot: ${label}`);
+      };
+
+      await seedIfEmpty(
+        () => prisma.aboutSection.count(),
+        () => prisma.aboutSection.createMany({ data: (snapshot.aboutSections || []).map(withViFallback), skipDuplicates: true }),
+        'aboutSections',
+      );
+      await seedIfEmpty(
+        () => prisma.aboutStat.count(),
+        () => prisma.aboutStat.createMany({ data: (snapshot.aboutStats || []).map(withViFallback), skipDuplicates: true }),
+        'aboutStats',
+      );
+      await seedIfEmpty(
+        () => prisma.aboutTeamMember.count(),
+        () => prisma.aboutTeamMember.createMany({ data: (snapshot.aboutTeamMembers || []).map(withViFallback), skipDuplicates: true }),
+        'aboutTeamMembers',
+      );
+      await seedIfEmpty(
+        () => prisma.bannerSlider.count(),
+        () => prisma.bannerSlider.createMany({ data: snapshot.bannerSliders || [], skipDuplicates: true }),
+        'bannerSliders',
+      );
+      await seedIfEmpty(
+        () => prisma.media.count(),
+        () => prisma.media.createMany({ data: snapshot.media || [], skipDuplicates: true }),
+        'media',
+      );
+      await seedIfEmpty(
+        () => prisma.bannerItem.count(),
+        () => prisma.bannerItem.createMany({ data: snapshot.bannerItems || [], skipDuplicates: true }),
+        'bannerItems',
+      );
+      await seedIfEmpty(
+        () => prisma.contact.count(),
+        () => prisma.contact.createMany({ data: snapshot.contacts || [], skipDuplicates: true }),
+        'contacts',
+      );
+      await seedIfEmpty(
+        () => prisma.homeFeature.count(),
+        () => prisma.homeFeature.createMany({ data: (snapshot.homeFeatures || []).map(withViFallback), skipDuplicates: true }),
+        'homeFeatures',
+      );
+      await seedIfEmpty(
+        () => prisma.news.count(),
+        () => prisma.news.createMany({ data: (snapshot.news || []).map(withViFallback), skipDuplicates: true }),
+        'news',
+      );
+      await seedIfEmpty(
+        () => prisma.privacyPolicy.count(),
+        () => prisma.privacyPolicy.createMany({ data: (snapshot.privacyPolicies || []).map(withViFallback), skipDuplicates: true }),
+        'privacyPolicies',
+      );
+      await seedIfEmpty(
+        () => prisma.termsOfService.count(),
+        () => prisma.termsOfService.createMany({ data: (snapshot.termsOfServices || []).map(withViFallback), skipDuplicates: true }),
+        'termsOfServices',
+      );
+      await seedIfEmpty(
+        () => prisma.productCategory.count(),
+        () => prisma.productCategory.createMany({ data: snapshot.productCategories || [], skipDuplicates: true }),
+        'productCategories',
+      );
+      await seedIfEmpty(
+        () => prisma.technology.count(),
+        () => prisma.technology.createMany({ data: snapshot.technologies || [], skipDuplicates: true }),
+        'technologies',
+      );
+      await seedIfEmpty(
+        () => prisma.product.count(),
+        () => prisma.product.createMany({ data: (snapshot.products || []).map(withViFallback), skipDuplicates: true }),
+        'products',
+      );
+      await seedIfEmpty(
+        () => prisma.productTechnology.count(),
+        () => prisma.productTechnology.createMany({ data: snapshot.productTechnologies || [], skipDuplicates: true }),
+        'productTechnologies',
+      );
+      await seedIfEmpty(
+        () => prisma.productAnalytics.count(),
+        () => prisma.productAnalytics.createMany({ data: snapshot.productAnalytics || [], skipDuplicates: true }),
+        'productAnalytics',
+      );
+      await seedIfEmpty(
+        () => prisma.serviceItem.count(),
+        () => prisma.serviceItem.createMany({ data: (snapshot.serviceItems || []).map(withViFallback), skipDuplicates: true }),
+        'serviceItems',
+      );
+
+      for (const s of snapshot.siteSettings || []) {
+        if (!s || typeof s.key !== 'string') continue;
+        let value = typeof s.value === 'string' ? s.value : '';
+        if (s.key.startsWith('admin.categories.')) {
+          try {
+            const parsed = JSON.parse(value);
+            if (Array.isArray(parsed)) {
+              for (const item of parsed) {
+                if (item && typeof item === 'object' && (item.nameVi == null || item.nameVi === '') && typeof item.name === 'string') {
+                  item.nameVi = item.name;
+                }
+              }
+              value = JSON.stringify(parsed);
+            }
+          } catch {
+            // keep original
+          }
+        }
+        await prisma.siteSetting.upsert({
+          where: { key: s.key },
+          update: { value },
+          create: { key: s.key, value },
+        });
+      }
+
+      for (const m of snapshot.uiMessages || []) {
+        if (!m || typeof m.messageKey !== 'string' || typeof m.locale !== 'string') continue;
+        await prisma.uiMessage.upsert({
+          where: { messageKey_locale: { messageKey: m.messageKey, locale: m.locale } },
+          update: { value: typeof m.value === 'string' ? m.value : '' },
+          create: { messageKey: m.messageKey, locale: m.locale, value: typeof m.value === 'string' ? m.value : '' },
+        });
+      }
+      console.log('Applied snapshot content seed (excluding users/permissions/userPermissions).');
+    }
+  } catch (e) {
+    console.warn('Snapshot content seed skipped:', e?.message || e);
   }
 
   console.log('Seeding completed.');

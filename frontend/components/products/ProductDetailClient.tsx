@@ -15,6 +15,7 @@ import {
 import type { PublicProductDetail } from '@/lib/products/types';
 import { youtubeEmbedFromUrl } from '@/lib/products/videoEmbed';
 import { apiPath } from '@/lib/apiRoutes';
+import { useLocale } from '@/components/providers/LocaleProvider';
 
 const RelatedProductsRow = dynamic(() => import('@/components/products/related/RelatedProductsRow'), {
   ssr: false,
@@ -42,6 +43,8 @@ function cardImageCenterOriginPercent(b: StoredProductTransition): string {
 
 export default function ProductDetailClient({ initial }: { initial: PublicProductDetail }) {
   const router = useRouter();
+  const { locale, t } = useLocale();
+  const [product, setProduct] = useState<PublicProductDetail>(initial);
   const reduceMotion = useReducedMotion();
   const skipMotion = reduceMotion === true;
   /** Bounds for shared-element shell; state (not ref) so render stays valid for React Compiler / eslint. */
@@ -50,6 +53,29 @@ export default function ProductDetailClient({ initial }: { initial: PublicProduc
   const [shellFromListing, setShellFromListing] = useState(false);
   const [exiting, setExiting] = useState(false);
   const viewTrackedRef = useRef(false);
+
+  useEffect(() => {
+    setProduct(initial);
+  }, [initial]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(
+          `${apiPath(`products/${encodeURIComponent(initial.slug)}`)}?locale=${encodeURIComponent(locale)}`,
+        );
+        if (!res.ok) return;
+        const data = (await res.json()) as PublicProductDetail;
+        if (!cancelled) setProduct(data);
+      } catch {
+        // keep SSR payload
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [locale, initial.slug]);
 
   useEffect(() => {
     if (viewTrackedRef.current) return;
@@ -62,7 +88,6 @@ export default function ProductDetailClient({ initial }: { initial: PublicProduc
   }, [initial.slug]);
 
   /* Sync shared-element bounds from sessionStorage before first paint (cannot be derived during SSR render). */
-  /* eslint-disable react-hooks/set-state-in-effect -- intentional layout sync; deferring would flash wrong shell */
   useLayoutEffect(() => {
     if (skipMotion) {
       const stale = readProductTransition();
@@ -85,7 +110,6 @@ export default function ProductDetailClient({ initial }: { initial: PublicProduc
     setShellBounds(data);
     setShellFromListing(true);
   }, [initial.slug, skipMotion]);
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   const finishExitAndNavigate = useCallback(() => {
     clearProductTransition();
@@ -118,7 +142,7 @@ export default function ProductDetailClient({ initial }: { initial: PublicProduc
     finishExitAndNavigate();
   }, [exiting, finishExitAndNavigate]);
 
-  const mainImage = initial.imageUrls[0] ?? null;
+  const mainImage = product.imageUrls[0] ?? null;
   const useShell = shellFromListing && shellBounds != null && !skipMotion;
   const b = shellBounds;
 
@@ -129,24 +153,24 @@ export default function ProductDetailClient({ initial }: { initial: PublicProduc
         onClick={handleBack}
         className="hover:text-fg transition-colors text-sm text-fg-muted"
       >
-        Products
+        {t('nav.products')}
       </button>
     ) : (
       <Link href="/products" className="text-fg-muted hover:text-fg transition-colors">
-        Products
+        {t('nav.products')}
       </Link>
     );
 
   const heroLayoutId =
-    useShell || skipMotion ? undefined : `${PRODUCT_HERO_LAYOUT_ID}${initial.slug}`;
+    useShell || skipMotion ? undefined : `${PRODUCT_HERO_LAYOUT_ID}${product.slug}`;
 
   const mainInner = (
     <>
       <DetailBackButton fallbackHref="/products" onCustomNavigate={handleBack} />
-      <nav className="text-sm text-fg-muted mb-6" aria-label="Breadcrumb">
+      <nav className="text-sm text-fg-muted mb-6" aria-label={t('common.breadcrumb')}>
         {productsCrumb}
         <span className="mx-2">/</span>
-        <span className="text-fg">{initial.productName}</span>
+        <span className="text-fg">{product.productName}</span>
       </nav>
 
       <motion.header
@@ -163,20 +187,23 @@ export default function ProductDetailClient({ initial }: { initial: PublicProduc
       >
         <div className="flex flex-wrap items-center gap-3 mb-4">
           <span className="px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wide bg-white/10 text-emerald-900 dark:text-emerald-200 border border-emerald-400/30">
-            {initial.category.name}
+            {product.category.name}
           </span>
-          {initial.isFeatured ? (
+          {product.isFeatured ? (
             <span className="px-3 py-1 rounded-full text-xs font-medium bg-amber-500/20 text-amber-900 dark:text-amber-100 border border-amber-400/40">
-              Featured
+              {t('products.featured')}
             </span>
           ) : null}
         </div>
-        <h1 className="text-4xl md:text-5xl font-bold text-fg mb-4">{initial.productName}</h1>
-        <p className="text-lg text-fg-muted max-w-3xl">{initial.shortDescription}</p>
+        <h1 className="text-4xl md:text-5xl font-bold text-fg mb-4">{product.productName}</h1>
+        <p className="text-lg text-fg-muted max-w-3xl">{product.shortDescription}</p>
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <p className="text-sm text-fg-subtle">
-            {initial.authorName ? `By ${initial.authorName} · ` : null}
-            {initial.viewsCount} views · {initial.demoClickCount} demo opens
+            {product.authorName ? `${t('news.byAuthor', { author: product.authorName })} · ` : null}
+            {t('products.metrics', {
+              views: String(product.viewsCount),
+              demos: String(product.demoClickCount),
+            })}
           </p>
           <button
             type="button"
@@ -185,11 +212,11 @@ export default function ProductDetailClient({ initial }: { initial: PublicProduc
               void fetch(apiPath('products/analytics'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ slug: initial.slug, action: 'share' }),
+                body: JSON.stringify({ slug: product.slug, action: 'share' }),
               });
               const url = typeof window !== 'undefined' ? window.location.href : '';
               if (navigator.share) {
-                void navigator.share({ title: initial.productName, text: initial.shortDescription, url }).catch(() => {
+                void navigator.share({ title: product.productName, text: product.shortDescription, url }).catch(() => {
                   void navigator.clipboard.writeText(url);
                 });
               } else if (url) {
@@ -197,7 +224,7 @@ export default function ProductDetailClient({ initial }: { initial: PublicProduc
               }
             }}
           >
-            Share
+            {t('products.share')}
           </button>
         </div>
       </motion.header>
@@ -232,11 +259,11 @@ export default function ProductDetailClient({ initial }: { initial: PublicProduc
         </motion.div>
       ) : null}
 
-      {initial.imageUrls.length > 1 ? (
-        <section className="mb-12" aria-label="Gallery">
-          <h2 className="text-xl font-semibold text-fg mb-4">Gallery</h2>
+      {product.imageUrls.length > 1 ? (
+        <section className="mb-12" aria-label={t('products.gallery')}>
+          <h2 className="text-xl font-semibold text-fg mb-4">{t('products.gallery')}</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {initial.imageUrls.slice(1).map((src, i) => (
+            {product.imageUrls.slice(1).map((src, i) => (
               <div
                 key={`${src}-${i}`}
                 className="group overflow-hidden rounded-2xl border border-white/10 bg-white/5 aspect-video"
@@ -254,17 +281,17 @@ export default function ProductDetailClient({ initial }: { initial: PublicProduc
         </section>
       ) : null}
 
-      {initial.videoUrls.length > 0 ? (
-        <section className="mb-12" aria-label="Videos">
-          <h2 className="text-xl font-semibold text-fg mb-4">Videos</h2>
+      {product.videoUrls.length > 0 ? (
+        <section className="mb-12" aria-label={t('products.videos')}>
+          <h2 className="text-xl font-semibold text-fg mb-4">{t('products.videos')}</h2>
           <div className="space-y-6">
-            {initial.videoUrls.map((url, i) => {
+            {product.videoUrls.map((url, i) => {
               const embed = youtubeEmbedFromUrl(url);
               return (
                 <div key={`${url}-${i}`} className="overflow-hidden rounded-2xl border border-white/10 bg-black/40 aspect-video">
                   {embed ? (
                     <iframe
-                      title={`Video ${i + 1}`}
+                      title={t('products.videoTitle', { index: String(i + 1) })}
                       src={embed}
                       className="h-full w-full"
                       loading="lazy"
@@ -273,7 +300,7 @@ export default function ProductDetailClient({ initial }: { initial: PublicProduc
                     />
                   ) : (
                     <a href={url} target="_blank" rel="noopener noreferrer" className="flex h-full items-center justify-center text-emerald-700 dark:text-emerald-300 hover:underline p-6">
-                      Open video
+                      {t('products.openVideo')}
                     </a>
                   )}
                 </div>
@@ -283,13 +310,13 @@ export default function ProductDetailClient({ initial }: { initial: PublicProduc
         </section>
       ) : null}
 
-      {initial.embedDemoUrl || initial.demoLink || initial.landingPageLink ? (
-        <section id="demo" className="mb-12 scroll-mt-28 space-y-8" aria-label="Demo and links">
-          {initial.embedDemoUrl ? (
+      {product.embedDemoUrl || product.demoLink || product.landingPageLink ? (
+        <section id="demo" className="mb-12 scroll-mt-28 space-y-8" aria-label={t('products.demoAndLinks')}>
+          {product.embedDemoUrl ? (
             <div className="overflow-hidden rounded-2xl border border-emerald-400/20 shadow-[0_0_40px_-12px_rgba(52,211,153,0.35)]">
               <iframe
-                title="Product demo"
-                src={initial.embedDemoUrl}
+                title={t('products.productDemo')}
+                src={product.embedDemoUrl}
                 className="h-[min(70vh,560px)] w-full bg-white"
                 loading="lazy"
                 sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
@@ -297,31 +324,31 @@ export default function ProductDetailClient({ initial }: { initial: PublicProduc
             </div>
           ) : null}
           <div className="flex flex-wrap gap-3">
-            {initial.demoLink ? (
-              <DemoButton href={initial.demoLink} label="Open demo" slug={initial.slug} />
+            {product.demoLink ? (
+              <DemoButton href={product.demoLink} label={t('products.openDemo')} slug={product.slug} />
             ) : null}
-            {initial.landingPageLink ? (
+            {product.landingPageLink ? (
               <a
                 id="landing"
-                href={initial.landingPageLink}
+                href={product.landingPageLink}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 rounded-xl border border-white/30 bg-white/12 px-5 py-3 font-medium text-fg shadow-lg shadow-black/20 transition hover:border-white/45 hover:bg-white/20 scroll-mt-28"
               >
-                Landing page
+                {t('products.landingPage')}
               </a>
             ) : null}
           </div>
         </section>
       ) : null}
 
-      {initial.technologies.length > 0 ? (
+      {product.technologies.length > 0 ? (
         <section className="mb-12" aria-labelledby="tech-heading">
           <h2 id="tech-heading" className="text-xl font-semibold text-fg mb-4">
-            Technologies used
+            {t('products.technologiesUsed')}
           </h2>
           <ul className="flex flex-wrap gap-3">
-            {initial.technologies.map((t) => (
+            {product.technologies.map((t) => (
               <li key={t.id}>
                 <span
                   className="group relative inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 py-2 transition hover:border-emerald-400/40 hover:bg-white/10"
@@ -348,21 +375,21 @@ export default function ProductDetailClient({ initial }: { initial: PublicProduc
 
       <section className="mb-8" aria-labelledby="overview-heading">
         <h2 id="overview-heading" className="text-xl font-semibold text-fg mb-4">
-          Overview
+          {t('products.overview')}
         </h2>
         <div
           className="public-prose-rich max-w-none rounded-2xl border border-white/10 bg-white/5 p-6 md:p-8 text-fg-muted [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:mb-4 [&_h1]:text-(--text-primary) [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:mt-8 [&_h2]:mb-3 [&_h2]:text-(--text-primary) [&_h3]:text-xl [&_h3]:text-(--text-primary) [&_p]:mb-4 [&_ul]:list-disc [&_ul]:pl-6 [&_a]:text-(--link-color) [&_a]:underline [&_a]:hover:text-(--link-hover)"
-          dangerouslySetInnerHTML={{ __html: initial.fullDescriptionHtml }}
+          dangerouslySetInnerHTML={{ __html: product.fullDescriptionHtml }}
         />
       </section>
 
-      {initial.related.length > 0 ? (
+      {product.related.length > 0 ? (
         <section className="border-t border-white/10 pt-12" aria-labelledby="related-heading">
           <h2 id="related-heading" className="mb-6 text-2xl font-bold text-fg">
-            Related products
+            {t('products.relatedProducts')}
           </h2>
           <RelatedProductsRow
-            related={initial.related}
+            related={product.related}
             listLabelId="related-heading"
             onNavigate={() => clearProductTransition()}
           />

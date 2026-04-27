@@ -2,36 +2,45 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { authorize } from '@/lib/adminAuth';
 import { jsonObjectBody } from '@/lib/jsonBody';
-
-type ServiceRow = {
-  id: number;
-  icon: string;
-  title: string;
-  description: string;
-  features: string | null;
-  order: number;
-  isActive: number | boolean;
-};
+import { parseLocaleQuery } from '@/lib/i18nContent';
+import {
+  getCategoryAssignments,
+  getManagedCategories,
+  setCategoryAssignment,
+} from '@/lib/contentCategoryAssignments';
 
 export async function GET(req: Request) {
   const auth = await authorize(req, 'services.read');
   if (auth.error) return auth.error;
+  const { searchParams } = new URL(req.url);
+  const locale = parseLocaleQuery(searchParams);
 
-  const rows = await prisma.$queryRaw<ServiceRow[]>`
-    SELECT id, icon, title, description, features, \`order\` as \`order\`, isActive
-    FROM ServiceItem
-    ORDER BY \`order\` ASC, id ASC
-  `;
+  const rows = await prisma.serviceItem.findMany({
+    orderBy: [{ order: 'asc' }, { id: 'asc' }],
+  });
+  const [categories, assignments] = await Promise.all([
+    getManagedCategories('services', locale),
+    getCategoryAssignments('services'),
+  ]);
+  const categoryBySlug = new Map(categories.map((c) => [c.slug, c]));
 
   return NextResponse.json(
-    rows.map((r: ServiceRow) => ({
-      id: Number(r.id),
+    rows.map((r) => ({
+      id: r.id,
       icon: r.icon,
       title: r.title,
+      titleVi: r.titleVi ?? '',
       description: r.description,
+      descriptionVi: r.descriptionVi ?? '',
       features: r.features,
-      order: Number(r.order),
-      isActive: Boolean(r.isActive),
+      order: r.order,
+      isActive: r.isActive,
+      categorySlug: assignments[String(r.id)] ?? null,
+      categoryName: (() => {
+        const slug = assignments[String(r.id)];
+        if (!slug) return null;
+        return categoryBySlug.get(slug)?.name ?? null;
+      })(),
     })),
   );
 }
@@ -43,9 +52,12 @@ export async function POST(req: Request) {
   const body = jsonObjectBody(await req.json());
   const icon = String(body.icon ?? '').trim();
   const title = String(body.title ?? '').trim();
+  const titleVi = typeof body.titleVi === 'string' ? body.titleVi.trim() : '';
   const description = String(body.description ?? '').trim();
+  const descriptionVi = typeof body.descriptionVi === 'string' ? body.descriptionVi.trim() : '';
   const order = body.order === undefined || body.order === null ? 0 : Number(body.order);
   const isActive = body.isActive === undefined ? true : Boolean(body.isActive);
+  const categorySlug = typeof body.categorySlug === 'string' ? body.categorySlug.trim() : '';
 
   let features: string | null = null;
   const rawFeatures = body.features;
@@ -62,24 +74,36 @@ export async function POST(req: Request) {
   if (!icon || !title || !description) return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
   if (!Number.isFinite(order)) return NextResponse.json({ error: 'Invalid order' }, { status: 400 });
 
-  await prisma.$executeRaw`
-    INSERT INTO ServiceItem (icon, title, description, features, \`order\`, isActive, createdAt, updatedAt)
-    VALUES (${icon}, ${title}, ${description}, ${features}, ${order}, ${isActive}, NOW(), NOW())
-  `;
+  const created = await prisma.serviceItem.create({
+    data: {
+      icon,
+      title,
+      titleVi: titleVi || null,
+      description,
+      descriptionVi: descriptionVi || null,
+      features,
+      order,
+      isActive,
+    },
+  });
 
-  const created = await prisma.$queryRaw<ServiceRow[]>`
-    SELECT id, icon, title, description, features, \`order\` as \`order\`, isActive
-    FROM ServiceItem
-    ORDER BY id DESC
-    LIMIT 1
-  `;
-
-  const s = created[0];
+  await setCategoryAssignment('services', created.id, categorySlug || null);
+  const categories = await getManagedCategories('services');
+  const categoryName = categories.find((c) => c.slug === categorySlug)?.name ?? null;
   return NextResponse.json({
     ok: true,
-    service: s
-      ? { id: Number(s.id), icon: s.icon, title: s.title, description: s.description, features: s.features, order: Number(s.order), isActive: Boolean(s.isActive) }
-      : null,
+    service: {
+      id: created.id,
+      icon: created.icon,
+      title: created.title,
+      titleVi: created.titleVi ?? '',
+      description: created.description,
+      descriptionVi: created.descriptionVi ?? '',
+      features: created.features,
+      order: created.order,
+      isActive: created.isActive,
+      categorySlug: categorySlug || null,
+      categoryName,
+    },
   });
 }
-

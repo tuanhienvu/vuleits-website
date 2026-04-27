@@ -1,0 +1,5 @@
+{"timestamp":"00:00:02.514","source":"Server","level":"LOG","message":"- Experiments (use with caution):"}
+{"timestamp":"00:00:02.514","source":"Server","level":"LOG","message":"  ✓ externalDir"}
+{"timestamp":"00:00:02.514","source":"Server","level":"LOG","message":"  · optimizePackageImports"}
+{"timestamp":"00:00:02.515","source":"Server","level":"LOG","message":""}
+{"timestamp":"00:00:07.537","source":"Server","level":"LOG","message":"○ Compiling /admin/products/categories ..."}

@@ -39,7 +39,7 @@ export default async function ServiceDetailPage({ params }: Props) {
   const { id } = await params;
   const initial = await fetchService(id);
   if (!initial) {
-    return <div className="container mx-auto px-4 py-12 text-white">Service not found.</div>;
+    return <div className="container mx-auto px-4 py-12 text-white">Not found.</div>;
   }
   return <ServiceDetailClient initial={initial} />;
 }

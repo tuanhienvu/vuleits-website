@@ -26,14 +26,18 @@ type HomeFeatureRow = {
   id: number;
   icon: string;
   title: string;
+  titleVi?: string;
   description: string;
+  descriptionVi?: string;
   order: number;
   isActive: boolean;
+  categorySlug?: string | null;
+  categoryName?: string | null;
 };
 
-export default function HomeFeaturesAdminPanel({ heading }: { heading: string }) {
+export default function HomeFeaturesAdminPanel({ heading, mode = 'homeFeatures' }: { heading: string; mode?: 'homeFeatures' | 'banners' }) {
   const { can } = useAdminPermissions();
-  const { locale } = useLocale();
+  const { locale, t } = useLocale();
   const toast = useToast();
   const isVi = locale === 'vi-VN';
   const canAny = useCallback(
@@ -49,7 +53,17 @@ export default function HomeFeaturesAdminPanel({ heading }: { heading: string })
   const [deleteTarget, setDeleteTarget] = useState<HomeFeatureRow | null>(null);
   const [deleteDialogOrigin, setDeleteDialogOrigin] = useState<ModalOriginPoint | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [form, setForm] = useState({ icon: '', title: '', description: '', order: 0, isActive: true });
+  const [form, setForm] = useState({
+    icon: '',
+    title: '',
+    titleVi: '',
+    description: '',
+    descriptionVi: '',
+    order: 0,
+    isActive: true,
+    categorySlug: '',
+  });
+  const [categoryOptions, setCategoryOptions] = useState<Array<{ slug: string; name: string }>>([]);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const selectAllRef = useRef<HTMLInputElement>(null);
@@ -89,7 +103,8 @@ export default function HomeFeaturesAdminPanel({ heading }: { heading: string })
       if (activeFilter === 'no' && r.isActive) return false;
       if (!q) return true;
       const descPlain = richTextAsPlain(r.description || '').toLowerCase();
-      const hay = `${r.title} ${r.icon} ${r.order} ${descPlain}`.toLowerCase();
+      const descViPlain = richTextAsPlain(r.descriptionVi || '').toLowerCase();
+      const hay = `${r.title} ${r.titleVi ?? ''} ${r.icon} ${r.order} ${descPlain} ${descViPlain}`.toLowerCase();
       return hay.includes(q);
     });
   }, [rows, searchQuery, activeFilter]);
@@ -98,6 +113,34 @@ export default function HomeFeaturesAdminPanel({ heading }: { heading: string })
     if (!canRead) return;
     void refresh();
   }, [canRead, refresh]);
+
+  useEffect(() => {
+    if (!canRead || mode !== 'banners') return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`${apiPath('admin/categories/banners')}?locale=${encodeURIComponent(locale)}`, {
+          credentials: 'include',
+        });
+        if (!res.ok) return;
+        const data = (await res.json()) as Array<{ slug?: unknown; name?: unknown; isActive?: unknown }>;
+        if (cancelled || !Array.isArray(data)) return;
+        const normalized = data
+          .filter((x) => x?.isActive !== false)
+          .map((x) => ({
+            slug: typeof x.slug === 'string' ? x.slug : '',
+            name: typeof x.name === 'string' ? x.name : '',
+          }))
+          .filter((x) => x.slug && x.name);
+        setCategoryOptions(normalized);
+      } catch {
+        // ignore
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [canRead, mode, locale]);
 
   useEffect(() => {
     const el = selectAllRef.current;
@@ -133,7 +176,16 @@ export default function HomeFeaturesAdminPanel({ heading }: { heading: string })
   const openCreate = (triggerEl?: HTMLElement | null) => {
     modal.openFromElement(triggerEl);
     setEditingId(null);
-    setForm({ icon: '✨', title: '', description: '', order: rows.length, isActive: true });
+    setForm({
+      icon: '✨',
+      title: '',
+      titleVi: '',
+      description: '',
+      descriptionVi: '',
+      order: rows.length,
+      isActive: true,
+      categorySlug: categoryOptions[0]?.slug ?? '',
+    });
   };
 
   const openEdit = (r: HomeFeatureRow, triggerEl?: HTMLElement | null) => {
@@ -142,9 +194,12 @@ export default function HomeFeaturesAdminPanel({ heading }: { heading: string })
     setForm({
       icon: r.icon,
       title: r.title,
+      titleVi: r.titleVi ?? '',
       description: r.description,
+      descriptionVi: r.descriptionVi ?? '',
       order: r.order,
       isActive: r.isActive,
+      categorySlug: r.categorySlug ?? '',
     });
   };
 
@@ -155,9 +210,12 @@ export default function HomeFeaturesAdminPanel({ heading }: { heading: string })
       const payload = {
         icon: form.icon.trim(),
         title: form.title.trim(),
+        titleVi: form.titleVi.trim(),
         description: form.description.trim(),
+        descriptionVi: form.descriptionVi.trim(),
         order: Number(form.order) || 0,
         isActive: form.isActive,
+        categorySlug: mode === 'banners' ? form.categorySlug || null : null,
       };
       if (!payload.icon || !payload.title || isRichTextEmpty(form.description)) {
         toast.error('Icon, title, and description are required');
@@ -311,6 +369,7 @@ export default function HomeFeaturesAdminPanel({ heading }: { heading: string })
               <th className="px-3 py-2">Order</th>
               <th className="px-3 py-2">Icon</th>
               <th className="px-3 py-2">Title</th>
+              {mode === 'banners' ? <th className="px-3 py-2">Category</th> : null}
               <th className="px-3 py-2">Active</th>
               <th className="px-5 py-2 text-right">Actions</th>
             </tr>
@@ -335,6 +394,7 @@ export default function HomeFeaturesAdminPanel({ heading }: { heading: string })
                   <td className="px-3 py-2 max-w-xs truncate" title={r.description}>
                     {r.title}
                   </td>
+                  {mode === 'banners' ? <td className="px-3 py-2">{r.categoryName ?? '—'}</td> : null}
                   <td className="px-3 py-2">{r.isActive ? 'Yes' : 'No'}</td>
                   <td className="px-3 py-2 text-right space-x-1">
                     {canAny('update') ? (
@@ -384,6 +444,7 @@ export default function HomeFeaturesAdminPanel({ heading }: { heading: string })
                             {isVi ? 'Thứ tự' : 'Order'}: {r.order} · {r.icon}
                           </p>
                           <p className="font-semibold text-white truncate">{r.title}</p>
+                          {mode === 'banners' ? <p className="text-xs text-white/60">{r.categoryName ?? '—'}</p> : null}
                           <p className="text-xs text-white/60">{r.isActive ? (isVi ? 'Đang bật' : 'Active') : isVi ? 'Tắt' : 'Inactive'}</p>
                         </div>
                       </div>
@@ -437,25 +498,52 @@ export default function HomeFeaturesAdminPanel({ heading }: { heading: string })
                 }
               />
             </div>
-            <label className="block">
-              <span className="text-white/70 text-sm">Title</span>
-              <input
-                className="mt-1 w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
-                value={form.title}
-                onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-              />
-            </label>
-            <div className="block min-w-0">
-              <span className="text-white/70 text-sm">{isVi ? 'Mô tả (định dạng)' : 'Description (rich text)'}</span>
-              <div className="mt-1 w-full min-w-0 rounded-lg border border-white/20 overflow-hidden bg-[#1e1e1e] [&_.tox-tinymce]:max-w-none">
-                <AdminTinyMceEditor
-                  id="home-feature-description"
-                  value={form.description}
-                  onChange={(html) => setForm((f) => ({ ...f, description: html }))}
-                  disabled={!canAny(editingId == null ? 'create' : 'update')}
-                />
+            <section className="space-y-3 rounded-xl border border-white/10 p-3 bg-white/[0.03]">
+              <h4 className="text-white text-sm font-semibold">{t('admin.legalSectionTitles')}</h4>
+              <div className="grid sm:grid-cols-2 gap-3">
+                <label className="block">
+                  <span className="text-white/70 text-sm">{t('admin.aboutUsTitleEn')}</span>
+                  <input
+                    className="mt-1 w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                    value={form.title}
+                    onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-white/70 text-sm">{t('admin.aboutUsTitleVi')}</span>
+                  <input
+                    className="mt-1 w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                    value={form.titleVi}
+                    onChange={(e) => setForm((f) => ({ ...f, titleVi: e.target.value }))}
+                  />
+                </label>
               </div>
-            </div>
+            </section>
+            <section className="space-y-3 rounded-xl border border-white/10 p-3 bg-white/[0.03]">
+              <h4 className="text-white text-sm font-semibold">{t('admin.legalSectionContent')}</h4>
+              <div className="block min-w-0">
+                <span className="text-white/70 text-sm">{t('admin.aboutUsBodyEn')}</span>
+                <div className="mt-1 w-full min-w-0 rounded-lg border border-white/20 overflow-hidden bg-[#1e1e1e] [&_.tox-tinymce]:max-w-none">
+                  <AdminTinyMceEditor
+                    id="home-feature-description-en"
+                    value={form.description}
+                    onChange={(html) => setForm((f) => ({ ...f, description: html }))}
+                    disabled={!canAny(editingId == null ? 'create' : 'update')}
+                  />
+                </div>
+              </div>
+              <div className="block min-w-0">
+                <span className="text-white/70 text-sm">{t('admin.aboutUsBodyVi')}</span>
+                <div className="mt-1 w-full min-w-0 rounded-lg border border-white/20 overflow-hidden bg-[#1e1e1e] [&_.tox-tinymce]:max-w-none">
+                  <AdminTinyMceEditor
+                    id="home-feature-description-vi"
+                    value={form.descriptionVi}
+                    onChange={(html) => setForm((f) => ({ ...f, descriptionVi: html }))}
+                    disabled={!canAny(editingId == null ? 'create' : 'update')}
+                  />
+                </div>
+              </div>
+            </section>
             <label className="block">
               <span className="text-white/70 text-sm">Order</span>
               <input
@@ -465,6 +553,23 @@ export default function HomeFeaturesAdminPanel({ heading }: { heading: string })
                 onChange={(e) => setForm((f) => ({ ...f, order: Number(e.target.value) }))}
               />
             </label>
+            {mode === 'banners' ? (
+              <label className="block">
+                <span className="text-white/70 text-sm">{isVi ? 'Danh mục' : 'Category'}</span>
+                <select
+                  className="mt-1 w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                  value={form.categorySlug}
+                  onChange={(e) => setForm((f) => ({ ...f, categorySlug: e.target.value }))}
+                >
+                  <option value="">{isVi ? 'Chưa gán' : 'Unassigned'}</option>
+                  {categoryOptions.map((c) => (
+                    <option key={c.slug} value={c.slug}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
             <label className="flex items-center gap-2 text-white/90">
               <input
                 type="checkbox"

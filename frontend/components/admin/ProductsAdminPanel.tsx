@@ -25,9 +25,12 @@ import { apiPath } from '@/lib/apiRoutes';
 type AdminProduct = {
   id: number;
   productName: string;
+  productNameVi?: string;
   slug: string;
   shortDescription: string;
+  shortDescriptionVi?: string;
   fullDescription: string;
+  fullDescriptionVi?: string;
   imageUrls: string[];
   videoUrls: string[];
   demoLink: string | null;
@@ -62,7 +65,7 @@ type ProductImageSourceMode = 'upload' | 'library' | 'url';
 
 export default function ProductsAdminPanel() {
   const { can } = useAdminPermissions();
-  const { locale } = useLocale();
+  const { locale, t } = useLocale();
   const toast = useToast();
   const isVi = locale === 'vi-VN';
   const canMediaCreate = can('media', 'create');
@@ -78,9 +81,12 @@ export default function ProductsAdminPanel() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState({
     productName: '',
+    productNameVi: '',
     slug: '',
     shortDescription: '',
+    shortDescriptionVi: '',
     fullDescription: '',
+    fullDescriptionVi: '',
     imageUrlsText: '',
     videoUrlsText: '',
     demoLink: '',
@@ -127,7 +133,8 @@ export default function ProductsAdminPanel() {
       if (!q) return true;
       const cat = (p.category?.name ?? '').toLowerCase();
       const shortPlain = richTextAsPlain(p.shortDescription || '').toLowerCase();
-      const hay = `${p.productName} ${p.slug} ${cat} ${shortPlain}`.toLowerCase();
+      const shortViPlain = richTextAsPlain(p.shortDescriptionVi || '').toLowerCase();
+      const hay = `${p.productName} ${p.productNameVi ?? ''} ${p.slug} ${cat} ${shortPlain} ${shortViPlain}`.toLowerCase();
       return hay.includes(q);
     });
   }, [rows, searchQuery, categoryFilter, statusFilter, featuredFilter, techFilter]);
@@ -243,7 +250,9 @@ export default function ProductsAdminPanel() {
 
   const loadMeta = useCallback(async () => {
     try {
-      const res = await fetch(`${apiPath('products')}?take=1`, { credentials: 'include' });
+      const res = await fetch(`${apiPath('products')}?take=1&locale=${encodeURIComponent(locale)}`, {
+        credentials: 'include',
+      });
       if (!res.ok) return;
       const j = (await res.json()) as Meta;
       setMeta({
@@ -274,7 +283,7 @@ export default function ProductsAdminPanel() {
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [locale, toast]);
 
   useEffect(() => {
     if (!can('products', 'read')) return;
@@ -318,9 +327,12 @@ export default function ProductsAdminPanel() {
     setEditingId(null);
     setForm({
       productName: '',
+      productNameVi: '',
       slug: '',
       shortDescription: '',
+      shortDescriptionVi: '',
       fullDescription: '',
+      fullDescriptionVi: '',
       imageUrlsText: '',
       videoUrlsText: '',
       demoLink: '',
@@ -341,9 +353,12 @@ export default function ProductsAdminPanel() {
     setEditingId(p.id);
     setForm({
       productName: p.productName,
+      productNameVi: p.productNameVi ?? '',
       slug: p.slug,
       shortDescription: p.shortDescription,
+      shortDescriptionVi: p.shortDescriptionVi ?? '',
       fullDescription: p.fullDescription,
+      fullDescriptionVi: p.fullDescriptionVi ?? '',
       imageUrlsText: (p.imageUrls || []).join('\n'),
       videoUrlsText: (p.videoUrls || []).join('\n'),
       demoLink: p.demoLink ?? '',
@@ -379,8 +394,11 @@ export default function ProductsAdminPanel() {
       const videoUrls = linesToUrls(form.videoUrlsText);
       const payload: Record<string, unknown> = {
         productName: form.productName.trim(),
+        productNameVi: form.productNameVi.trim(),
         shortDescription: form.shortDescription.trim(),
+        shortDescriptionVi: form.shortDescriptionVi.trim(),
         fullDescription: form.fullDescription.trim(),
+        fullDescriptionVi: form.fullDescriptionVi.trim(),
         categoryId: form.categoryId,
         imageUrls,
         videoUrls,
@@ -537,8 +555,8 @@ export default function ProductsAdminPanel() {
               className="w-full px-3 py-2 bg-white/5 border border-white/15 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-white/30"
             >
               <option value="">{isVi ? 'Tất cả' : 'All'}</option>
-              <option value="Active">Active</option>
-              <option value="Expired">Expired</option>
+              <option value="Active">{isVi ? 'Đang hoạt động' : 'Active'}</option>
+              <option value="Expired">{isVi ? 'Hết hạn' : 'Expired'}</option>
             </select>
           </label>
           <label className="block">
@@ -709,14 +727,27 @@ export default function ProductsAdminPanel() {
           >
             <h3 className="text-lg font-semibold text-white">{editingId == null ? (isVi ? 'Sản phẩm mới' : 'New product') : isVi ? 'Sửa sản phẩm' : 'Edit product'}</h3>
             <div className="grid sm:grid-cols-2 gap-3 min-w-0">
-              <label className="block sm:col-span-2">
-                <span className="text-white/70 text-sm">Product name</span>
-                <input
-                  className="mt-1 w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
-                  value={form.productName}
-                  onChange={(e) => setForm((f) => ({ ...f, productName: e.target.value }))}
-                />
-              </label>
+              <section className="sm:col-span-2 space-y-3 rounded-xl border border-white/10 p-3 bg-white/[0.03]">
+                <h4 className="text-white text-sm font-semibold">{t('admin.legalSectionTitles')}</h4>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <label className="block">
+                    <span className="text-white/70 text-sm">{t('admin.aboutUsTitleEn')}</span>
+                    <input
+                      className="mt-1 w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                      value={form.productName}
+                      onChange={(e) => setForm((f) => ({ ...f, productName: e.target.value }))}
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="text-white/70 text-sm">{t('admin.aboutUsTitleVi')}</span>
+                    <input
+                      className="mt-1 w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                      value={form.productNameVi}
+                      onChange={(e) => setForm((f) => ({ ...f, productNameVi: e.target.value }))}
+                    />
+                  </label>
+                </div>
+              </section>
               <label className="block">
                 <span className="text-white/70 text-sm">Slug (optional)</span>
                 <input
@@ -739,32 +770,53 @@ export default function ProductsAdminPanel() {
                   ))}
                 </select>
               </label>
-              <div className="block sm:col-span-2 min-w-0">
-                <span className="text-white/70 text-sm">
-                  {isVi ? 'Mô tả ngắn (định dạng)' : 'Short description (rich text)'}
-                </span>
-                <div className="mt-1 w-full min-w-0 rounded-lg border border-white/20 overflow-hidden bg-[#1e1e1e] [&_.tox-tinymce]:max-w-none">
-                  <AdminTinyMceEditor
-                    id="product-short-description"
-                    value={form.shortDescription}
-                    onChange={(html) => setForm((f) => ({ ...f, shortDescription: html }))}
-                    disabled={!can('products', editingId == null ? 'create' : 'update')}
-                  />
+              <section className="sm:col-span-2 space-y-3 rounded-xl border border-white/10 p-3 bg-white/[0.03]">
+                <h4 className="text-white text-sm font-semibold">{t('admin.legalSectionContent')}</h4>
+                <div className="block min-w-0">
+                  <span className="text-white/70 text-sm">{t('admin.aboutUsBodyEn')}</span>
+                  <div className="mt-1 w-full min-w-0 rounded-lg border border-white/20 overflow-hidden bg-[#1e1e1e] [&_.tox-tinymce]:max-w-none">
+                    <AdminTinyMceEditor
+                      id="product-short-description-en"
+                      value={form.shortDescription}
+                      onChange={(html) => setForm((f) => ({ ...f, shortDescription: html }))}
+                      disabled={!can('products', editingId == null ? 'create' : 'update')}
+                    />
+                  </div>
                 </div>
-              </div>
-              <div className="block sm:col-span-2 min-w-0">
-                <span className="text-white/70 text-sm">
-                  {isVi ? 'Mô tả đầy đủ (HTML)' : 'Full description (rich text)'}
-                </span>
-                <div className="mt-1 w-full min-w-0 rounded-lg border border-white/20 overflow-hidden bg-[#1e1e1e] [&_.tox-tinymce]:max-w-none">
-                  <AdminTinyMceEditor
-                    id="product-full-description"
-                    value={form.fullDescription}
-                    onChange={(html) => setForm((f) => ({ ...f, fullDescription: html }))}
-                    disabled={!can('products', editingId == null ? 'create' : 'update')}
-                  />
+                <div className="block min-w-0">
+                  <span className="text-white/70 text-sm">{t('admin.aboutUsBodyVi')}</span>
+                  <div className="mt-1 w-full min-w-0 rounded-lg border border-white/20 overflow-hidden bg-[#1e1e1e] [&_.tox-tinymce]:max-w-none">
+                    <AdminTinyMceEditor
+                      id="product-short-description-vi"
+                      value={form.shortDescriptionVi}
+                      onChange={(html) => setForm((f) => ({ ...f, shortDescriptionVi: html }))}
+                      disabled={!can('products', editingId == null ? 'create' : 'update')}
+                    />
+                  </div>
                 </div>
-              </div>
+                <div className="block min-w-0">
+                  <span className="text-white/70 text-sm">{t('admin.productsFullDescEn')}</span>
+                  <div className="mt-1 w-full min-w-0 rounded-lg border border-white/20 overflow-hidden bg-[#1e1e1e] [&_.tox-tinymce]:max-w-none">
+                    <AdminTinyMceEditor
+                      id="product-full-description-en"
+                      value={form.fullDescription}
+                      onChange={(html) => setForm((f) => ({ ...f, fullDescription: html }))}
+                      disabled={!can('products', editingId == null ? 'create' : 'update')}
+                    />
+                  </div>
+                </div>
+                <div className="block min-w-0">
+                  <span className="text-white/70 text-sm">{t('admin.productsFullDescVi')}</span>
+                  <div className="mt-1 w-full min-w-0 rounded-lg border border-white/20 overflow-hidden bg-[#1e1e1e] [&_.tox-tinymce]:max-w-none">
+                    <AdminTinyMceEditor
+                      id="product-full-description-vi"
+                      value={form.fullDescriptionVi}
+                      onChange={(html) => setForm((f) => ({ ...f, fullDescriptionVi: html }))}
+                      disabled={!can('products', editingId == null ? 'create' : 'update')}
+                    />
+                  </div>
+                </div>
+              </section>
               <div className="block sm:col-span-2 space-y-3">
                 <span className="text-white/70 text-sm block">
                   {isVi ? 'Ảnh sản phẩm' : 'Product images'}
@@ -880,7 +932,7 @@ export default function ProductsAdminPanel() {
                         className="flex-1 min-w-0 px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm placeholder:text-white/35"
                         value={imageDraftUrl}
                         onChange={(e) => setImageDraftUrl(e.target.value)}
-                        placeholder="https://…"
+                        placeholder={isVi ? 'https://… (ví dụ)' : 'https://… (example)'}
                         disabled={!can('products', editingId == null ? 'create' : 'update')}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {

@@ -35,9 +35,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   return NextResponse.json({
     id: p.id,
     productName: p.productName,
+    productNameVi: p.productNameVi ?? '',
     slug: p.slug,
     shortDescription: p.shortDescription,
+    shortDescriptionVi: p.shortDescriptionVi ?? '',
     fullDescription: p.fullDescription,
+    fullDescriptionVi: p.fullDescriptionVi ?? '',
     imageUrls: asStringArray(p.imageUrls as unknown),
     videoUrls: asStringArray(p.videoUrls as unknown),
     demoLink: p.demoLink,
@@ -74,8 +77,16 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const data: Prisma.ProductUpdateInput = {};
 
   if (typeof body.productName === 'string') data.productName = body.productName.trim();
+  if (body.productNameVi !== undefined)
+    data.productNameVi = body.productNameVi == null || body.productNameVi === '' ? null : String(body.productNameVi).trim();
   if (typeof body.shortDescription === 'string') data.shortDescription = body.shortDescription.trim();
+  if (body.shortDescriptionVi !== undefined)
+    data.shortDescriptionVi =
+      body.shortDescriptionVi == null || body.shortDescriptionVi === '' ? null : String(body.shortDescriptionVi).trim();
   if (typeof body.fullDescription === 'string') data.fullDescription = body.fullDescription.trim();
+  if (body.fullDescriptionVi !== undefined)
+    data.fullDescriptionVi =
+      body.fullDescriptionVi == null || body.fullDescriptionVi === '' ? null : String(body.fullDescriptionVi).trim();
   if (typeof body.slug === 'string' && body.slug.trim()) {
     const s = slugify(body.slug);
     if (s) {

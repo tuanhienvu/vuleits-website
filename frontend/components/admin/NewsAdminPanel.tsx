@@ -13,7 +13,6 @@ import { useAnimatedOriginModal } from '@/components/admin/useAnimatedOriginModa
 import { useEscapeToClose } from '@/components/admin/useEscapeToClose';
 import { useLocale } from '@/components/providers/LocaleProvider';
 import { useToast } from '@/components/providers/ToastProvider';
-import { NEWS_CATEGORIES } from '@/lib/news/newsCategories';
 import { slugify } from '@/lib/news/slugify';
 import { AdminFilterSearchIconButton, adminFilterPanelClass } from '@/components/admin/AdminFilterBarMobile';
 import { apiPath } from '@/lib/apiRoutes';
@@ -33,8 +32,10 @@ type MediaLibraryRow = {
 type AdminNewsRow = {
   id: number;
   title: string;
+  titleVi?: string;
   slug: string;
   description: string;
+  descriptionVi?: string;
   category: string;
   tags: string | null;
   status: string;
@@ -48,9 +49,10 @@ type AdminNewsRow = {
   image: { id: number; url: string; filename: string } | null;
   imageId: number | null;
   content: string;
+  contentVi?: string;
 };
 
-const CATEGORY_OPTIONS = NEWS_CATEGORIES.filter((c) => c !== 'Other');
+const FALLBACK_CATEGORY_OPTIONS = ['General'];
 
 function toDateInputValue(d: string | null | undefined) {
   if (!d) return '';
@@ -60,7 +62,7 @@ function toDateInputValue(d: string | null | undefined) {
 
 export default function NewsAdminPanel() {
   const { can } = useAdminPermissions();
-  const { locale } = useLocale();
+  const { locale, t } = useLocale();
   const toast = useToast();
   const isVi = locale === 'vi-VN';
 
@@ -83,10 +85,13 @@ export default function NewsAdminPanel() {
   const [form, setForm] = useState<{
     id: number | null;
     title: string;
+    titleVi: string;
     slug: string;
     category: string;
     description: string;
+    descriptionVi: string;
     content: string;
+    contentVi: string;
     tags: string; // comma-separated in UI
     status: string;
     publishedAt: string; // YYYY-MM-DD
@@ -101,10 +106,13 @@ export default function NewsAdminPanel() {
   }>({
     id: null,
     title: '',
+    titleVi: '',
     slug: '',
     category: 'General',
     description: '',
+    descriptionVi: '',
     content: '',
+    contentVi: '',
     tags: '',
     status: 'Active',
     publishedAt: '',
@@ -126,6 +134,7 @@ export default function NewsAdminPanel() {
   const selectAllPageRef = useRef<HTMLInputElement>(null);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const newsQueryInputRef = useRef<HTMLInputElement>(null);
+  const [categoryOptions, setCategoryOptions] = useState<string[]>(FALLBACK_CATEGORY_OPTIONS);
 
   const canDeleteNews = can('news', 'delete');
 
@@ -176,6 +185,33 @@ export default function NewsAdminPanel() {
   }, [can, refreshNews]);
 
   useEffect(() => {
+    if (!can('news', 'read')) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`${apiPath('admin/categories/news')}?locale=${encodeURIComponent(locale)}`, {
+          credentials: 'include',
+        });
+        if (!res.ok) return;
+        const data = (await res.json()) as Array<{ name?: unknown; isActive?: unknown }>;
+        if (cancelled || !Array.isArray(data)) return;
+        const names = data
+          .filter((x) => x?.isActive !== false)
+          .map((x) => (typeof x.name === 'string' ? x.name.trim() : ''))
+          .filter(Boolean);
+        const next = names.length ? names : FALLBACK_CATEGORY_OPTIONS;
+        setCategoryOptions(next);
+        setForm((prev) => (next.includes(prev.category) ? prev : { ...prev, category: next[0] }));
+      } catch {
+        // ignore category list errors; keep fallback options
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [can, locale]);
+
+  useEffect(() => {
     const el = selectAllPageRef.current;
     if (!el || !canDeleteNews) return;
     const n = news.length;
@@ -212,10 +248,13 @@ export default function NewsAdminPanel() {
     setForm({
       id: null,
       title: '',
+      titleVi: '',
       slug: '',
       category: 'General',
       description: '',
+      descriptionVi: '',
       content: '',
+      contentVi: '',
       tags: '',
       status: 'Active',
       publishedAt: '',
@@ -247,10 +286,13 @@ export default function NewsAdminPanel() {
       setForm({
         id: row.id,
         title: row.title,
+        titleVi: row.titleVi ?? '',
         slug: row.slug,
         category: row.category,
         description: row.description,
+        descriptionVi: row.descriptionVi ?? '',
         content: row.content,
+        contentVi: row.contentVi ?? '',
         tags: tagsStr,
         status: row.status,
         publishedAt: toDateInputValue(row.publishedAt),
@@ -352,10 +394,13 @@ export default function NewsAdminPanel() {
     try {
       const payload = {
         title: form.title,
+        titleVi: form.titleVi,
         slug: form.slug,
         category: form.category,
         description: form.description,
+        descriptionVi: form.descriptionVi,
         content: form.content,
+        contentVi: form.contentVi,
         tags: form.tags,
         status: form.status,
         publishedAt: form.publishedAt || null,
@@ -443,7 +488,7 @@ export default function NewsAdminPanel() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onFocus={() => setMobileFiltersOpen(true)}
-                placeholder="Title/description..."
+                placeholder={isVi ? 'Tiêu đề/mô tả...' : 'Title/description...'}
                 className="w-full px-3 py-2 bg-white/5 border border-white/15 rounded-xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-white/30"
               />
             </label>
@@ -455,8 +500,8 @@ export default function NewsAdminPanel() {
                 onChange={(e) => setCategoryFilter(e.target.value)}
                 className="w-full px-3 py-2 bg-white/5 border border-white/15 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-white/30"
               >
-                <option value="">All</option>
-                {CATEGORY_OPTIONS.map((c) => (
+                <option value="">{isVi ? 'Tất cả' : 'All'}</option>
+                {categoryOptions.map((c) => (
                   <option key={c} value={c}>
                     {c}
                   </option>
@@ -471,9 +516,9 @@ export default function NewsAdminPanel() {
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className="w-full px-3 py-2 bg-white/5 border border-white/15 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-white/30"
               >
-                <option value="">All</option>
-                <option value="Active">Active</option>
-                <option value="Expired">Expired</option>
+                <option value="">{isVi ? 'Tất cả' : 'All'}</option>
+                <option value="Active">{isVi ? 'Đang hoạt động' : 'Active'}</option>
+                <option value="Expired">{isVi ? 'Hết hạn' : 'Expired'}</option>
               </select>
             </label>
 
@@ -636,9 +681,9 @@ export default function NewsAdminPanel() {
             <div className="flex items-start justify-between gap-4 px-4 sm:px-6 py-4 border-b border-white/10 bg-white/5">
               <div className="min-w-0">
                 <h3 className="text-lg sm:text-xl font-bold text-white">{form.id ? (isVi ? 'Sửa tin tức' : 'Edit News') : isVi ? 'Thêm tin tức' : 'Add News'}</h3>
-                <p className="text-white/60 text-sm mt-1">Rich content editor supports HTML and embedded code blocks.</p>
+                <p className="text-white/60 text-sm mt-1">{t('admin.newsEditorHint')}</p>
               </div>
-              <button onClick={() => void modal.closeAnimated()} className="text-white/70 hover:text-white bg-white/10 hover:bg-white/20 px-3 py-2 rounded shrink-0 min-h-10 min-w-10" aria-label="Close">
+              <button onClick={() => void modal.closeAnimated()} className="text-white/70 hover:text-white bg-white/10 hover:bg-white/20 px-3 py-2 rounded shrink-0 min-h-10 min-w-10" aria-label={t('admin.close')}>
                 ✕
               </button>
             </div>
@@ -647,32 +692,46 @@ export default function NewsAdminPanel() {
               <div className="space-y-5">
               <div className="grid grid-cols-1 xl:grid-cols-3 xl:items-stretch gap-5">
                 <div className="xl:col-span-2 space-y-4 min-w-0 xl:min-h-0">
-                <label className="block md:col-span-2">
-                  <span className="text-white/80 text-sm">Title</span>
-                  <input
-                    value={form.title}
-                    onChange={(e) => {
-                      const nextTitle = e.target.value;
-                      setForm((prev) => ({
-                        ...prev,
-                        title: nextTitle,
-                        slug: prev.id == null ? slugify(nextTitle) : prev.slug,
-                      }));
-                    }}
-                    className="mt-1 w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
-                    placeholder="News title"
-                    disabled={!can('news', form.id == null ? 'create' : 'update')}
-                  />
-                </label>
+                <section className="space-y-3 rounded-xl border border-white/10 p-3 bg-white/[0.03] md:col-span-2">
+                  <h4 className="text-white text-sm font-semibold">{t('admin.legalSectionTitles')}</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <label className="block">
+                      <span className="text-white/80 text-sm">{t('admin.aboutUsTitleEn')}</span>
+                      <input
+                        value={form.title}
+                        onChange={(e) => {
+                          const nextTitle = e.target.value;
+                          setForm((prev) => ({
+                            ...prev,
+                            title: nextTitle,
+                            slug: prev.id == null ? slugify(nextTitle) : prev.slug,
+                          }));
+                        }}
+                        className="mt-1 w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
+                        placeholder={t('admin.newsTitlePlaceholder')}
+                        disabled={!can('news', form.id == null ? 'create' : 'update')}
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="text-white/80 text-sm">{t('admin.aboutUsTitleVi')}</span>
+                      <input
+                        value={form.titleVi}
+                        onChange={(e) => setForm((prev) => ({ ...prev, titleVi: e.target.value }))}
+                        className="mt-1 w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
+                        disabled={!can('news', form.id == null ? 'create' : 'update')}
+                      />
+                    </label>
+                  </div>
+                </section>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <label className="block">
-                  <span className="text-white/80 text-sm">Slug</span>
+                  <span className="text-white/80 text-sm">{t('common.slug')}</span>
                   <input
                     value={form.slug}
                     onChange={(e) => setForm((prev) => ({ ...prev, slug: e.target.value }))}
                     className="mt-1 w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
-                    placeholder="auto-slug"
+                    placeholder={t('admin.autoSlugPlaceholder')}
                     readOnly={form.id == null}
                   />
                 </label>
@@ -684,8 +743,8 @@ export default function NewsAdminPanel() {
                     onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}
                     className="mt-1 w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
                   >
-                    <option value="General">General</option>
-                    {CATEGORY_OPTIONS.map((c) => (
+                    <option value="General">{isVi ? 'Chung' : 'General'}</option>
+                    {categoryOptions.map((c) => (
                       <option key={c} value={c}>
                         {c}
                       </option>
@@ -694,22 +753,37 @@ export default function NewsAdminPanel() {
                 </label>
                 </div>
 
-                <div className="block md:col-span-2 min-w-0">
-                  <span className="text-white/80 text-sm">
-                    {isVi ? 'Mô tả meta (định dạng)' : 'Meta description (rich text)'}
-                  </span>
-                  <div className="mt-1 w-full min-w-0 rounded-lg border border-white/20 overflow-hidden bg-[#1e1e1e] [&_.tox-tinymce]:max-w-none">
-                    <AdminTinyMceEditor
-                      id="news-meta-description"
-                      value={form.description}
-                      onChange={(html) => setForm((prev) => ({ ...prev, description: html }))}
-                      disabled={!can('news', form.id == null ? 'create' : 'update')}
-                    />
+                <section className="space-y-3 md:col-span-2 rounded-xl border border-white/10 p-3 bg-white/[0.03]">
+                  <h4 className="text-white text-sm font-semibold">
+                    {isVi ? 'Mô tả meta (EN / VI)' : 'Meta description (EN / VI)'}
+                  </h4>
+                  <div className="block min-w-0">
+                    <span className="text-white/80 text-sm">{t('admin.aboutUsBodyEn')}</span>
+                    <div className="mt-1 w-full min-w-0 rounded-lg border border-white/20 overflow-hidden bg-[#1e1e1e] [&_.tox-tinymce]:max-w-none">
+                      <AdminTinyMceEditor
+                        id="news-meta-description-en"
+                        value={form.description}
+                        onChange={(html) => setForm((prev) => ({ ...prev, description: html }))}
+                        disabled={!can('news', form.id == null ? 'create' : 'update')}
+                      />
+                    </div>
                   </div>
-                </div>
-                <p className="text-xs text-white/45 -mt-2">
-                  {richTextAsPlain(form.description).length}/300 {isVi ? 'ký tự (text thuần) gợi ý' : 'plain-text chars recommended'}
-                </p>
+                  <div className="block min-w-0">
+                    <span className="text-white/80 text-sm">{t('admin.aboutUsBodyVi')}</span>
+                    <div className="mt-1 w-full min-w-0 rounded-lg border border-white/20 overflow-hidden bg-[#1e1e1e] [&_.tox-tinymce]:max-w-none">
+                      <AdminTinyMceEditor
+                        id="news-meta-description-vi"
+                        value={form.descriptionVi}
+                        onChange={(html) => setForm((prev) => ({ ...prev, descriptionVi: html }))}
+                        disabled={!can('news', form.id == null ? 'create' : 'update')}
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs text-white/45">
+                    EN: {richTextAsPlain(form.description).length}/300 · VI: {richTextAsPlain(form.descriptionVi).length}/300 —{' '}
+                    {isVi ? 'text thuần gợi ý' : 'plain-text length hint'}
+                  </p>
+                </section>
 
                 <label className="block md:col-span-2">
                   <span className="text-white/80 text-sm">Thumbnail</span>
@@ -753,8 +827,8 @@ export default function NewsAdminPanel() {
                     onChange={(e) => setForm((prev) => ({ ...prev, status: e.target.value }))}
                     className="mt-1 w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
                   >
-                    <option value="Active">Active</option>
-                    <option value="Expired">Expired</option>
+                    <option value="Active">{isVi ? 'Đang hoạt động' : 'Active'}</option>
+                    <option value="Expired">{isVi ? 'Hết hạn' : 'Expired'}</option>
                   </select>
                 </label>
 
@@ -798,7 +872,7 @@ export default function NewsAdminPanel() {
                     value={form.tags}
                     onChange={(e) => setForm((prev) => ({ ...prev, tags: e.target.value }))}
                     className="mt-1 w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
-                    placeholder="e.g. Updates, Product"
+                    placeholder={t('admin.tagsExamplePlaceholder')}
                   />
                 </label>
 
@@ -809,7 +883,7 @@ export default function NewsAdminPanel() {
                       value={form.seoTitle}
                       onChange={(e) => setForm((prev) => ({ ...prev, seoTitle: e.target.value }))}
                       className="mt-1 w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
-                      placeholder="Optional"
+                      placeholder={t('admin.optional')}
                     />
                   </label>
                   <label className="block">
@@ -818,7 +892,7 @@ export default function NewsAdminPanel() {
                       value={form.seoKeywords}
                       onChange={(e) => setForm((prev) => ({ ...prev, seoKeywords: e.target.value }))}
                       className="mt-1 w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
-                      placeholder="Optional"
+                      placeholder={t('admin.optional')}
                     />
                   </label>
                   <div className="block min-w-0">
@@ -838,17 +912,31 @@ export default function NewsAdminPanel() {
                 </div>
               </div>
 
-              <label className="block w-full min-w-0">
-                <span className="text-white/80 text-sm">Content (HTML + code snippets)</span>
-                <div className="mt-1 w-full min-w-0 rounded-lg border border-white/20 overflow-hidden bg-[#1e1e1e] [&_.tox-tinymce]:max-w-none">
-                  <AdminTinyMceEditor
-                    id="news-content"
-                    value={form.content}
-                    onChange={(html) => setForm((prev) => ({ ...prev, content: html }))}
-                    disabled={!can('news', form.id == null ? 'create' : 'update')}
-                  />
+              <section className="space-y-3 w-full min-w-0 rounded-xl border border-white/10 p-3 bg-white/[0.03]">
+                <h4 className="text-white text-sm font-semibold">{t('admin.legalSectionContent')}</h4>
+                <div className="block w-full min-w-0">
+                  <span className="text-white/80 text-sm">{isVi ? 'Nội dung (EN)' : 'Article body (English)'}</span>
+                  <div className="mt-1 w-full min-w-0 rounded-lg border border-white/20 overflow-hidden bg-[#1e1e1e] [&_.tox-tinymce]:max-w-none">
+                    <AdminTinyMceEditor
+                      id="news-content-en"
+                      value={form.content}
+                      onChange={(html) => setForm((prev) => ({ ...prev, content: html }))}
+                      disabled={!can('news', form.id == null ? 'create' : 'update')}
+                    />
+                  </div>
                 </div>
-              </label>
+                <div className="block w-full min-w-0">
+                  <span className="text-white/80 text-sm">{isVi ? 'Nội dung (VI)' : 'Article body (Vietnamese)'}</span>
+                  <div className="mt-1 w-full min-w-0 rounded-lg border border-white/20 overflow-hidden bg-[#1e1e1e] [&_.tox-tinymce]:max-w-none">
+                    <AdminTinyMceEditor
+                      id="news-content-vi"
+                      value={form.contentVi}
+                      onChange={(html) => setForm((prev) => ({ ...prev, contentVi: html }))}
+                      disabled={!can('news', form.id == null ? 'create' : 'update')}
+                    />
+                  </div>
+                </div>
+              </section>
               </div>
             </div>
 

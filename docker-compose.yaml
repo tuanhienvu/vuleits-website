@@ -1,0 +1,157 @@
+# Stack: MySQL + Redis + API + Next frontend.
+# From repo root:
+#   - Pull from registry: docker compose pull && docker compose up -d
+#
+# Required for `docker compose` variable substitution (Linux/server):
+#   JWT_SECRET              — must be in project `.env` next to this file, OR exported, OR passed
+#                             as `docker compose --env-file /path/to.env` (same key). Without it,
+#                             compose fails before containers start: "Set JWT_SECRET in .env".
+#   MYSQL_PASSWORD          — must match DATABASE_URL user password below
+#   MYSQL_ROOT_PASSWORD     — MySQL root password
+#
+# Recommended for public URL / CORS:
+#   NEXT_PUBLIC_SITE_URL    — e.g. http://113.161.254.4 or https://your-domain
+#   CORS_ORIGINS            — same origin(s) as the browser uses for the frontend
+#   FRONTEND_ORIGIN        — usually same as NEXT_PUBLIC_SITE_URL
+#
+# Plain HTTP (no TLS): set AUTH_COOKIE_SECURE=0 so the admin session cookie is sent over HTTP.
+#
+# `env_file: .env` loads the repo-root `.env` into each app container. Values under `environment:`
+# still win when the same key is set both ways (e.g. DATABASE_URL, JWT_SECRET from compose).
+
+services:
+  mysql:
+    image: tuanhienvu/mysql:8.4
+    container_name: mysql_db
+    # labels:
+      # - "com.centurylinklabs.watchtower.enable=true"
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: vuleits_db
+      MYSQL_USER: vuleits
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-changeme}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootchangeme}
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$$MYSQL_ROOT_PASSWORD\" || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+
+  db-init:
+    image: mysql:8.4
+    container_name: mysql_db-init
+    restart: "no"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      MYSQL_DATABASE: vuleits_db
+      MYSQL_USER: vuleits
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-changeme}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootchangeme}
+    command: >
+      sh -c "
+      mysql -hmysql -uroot -p$$MYSQL_ROOT_PASSWORD -e
+      \"CREATE DATABASE IF NOT EXISTS \\`$$MYSQL_DATABASE\\`;
+      CREATE USER IF NOT EXISTS '$$MYSQL_USER'@'%' IDENTIFIED BY '$$MYSQL_PASSWORD';
+      ALTER USER '$$MYSQL_USER'@'%' IDENTIFIED BY '$$MYSQL_PASSWORD';
+      GRANT ALL PRIVILEGES ON \\`$$MYSQL_DATABASE\\`.* TO '$$MYSQL_USER'@'%';
+      FLUSH PRIVILEGES;\"
+      "
+
+  redis:
+    image: tuanhienvu/redis:7-alpine
+    container_name: redis-cache
+    # labels:
+    #   - "com.centurylinklabs.watchtower.enable=true"
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    image: tuanhienvu/vuleits-website-backend:${IMAGE_TAG:-V1.0.1}
+    container_name: vuleits-website-backend
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    env_file:
+      - path: .env
+        required: false
+    restart: unless-stopped
+    ports:
+      - "${BACKEND_PORT:-5001}:5001"
+    environment:
+      NODE_ENV: production
+      PORT: "5001"
+      HOSTNAME: "0.0.0.0"
+      DATABASE_URL: mysql://vuleits:${MYSQL_PASSWORD_URLENCODED:-Vuleits%402026}@mysql:3306/vuleits_db
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      TRUST_FORWARDED_FOR: "1"
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://vuleits.com:3001,http://103.10.15.106:3001}
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://vuleits.com:3001}
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://vuleits.com:3001}
+      AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-0}
+    # Any HTTP response means Node is listening (GET / can be 5xx during startup).
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://127.0.0.1:5001/',(r)=>{r.resume();process.exit(0)}).on('error',()=>process.exit(1))",
+        ]
+      interval: 20s
+      timeout: 10s
+      retries: 8
+      start_period: 600s
+    depends_on:
+      mysql:
+        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+  frontend:
+    image: tuanhienvu/vuleits-website-frontend:${IMAGE_TAG:-V1.0.1}
+    container_name: vuleits-website-frontend
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    env_file:
+      - path: .env
+        required: false
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-3001}:3001"
+    environment:
+      NODE_ENV: production
+      PORT: "3001"
+      HOSTNAME: "0.0.0.0"
+      BACKEND_INTERNAL_URL: ${BACKEND_INTERNAL_URL:-http://backend:5001}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://vuleits.com:5001/api}
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://vuleits.com:3001}
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  mysql_data:
+  redis_data:
+
+networks:
+  default:
+    name: proxy_network
+    external: true

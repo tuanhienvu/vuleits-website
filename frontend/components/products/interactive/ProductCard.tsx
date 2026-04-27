@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { motion, useReducedMotion } from 'framer-motion';
 import type { InteractiveProduct } from './types';
 import { writeProductTransition } from './productTransitionStorage';
+import { useLocale } from '@/components/providers/LocaleProvider';
 
 function stripHtml(html: string): string {
   return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
@@ -23,6 +24,7 @@ type ProductCardProps = {
 
 function ProductCardInner({ product, variant }: ProductCardProps) {
   const router = useRouter();
+  const { t } = useLocale();
   const reduceMotion = useReducedMotion();
   const [flipped, setFlipped] = useState(false);
   const pendingNavAfterFlip = useRef(false);
@@ -69,7 +71,7 @@ function ProductCardInner({ product, variant }: ProductCardProps) {
     pendingNavAfterFlip.current = false;
   };
 
-  const backBlurb = stripHtml(product.shortDescription) || 'Open full view for more details.';
+  const backBlurb = stripHtml(product.shortDescription) || t('products.openFullViewDetails');
 
   return (
     <article
@@ -104,7 +106,7 @@ function ProductCardInner({ product, variant }: ProductCardProps) {
               role="button"
               tabIndex={0}
               aria-expanded={flipped}
-              aria-label={`${product.productName}. Activate to flip card, then open full product page.`}
+              aria-label={t('products.cardActivateAria', { name: product.productName })}
               className="cursor-pointer text-left outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--pub-card-focus-ring-offset)]"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
@@ -161,7 +163,10 @@ function ProductCardInner({ product, variant }: ProductCardProps) {
                 </div>
                 <div className="pointer-events-none mt-4">
                   <span className="text-xs text-fg-subtle">
-                    {product.viewsCount} views · {product.demoClickCount} demos
+                    {t('products.metrics', {
+                      views: String(product.viewsCount),
+                      demos: String(product.demoClickCount),
+                    })}
                   </span>
                 </div>
               </div>
@@ -177,14 +182,14 @@ function ProductCardInner({ product, variant }: ProductCardProps) {
                 onClick={() => writeProductTransition(product.slug, heroMeasureRef.current)}
                 className="public-card-cta-primary"
               >
-                View demo
+                {t('products.viewDemo')}
               </Link>
               <Link
                 href={`${href}#landing`}
                 onClick={() => writeProductTransition(product.slug, heroMeasureRef.current)}
                 className="public-card-cta-secondary"
               >
-                Landing
+                {t('products.landing')}
               </Link>
             </div>
           </div>
@@ -198,10 +203,10 @@ function ProductCardInner({ product, variant }: ProductCardProps) {
               transform: 'rotateY(180deg)',
             }}
           >
-            <p className="text-xs font-medium uppercase tracking-wider text-emerald-300/90">Overview</p>
+            <p className="text-xs font-medium uppercase tracking-wider text-emerald-300/90">{t('products.overview')}</p>
             <h3 className="mt-2 text-lg font-semibold text-fg leading-snug">{product.productName}</h3>
             <p className="mt-3 flex-1 overflow-y-auto text-sm leading-relaxed text-fg-muted">{backBlurb}</p>
-            <p className="mt-4 text-xs text-fg-subtle">Opening product page…</p>
+            <p className="mt-4 text-xs text-fg-subtle">{t('products.openingProductPage')}</p>
           </div>
         </motion.div>
       </div>

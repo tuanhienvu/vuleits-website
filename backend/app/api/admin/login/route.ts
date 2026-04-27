@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 import { signJWT } from '@/lib/jwt';
@@ -6,6 +7,7 @@ import { normalizeAdminEmail } from '@/lib/adminEmail';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 import { createRequestLogger } from '@/lib/logger';
 import { persistAdminLog } from '@/lib/adminLogPersistence';
+import { authCookieSecure } from '@/lib/authCookieSecure';
 
 export async function POST(request: Request) {
   const reqLog = createRequestLogger(request);
@@ -34,7 +36,12 @@ export async function POST(request: Request) {
   }
 
   try {
-    const body = await request.json();
+    let body: { email?: unknown; password?: unknown };
+    try {
+      body = (await request.json()) as { email?: unknown; password?: unknown };
+    } catch {
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    }
     const emailNorm = normalizeAdminEmail(body?.email);
     const passwordStr = body?.password == null ? '' : String(body.password);
     if (!emailNorm || !passwordStr) return NextResponse.json({ error: 'Missing credentials' }, { status: 400 });
@@ -91,11 +98,25 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Account is inactive. An administrator must activate it before you can sign in.' }, { status: 403 });
     }
 
+    if (!process.env.JWT_SECRET?.trim()) {
+      reqLog.error('authentication.jwt_secret_missing', {
+        event: { category: 'authentication', action: 'admin.login', outcome: 'failure', reason: 'misconfiguration' },
+        client: { ip },
+      });
+      return NextResponse.json(
+        {
+          error:
+            'Sign-in is unavailable: JWT_SECRET is not set on the server. Set it in the backend container environment (e.g. docker-compose .env).',
+        },
+        { status: 503 },
+      );
+    }
+
     const token = signJWT({ email: user.email, userId: user.id, roleId: user.roleId });
     const response = NextResponse.json({ ok: true, email: user.email, roleId: user.roleId });
     response.cookies.set('auth_token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: authCookieSecure(),
       sameSite: 'strict',
       maxAge: 24 * 60 * 60,
       path: '/',
@@ -114,6 +135,19 @@ export async function POST(request: Request) {
     });
     return response;
   } catch (e: unknown) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError) {
+      reqLog.warn('database.query_error', {
+        event: { category: 'database', action: 'query', outcome: 'failure' },
+        error: { code: e.code, message: e.message },
+      });
+      return NextResponse.json(
+        {
+          error:
+            'Database error (schema or connection). On Docker, check backend logs: ensure MySQL is healthy, DATABASE_URL matches MYSQL_PASSWORD, and prisma db push / seed completed.',
+        },
+        { status: 503 },
+      );
+    }
     const name = e && typeof e === 'object' && 'name' in e ? String((e as { name: string }).name) : '';
     if (name === 'PrismaClientInitializationError') {
       reqLog.warn('database.unavailable', {
@@ -121,6 +155,16 @@ export async function POST(request: Request) {
         error: { type: 'PrismaClientInitializationError' },
       });
       return NextResponse.json({ error: 'Database unavailable. Check MySQL is running and DATABASE_URL in .env.' }, { status: 503 });
+    }
+    if (e instanceof Error && e.message.includes('Missing JWT_SECRET')) {
+      reqLog.error('authentication.jwt_secret_missing', {
+        event: { category: 'authentication', action: 'admin.login', outcome: 'failure' },
+        client: { ip },
+      });
+      return NextResponse.json(
+        { error: 'Sign-in unavailable: JWT_SECRET must be set in the backend environment.' },
+        { status: 503 },
+      );
     }
     reqLog.exception('admin.login.unhandled_error', e, {
       event: { category: 'authentication', action: 'admin.login', outcome: 'failure' },

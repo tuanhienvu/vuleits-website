@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { sanitizeNewsContentHtml } from '@/lib/news/sanitizeNewsContentHtml';
+import { parseLocaleQuery, pickLocalized } from '@/lib/i18nContent';
 
-export async function GET(_req: Request, { params }: { params: Promise<{ slug: string }> }) {
+export async function GET(req: Request, { params }: { params: Promise<{ slug: string }> }) {
+  const locale = parseLocaleQuery(new URL(req.url).searchParams);
   const { slug } = await params;
   const article = await prisma.news.findUnique({
     where: { slug },
@@ -23,18 +25,22 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
     include: { author: { select: { displayName: true } }, image: { select: { url: true, filename: true } } },
   });
 
+  const articleTitle = pickLocalized(article.title, article.titleVi, locale);
+  const articleDescription = pickLocalized(article.description, article.descriptionVi, locale);
+  const articleContent = pickLocalized(article.content, article.contentVi, locale);
+
   return NextResponse.json({
     article: {
       id: article.id,
-      title: article.title,
+      title: articleTitle,
       slug: article.slug,
-      description: article.description,
+      description: articleDescription,
       category: article.category,
       publishedAt: effectiveDate.toISOString(),
       authorName: article.author?.displayName ?? '',
       thumbnailSrc: article.image?.url ?? null,
       thumbnailAlt: article.image?.filename ?? null,
-      contentHtml: sanitizeNewsContentHtml(article.content),
+      contentHtml: sanitizeNewsContentHtml(articleContent),
       seoTitle: article.seoTitle ?? null,
       seoDescription: article.seoDescription ?? null,
       seoKeywords: article.seoKeywords ?? null,
@@ -44,9 +50,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
       .slice(0, 4)
       .map((x) => ({
         id: x.id,
-        title: x.title,
+        title: pickLocalized(x.title, x.titleVi, locale),
         slug: x.slug,
-        description: x.description,
+        description: pickLocalized(x.description, x.descriptionVi, locale),
         category: x.category,
         publishedAt: (x.publishedAt ?? x.startDate ?? x.createdAt).toISOString(),
         authorName: x.author?.displayName ?? '',
@@ -58,7 +64,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
         { label: 'Home', href: '/' },
         { label: 'News', href: '/news' },
         { label: article.category, href: `/news?category=${encodeURIComponent(article.category)}` },
-        { label: article.title },
+        { label: articleTitle },
       ],
     },
   });

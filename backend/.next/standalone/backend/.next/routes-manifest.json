@@ -66,6 +66,23 @@
       "namedRegex": "^/api/admin/about\\-team/(?<nxtPid>[^/]+?)(?:/)?$"
     },
     {
+      "page": "/api/admin/categories/[entity]",
+      "regex": "^/api/admin/categories/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPentity": "nxtPentity"
+      },
+      "namedRegex": "^/api/admin/categories/(?<nxtPentity>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/admin/categories/[entity]/[id]",
+      "regex": "^/api/admin/categories/([^/]+?)/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPentity": "nxtPentity",
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/admin/categories/(?<nxtPentity>[^/]+?)/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
       "page": "/api/admin/contact-submissions/[id]",
       "regex": "^/api/admin/contact\\-submissions/([^/]+?)(?:/)?$",
       "routeKeys": {

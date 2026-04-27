@@ -1,5 +1,4 @@
 import {
-  allUiMessageKeys,
   defaultMessagesByLocale,
   UI_LOCALES,
   type Locale,

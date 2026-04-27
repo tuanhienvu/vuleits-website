@@ -35,9 +35,12 @@ export async function GET(req: Request) {
     rows.map((p) => ({
       id: p.id,
       productName: p.productName,
+      productNameVi: p.productNameVi ?? '',
       slug: p.slug,
       shortDescription: p.shortDescription,
+      shortDescriptionVi: p.shortDescriptionVi ?? '',
       fullDescription: p.fullDescription,
+      fullDescriptionVi: p.fullDescriptionVi ?? '',
       imageUrls: asStringArray(p.imageUrls as unknown),
       videoUrls: asStringArray(p.videoUrls as unknown),
       demoLink: p.demoLink,
@@ -65,8 +68,11 @@ export async function POST(req: Request) {
 
   const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
   const productName = typeof body.productName === 'string' ? body.productName.trim() : '';
+  const productNameVi = typeof body.productNameVi === 'string' ? body.productNameVi.trim() : '';
   const shortDescription = typeof body.shortDescription === 'string' ? body.shortDescription.trim() : '';
+  const shortDescriptionVi = typeof body.shortDescriptionVi === 'string' ? body.shortDescriptionVi.trim() : '';
   const fullDescription = typeof body.fullDescription === 'string' ? body.fullDescription.trim() : '';
+  const fullDescriptionVi = typeof body.fullDescriptionVi === 'string' ? body.fullDescriptionVi.trim() : '';
   const categoryId = Number(body.categoryId);
   let slug = typeof body.slug === 'string' && body.slug.trim() ? slugify(body.slug) : slugify(productName);
   if (!productName || !shortDescription || !fullDescription || !Number.isFinite(categoryId)) {
@@ -87,9 +93,12 @@ export async function POST(req: Request) {
 
   const data: Prisma.ProductCreateInput = {
     productName,
+    productNameVi: productNameVi || null,
     slug,
     shortDescription,
+    shortDescriptionVi: shortDescriptionVi || null,
     fullDescription,
+    fullDescriptionVi: fullDescriptionVi || null,
     imageUrls: imageUrls as Prisma.InputJsonValue,
     videoUrls: videoUrls as Prisma.InputJsonValue,
     demoLink: typeof body.demoLink === 'string' && body.demoLink.trim() ? body.demoLink.trim() : null,

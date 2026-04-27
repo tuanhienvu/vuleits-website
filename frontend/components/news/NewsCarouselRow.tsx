@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useLocale } from '@/components/providers/LocaleProvider';
 
 export type NewsCarouselCard = {
   id: number;
@@ -25,6 +26,7 @@ export default function NewsCarouselRow({
   // Used to stagger auto-slide timers across multiple carousels on the page.
   autoStartDelayMs?: number;
 }) {
+  const { t } = useLocale();
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const [canPrev, setCanPrev] = useState(false);
   const [canNext, setCanNext] = useState(false);
@@ -109,7 +111,7 @@ export default function NewsCarouselRow({
             onClick={() => scrollByPage(-1)}
             disabled={!canPrev}
             className="news-carousel-nav-btn px-3 py-1.5 rounded disabled:opacity-40 disabled:pointer-events-none transition-colors"
-            aria-label="Previous articles"
+            aria-label={t('news.previousArticles')}
           >
             ←
           </button>
@@ -118,7 +120,7 @@ export default function NewsCarouselRow({
             onClick={() => scrollByPage(1)}
             disabled={!canNext}
             className="news-carousel-nav-btn px-3 py-1.5 rounded disabled:opacity-40 disabled:pointer-events-none transition-colors"
-            aria-label="Next articles"
+            aria-label={t('news.nextArticles')}
           >
             →
           </button>
@@ -165,6 +167,7 @@ function NewsCardContent({ article }: { article: NewsCarouselCard }) {
 }
 
 function NewsCardInner({ article }: { article: NewsCarouselCard }) {
+  const { t } = useLocale();
   return (
     <>
       <div className="relative w-full h-24 rounded-lg overflow-hidden bg-(--pub-card-image-well-bg) mb-4">
@@ -184,7 +187,7 @@ function NewsCardInner({ article }: { article: NewsCarouselCard }) {
       <p className="text-fg font-semibold">{article.title}</p>
       <p className="text-fg-muted text-sm mt-2">{article.description}</p>
       <p className="text-fg-subtle text-xs mt-3">{new Date(article.publishedAt).toLocaleDateString()}</p>
-      <p className="text-fg-subtle text-[11px] mt-1">{article.authorName}</p>
+      <p className="text-fg-subtle text-[11px] mt-1">{t('news.byAuthor', { author: article.authorName })}</p>
     </>
   );
 }

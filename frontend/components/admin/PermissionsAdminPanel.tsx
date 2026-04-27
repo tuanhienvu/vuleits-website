@@ -11,6 +11,7 @@ import {
 import { useAdminPermissions } from '@/components/admin/AdminPermissionContext';
 import AdminConfirmDialog from '@/components/admin/AdminConfirmDialog';
 import { getModalOriginFromElement, type ModalOriginPoint } from '@/components/admin/useAnimatedOriginModal';
+import { useLocale } from '@/components/providers/LocaleProvider';
 import { useToast } from '@/components/providers/ToastProvider';
 import { apiPath } from '@/lib/apiRoutes';
 
@@ -43,6 +44,7 @@ type UserTarget = 'all' | number;
 // --- Sections (UI): Role/user selectors & actions | Permission matrix | Reset confirm ---
 
 export default function PermissionsAdminPanel() {
+  const { t } = useLocale();
   const { can } = useAdminPermissions();
   const toast = useToast();
   const [users, setUsers] = useState<UserOpt[]>([]);
@@ -249,7 +251,7 @@ export default function PermissionsAdminPanel() {
   };
 
   if (!can('permissions', 'read')) {
-    return <div className="text-white/70">No permission.</div>;
+    return <div className="text-white/70">{t('admin.noPermissionShort')}</div>;
   }
 
   const roleName = roles.find((r) => r.id === selectedRoleId)?.name ?? '—';
@@ -266,10 +268,10 @@ export default function PermissionsAdminPanel() {
   return (
     <div className="space-y-4">
       <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-4">
-        <h2 className="text-2xl font-bold text-white">Permissions</h2>
+        <h2 className="text-2xl font-bold text-white">{t('admin.permissions')}</h2>
         <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-2 sm:items-end">
           <label className="text-sm text-white/80 flex flex-col gap-1">
-            <span>User group</span>
+            <span>{t('admin.userGroup')}</span>
             <select
               className="px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white min-w-[200px]"
               value={selectedRoleId ?? ''}
@@ -287,7 +289,7 @@ export default function PermissionsAdminPanel() {
             </select>
           </label>
           <label className="text-sm text-white/80 flex flex-col gap-1">
-            <span>User</span>
+            <span>{t('admin.users')}</span>
             <select
               className="px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white min-w-[220px]"
               value={userTarget === 'all' ? 'all' : String(userTarget)}
@@ -296,7 +298,7 @@ export default function PermissionsAdminPanel() {
                 setUserTarget(v === 'all' ? 'all' : Number(v));
               }}
             >
-              <option value="all">All (group permissions)</option>
+              <option value="all">{t('admin.allGroupPermissions')}</option>
               {filteredUsers.map((u) => (
                 <option key={u.id} value={u.id}>
                   {u.email}
@@ -315,7 +317,7 @@ export default function PermissionsAdminPanel() {
                   void reset();
                 }}
               >
-                Reset to defaults
+                {t('admin.resetToDefaults')}
               </button>
               <button
                 type="button"
@@ -330,8 +332,8 @@ export default function PermissionsAdminPanel() {
         </div>
       </div>
       <p className="text-white/60 text-sm">{scopeLine}</p>
-      {loading ? <p className="text-white/70">Loading…</p> : null}
-      {detailLoading ? <p className="text-white/70">Loading matrix…</p> : null}
+      {loading ? <p className="text-white/70">{t('admin.logsLoading')}</p> : null}
+      {detailLoading ? <p className="text-white/70">{t('admin.loadingPermissionMatrix')}</p> : null}
       {locked ? (
         <p className="text-amber-200/90 text-sm">
           {userTarget === 'all'
@@ -345,7 +347,7 @@ export default function PermissionsAdminPanel() {
           <table className="w-full text-xs sm:text-sm text-left text-white/90 min-w-[640px]">
             <thead className="bg-white/5 text-white/70">
               <tr>
-                <th className="px-2 py-2 sticky left-0 bg-white/10">Feature</th>
+                <th className="px-2 py-2 sticky left-0 bg-white/10">{t('admin.feature')}</th>
                 {ACTIONS.map((a) => (
                   <th key={a} className="px-2 py-2 text-center capitalize">
                     {a}
@@ -381,19 +383,19 @@ export default function PermissionsAdminPanel() {
         </p>
       ) : null}
       {!loading && userTarget !== 'all' && filteredUsers.length === 0 ? (
-        <p className="text-white/60">No active users in this group.</p>
+        <p className="text-white/60">{t('admin.noActiveUsersInGroup')}</p>
       ) : null}
       {/* ==================== RESET PERMISSIONS CONFIRMATION ==================== */}
       <AdminConfirmDialog
         open={resetConfirmOpen}
         origin={resetDialogOrigin}
-        title="Reset permissions"
+        title={t('admin.resetPermissions')}
         message={
           userTarget === 'all'
             ? 'Reset this user group role permission set to the default template for this role?'
             : 'Reset this user permission set to role defaults?'
         }
-        confirmText="Reset"
+        confirmText={t('admin.reset')}
         confirming={saving}
         onCancel={() => (!saving ? (setResetConfirmOpen(false), setResetDialogOrigin(null)) : undefined)}
         onConfirm={() => {

@@ -1,0 +1,212 @@
+# Deploying Guideline (Docker Compose + Nginx)
+
+This guideline is a reusable production deployment flow for web projects using:
+- Docker images in a registry
+- Docker Compose on a Linux server
+- Nginx as reverse proxy
+
+---
+
+## 1) Prerequisites
+
+- A Linux server with public IP
+- Docker and Docker Compose plugin installed
+- Domain DNS control (A record)
+- Docker registry account (Docker Hub or private registry)
+- Project has:
+  - `docker-compose.yaml`
+  - production `.env` template/variables
+  - Nginx vhost config (or you create one)
+
+Check:
+- `docker --version`
+- `docker compose version`
+- `nginx -v`
+
+---
+
+## 2) Prepare Project for Deploy
+
+1. Ensure compose uses image tags (avoid local build on server if not needed):
+   - `image: your-registry/your-app:TAG`
+2. Ensure required env vars are defined in root `.env`.
+3. Ensure service ports are correct and not conflicting.
+4. If compose declares external network, create it first:
+   - `docker network create <network_name> || true`
+
+---
+
+## 3) Build and Push Images (from local/CI)
+
+Example:
+- `docker build -f docker/Dockerfile.backend -t <registry>/<backend-image>:<tag> .`
+- `docker build -f docker/Dockerfile.frontend -t <registry>/<frontend-image>:<tag> .`
+- `docker push <registry>/<backend-image>:<tag>`
+- `docker push <registry>/<frontend-image>:<tag>`
+
+Best practice:
+- Keep one immutable tag per release (`v1.0.1`, `2026-04-27-1`)
+- Avoid reusing the same tag in production when possible
+
+---
+
+## 4) Server Setup
+
+1. SSH into server:
+   - `ssh <user>@<server-ip>`
+2. Create deploy folder and upload project files:
+   - `mkdir -p ~/apps/<project-name>`
+3. Place files:
+   - `docker-compose.yaml`
+   - `.env`
+   - Nginx site config
+
+If Docker Hub rate limit/private repo:
+- `docker login`
+
+---
+
+## 5) Start Services with Docker Compose
+
+From project folder:
+- `docker network create <network_name> || true` (if needed)
+- `docker compose pull`
+- `docker compose up -d`
+- `docker compose ps`
+
+Health checks:
+- `docker compose logs <service> --tail=200`
+- `docker compose logs -f <backend-service>`
+
+---
+
+## 6) Configure Nginx Reverse Proxy
+
+1. Copy vhost:
+   - `sudo cp ./<site>.conf /etc/nginx/sites-available/<site>.conf`
+2. Enable site:
+   - `sudo ln -sf /etc/nginx/sites-available/<site>.conf /etc/nginx/sites-enabled/<site>.conf`
+3. Test + reload:
+   - `sudo nginx -t`
+   - `sudo systemctl reload nginx`
+
+Recommended proxy pattern:
+- `location /api/` -> backend upstream
+- `location /` -> frontend upstream
+- Upstream names in `proxy_pass` must exactly match `upstream` block names
+
+---
+
+## 7) DNS and Firewall
+
+1. DNS A records:
+   - `your-domain.com -> <server-ip>`
+   - `www.your-domain.com -> <server-ip>` (optional)
+2. Open firewall ports:
+   - `80/tcp` (required)
+   - `443/tcp` (if HTTPS)
+   - app ports only if direct debug needed
+
+Verify:
+- `dig +short your-domain.com`
+- `curl -I http://your-domain.com`
+
+---
+
+## 8) Verify End-to-End
+
+On server:
+- `curl -I http://127.0.0.1:<frontend-port>`
+- `curl -I http://127.0.0.1:<backend-port>`
+- `curl -I http://127.0.0.1` (through nginx)
+- `docker compose ps`
+- `sudo nginx -t`
+
+Expected:
+- backend healthy
+- frontend up
+- nginx test successful
+
+---
+
+## 9) Common Issues and Fixes
+
+### A) `service "db-init" didn't complete successfully: exit 1`
+Likely DB auth mismatch or stale DB volume.
+- Check logs:
+  - `docker compose logs db-init --tail=200`
+  - `docker compose logs mysql --tail=200`
+- If safe to reset data:
+  - `docker compose down -v`
+  - `docker compose up -d`
+
+### B) `network <name> declared as external, but could not be found`
+- `docker network create <name>`
+
+### C) Nginx `host not found in upstream ...`
+- `proxy_pass` target does not match `upstream` block name
+- Fix names, then:
+  - `sudo nginx -t`
+  - `sudo systemctl reload nginx`
+
+### D) `sudo: unable to resolve host <hostname>`
+- Fix `/etc/hosts` to include hostname mapping:
+  - `127.0.1.1 <hostname>`
+
+### E) Backend unhealthy in compose
+- Check backend logs:
+  - `docker logs <backend-container> --tail=300`
+- Typical reasons:
+  - DB not reachable
+  - wrong `DATABASE_URL` or secrets
+  - startup tasks (migrations/seed) blocking boot too long
+
+---
+
+## 10) Release Update Workflow
+
+For each new release:
+1. Build and push new image tags
+2. Update `IMAGE_TAG` (or image tag) on server
+3. Run:
+   - `docker compose pull`
+   - `docker compose up -d`
+4. Validate:
+   - `docker compose ps`
+   - health/log checks
+   - external URL smoke test
+
+---
+
+## 11) Optional: Full Docker Cleanup (Use Carefully)
+
+This removes all containers/images/volumes/build cache on the machine:
+- `docker ps -aq | xargs -r docker rm -f`
+- `docker system prune -a --volumes -f`
+- `docker builder prune -a -f`
+
+Warning:
+- This is destructive and impacts all projects on that server.
+
+---
+
+## 12) Move Local Data To Server (DB + Public)
+
+Use when you want production to start with your current local data.
+
+1. On local machine (Windows):
+   - `./package-local-data.ps1`
+   - This creates `deploy/package` with:
+     - `db.sql` (full MySQL dump of `vuleits_db`)
+     - `seed.db.snapshot.json`
+     - `public/frontend` and `public/backend`
+
+2. Upload `deploy/package` to server project folder.
+
+3. On server after deploy:
+   - `bash deploy/restore-server-data.sh`
+   - This imports DB dump and syncs public folders.
+
+4. Restart app containers:
+   - `docker compose -f docker-compose.yaml up -d`
+

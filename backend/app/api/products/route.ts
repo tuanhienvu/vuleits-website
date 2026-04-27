@@ -2,9 +2,30 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { asStringArray } from '@/lib/products/jsonArrays';
 import { sanitizeAboutIntroBodyHtml } from '@/lib/sanitizeAboutIntroHtml';
+import { parseLocaleQuery, pickLocalized } from '@/lib/i18nContent';
 
+const PRODUCT_CATEGORY_VI_KEY = 'admin.categories.products.nameViMap';
+
+async function readProductCategoryNameViMap(): Promise<Record<string, string>> {
+  const setting = await prisma.siteSetting.findUnique({ where: { key: PRODUCT_CATEGORY_VI_KEY } });
+  if (!setting?.value) return {};
+  try {
+    const parsed = JSON.parse(setting.value) as unknown;
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {};
+    const out: Record<string, string> = {};
+    for (const [k, v] of Object.entries(parsed as Record<string, unknown>)) {
+      const key = String(k || '').trim();
+      const value = typeof v === 'string' ? v.trim() : '';
+      if (key && value) out[key] = value;
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
+  const locale = parseLocaleQuery(searchParams);
   const q = String(searchParams.get('q') ?? '').trim();
   const categorySlug = String(searchParams.get('category') ?? '').trim();
   const techParam = String(searchParams.get('tech') ?? '').trim();
@@ -22,7 +43,8 @@ export async function GET(req: Request) {
   if (categorySlug) where.category = { slug: categorySlug };
   if (techIds.length) where.technologies = { some: { technologyId: { in: techIds } } };
 
-  const items = await prisma.product.findMany({
+  const [items, viMap, categoriesRaw] = await Promise.all([
+    prisma.product.findMany({
     where,
     take,
     orderBy: [{ isFeatured: 'desc' }, { updatedAt: 'desc' }],
@@ -30,12 +52,17 @@ export async function GET(req: Request) {
       category: { select: { id: true, name: true, slug: true } },
       technologies: { include: { technology: { select: { id: true, techName: true, techLogo: true } } } },
     },
-  });
+    }),
+    readProductCategoryNameViMap(),
+    prisma.productCategory.findMany({ orderBy: { sortOrder: 'asc' }, select: { id: true, name: true, slug: true } }),
+  ]);
 
   const filtered = q
     ? items.filter((p) => {
         const qq = q.toLowerCase();
-        return p.productName.toLowerCase().includes(qq) || p.shortDescription.toLowerCase().includes(qq) || p.slug.toLowerCase().includes(qq);
+        const name = pickLocalized(p.productName, p.productNameVi, locale);
+        const short = pickLocalized(p.shortDescription, p.shortDescriptionVi, locale);
+        return name.toLowerCase().includes(qq) || short.toLowerCase().includes(qq) || p.slug.toLowerCase().includes(qq);
       })
     : items;
 
@@ -45,11 +72,16 @@ export async function GET(req: Request) {
 
   const mapCard = (p: (typeof filtered)[number]) => ({
     id: p.id,
-    productName: p.productName,
+    productName: pickLocalized(p.productName, p.productNameVi, locale),
     slug: p.slug,
-    shortDescription: sanitizeAboutIntroBodyHtml(p.shortDescription ?? ''),
+    shortDescription: sanitizeAboutIntroBodyHtml(
+      pickLocalized(p.shortDescription, p.shortDescriptionVi, locale) ?? '',
+    ),
     mainImage: asStringArray(p.imageUrls)[0] ?? null,
-    category: p.category,
+    category: {
+      ...p.category,
+      name: locale === 'vi-VN' ? viMap[p.category.slug] || p.category.name : p.category.name,
+    },
     isFeatured: p.isFeatured,
     viewsCount: p.viewsCount,
     demoClickCount: p.demoClickCount,
@@ -61,6 +93,9 @@ export async function GET(req: Request) {
     trending: trendingTop.map(mapCard),
     popular: popular.slice(0, 8).map(mapCard),
     technologies: await prisma.technology.findMany({ orderBy: { techName: 'asc' }, select: { id: true, techName: true, techLogo: true } }),
-    categories: await prisma.productCategory.findMany({ orderBy: { sortOrder: 'asc' }, select: { id: true, name: true, slug: true } }),
+    categories: categoriesRaw.map((c) => ({
+      ...c,
+      name: locale === 'vi-VN' ? viMap[c.slug] || c.name : c.name,
+    })),
   });
 }

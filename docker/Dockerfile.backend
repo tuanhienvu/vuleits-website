@@ -1,14 +1,22 @@
 # syntax=docker/dockerfile:1
 # Monorepo backend (Next.js standalone API). Build from repository root:
-#   docker build -f docker/Dockerfile.backend -t YOUR_REGISTRY/vuleits-backend:latest .
+#   docker build -f docker/Dockerfile.backend -t tuanhienvu/vuleits-website-backend:V1.0.0 .
+#
+# Runtime: entrypoint runs `prisma generate`, `prisma db push`, then `npm run seed`
+# before starting the server. Set SKIP_DB_SEED=1 to skip seed on restarts if needed.
 
 FROM node:20-bookworm-slim AS deps
+RUN apt-get update -y && apt-get install -y --no-install-recommends openssl ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
+# postinstall runs prisma generate; URL is not contacted for generate
+ENV DATABASE_URL="mysql://dummy:dummy@127.0.0.1:3306/dummy"
 COPY package.json package-lock.json ./
 COPY frontend/package.json frontend/package.json
 COPY backend/package.json backend/package.json
 # Root `postinstall` runs prisma generate — needs script + schema before `npm ci`
 COPY backend/scripts/prisma-with-db-env.js backend/scripts/prisma-with-db-env.js
+COPY backend/scripts/load-database-env.js backend/scripts/load-database-env.js
 COPY prisma ./prisma
 RUN npm ci
 
@@ -21,19 +29,30 @@ ENV DATABASE_URL="mysql://dummy:dummy@127.0.0.1:3306/dummy"
 ENV NODE_ENV=production
 RUN npm run build --workspace @vuleits/backend
 
+
 FROM node:20-bookworm-slim AS runner
+ARG IMAGE_VERSION=V1.0.0
+LABEL org.opencontainers.image.title="vuleits-website-backend" \
+  org.opencontainers.image.version="${IMAGE_VERSION}"
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=5001
 ENV HOSTNAME=0.0.0.0
+ENV SERVICE_VERSION=${IMAGE_VERSION}
 
 RUN apt-get update -y && apt-get install -y --no-install-recommends openssl ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 
 # postbuild script copies static + public into standalone tree
 COPY --from=builder /app/backend/.next/standalone ./.next/standalone
-COPY --from=builder /app/backend/package.json ./package.json
+# Prisma CLI + client + seed (runtime generate / db push / seed before server)
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/package-lock.json ./package-lock.json
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/node_modules ./node_modules
+
+COPY docker/backend-entrypoint.sh /app/backend-entrypoint.sh
+RUN sed -i 's/\r$//' /app/backend-entrypoint.sh && chmod +x /app/backend-entrypoint.sh
 
 EXPOSE 5001
-# Runtime env is injected by Docker/Compose; no dotenv preload needed in container.
-CMD ["node", ".next/standalone/backend/server.js"]
+ENTRYPOINT ["/app/backend-entrypoint.sh"]

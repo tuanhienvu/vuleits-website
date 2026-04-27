@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useAdminPermissions } from '@/components/admin/AdminPermissionContext';
+import { useLocale } from '@/components/providers/LocaleProvider';
 import { useToast } from '@/components/providers/ToastProvider';
 import { apiPath } from '@/lib/apiRoutes';
 
@@ -21,6 +22,7 @@ const STATUSES = ['New', 'Read', 'Replied', 'Archived'] as const;
 
 export default function ContactMessagesAdminPanel() {
   const { can } = useAdminPermissions();
+  const { t } = useLocale();
   const toast = useToast();
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<ContactRow[]>([]);
@@ -109,7 +111,7 @@ export default function ContactMessagesAdminPanel() {
   };
 
   if (!can('contacts', 'read')) {
-    return <div className="text-white/70">You do not have permission to view contact messages.</div>;
+    return <div className="text-white/70">{t('admin.contactNoPermission')}</div>;
   }
 
   return (
@@ -117,29 +119,29 @@ export default function ContactMessagesAdminPanel() {
       <div className="glass rounded-2xl p-4 border border-white/10 sticky top-3 z-10">
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-3">
           <div>
-            <h2 className="text-2xl font-bold text-white">Contact messages</h2>
+            <h2 className="text-2xl font-bold text-white">{t('admin.contactMessages')}</h2>
             <p className="text-white/65 text-sm mt-1">
-              Submissions from the public contact form. New items are highlighted until marked read.
+              {t('admin.contactMessagesHint')}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
             <button type="button" className="btn-admin-secondary text-sm" disabled={loading} onClick={() => void load()}>
-              Refresh
+              {t('admin.logsRefresh')}
             </button>
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 mt-4">
           <label className="flex flex-col gap-1 text-sm text-white/80">
-            <span className="text-xs text-white/55">Search</span>
+            <span className="text-xs text-white/55">{t('admin.uiMessagesSearch')}</span>
             <input
               value={qInput}
               onChange={(e) => setQInput(e.target.value)}
               className="px-3 py-2 rounded-lg bg-black/40 border border-white/15 text-white text-sm w-full"
-              placeholder="Name, email, subject…"
+              placeholder={t('admin.contactSearchPlaceholder')}
             />
           </label>
           <label className="flex flex-col gap-1 text-sm text-white/80">
-            <span className="text-xs text-white/55">Status</span>
+            <span className="text-xs text-white/55">{t('products.status')}</span>
             <select
               value={statusFilter}
               onChange={(e) => {
@@ -148,7 +150,7 @@ export default function ContactMessagesAdminPanel() {
               }}
               className="px-3 py-2 rounded-lg bg-black/40 border border-white/15 text-white text-sm w-full"
             >
-              <option value="">All</option>
+              <option value="">{t('common.all')}</option>
               {STATUSES.map((s) => (
                 <option key={s} value={s}>
                   {s}
@@ -160,9 +162,9 @@ export default function ContactMessagesAdminPanel() {
       </div>
 
       {loading ? (
-        <p className="text-white/70">Loading…</p>
+        <p className="text-white/70">{t('admin.logsLoading')}</p>
       ) : items.length === 0 ? (
-        <p className="text-white/60">No messages yet.</p>
+        <p className="text-white/60">{t('admin.contactNoMessages')}</p>
       ) : (
         <div className="space-y-2">
           {items.map((row) => {

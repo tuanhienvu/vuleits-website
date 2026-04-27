@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useAdminPermissions } from '@/components/admin/AdminPermissionContext';
 import { useToast } from '@/components/providers/ToastProvider';
 import { useLocale } from '@/components/providers/LocaleProvider';
@@ -42,7 +42,7 @@ export default function LegalPageAdminPanel({ kind }: LegalPageAdminPanelProps) 
       setForm(merged);
       setBaseline(JSON.stringify(merged));
     } catch {
-      toast.error(t('admin.uiMessagesLoadError'));
+      toast.error(t('admin.legalLoadError'));
     } finally {
       setLoading(false);
     }
@@ -73,9 +73,9 @@ export default function LegalPageAdminPanel({ kind }: LegalPageAdminPanelProps) 
       const next = { ...defaultLegalPagePayload(kind), ...data };
       setForm(next);
       setBaseline(JSON.stringify(next));
-      toast.success(t('admin.uiMessagesSaveDone'));
+      toast.success(t('admin.legalSaved'));
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : t('admin.uiMessagesSaveError'));
+      toast.error(e instanceof Error ? e.message : t('admin.legalSaveError'));
     } finally {
       setSaving(false);
     }
@@ -84,11 +84,6 @@ export default function LegalPageAdminPanel({ kind }: LegalPageAdminPanelProps) 
   const hasChanges = baseline !== '' && baseline !== JSON.stringify(form);
   const inputClass =
     'mt-1 w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-white/35 focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-400/50';
-  const titleHint = useMemo(
-    () => (kind === 'privacy' ? 'Privacy Policy' : 'Terms of Service'),
-    [kind],
-  );
-
   if (!can('aboutTeam', 'read')) {
     return <div className="text-white/70">{t('admin.aboutUsNoPermission')}</div>;
   }
@@ -99,12 +94,12 @@ export default function LegalPageAdminPanel({ kind }: LegalPageAdminPanelProps) 
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           <div>
             <h2 className="text-2xl font-bold text-white">{heading}</h2>
-            <p className="text-white/65 text-sm mt-1">{t('admin.aboutUsPageSubtitle')}</p>
+            <p className="text-white/65 text-sm mt-1">{t('admin.legalPageSubtitle')}</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {hasChanges ? (
               <span className="text-amber-200 text-xs px-2 py-1 rounded-md bg-amber-500/10 border border-amber-400/30">
-                Unsaved changes
+                {t('admin.legalUnsavedChanges')}
               </span>
             ) : null}
             <button
@@ -113,7 +108,7 @@ export default function LegalPageAdminPanel({ kind }: LegalPageAdminPanelProps) 
               disabled={loading || saving}
               onClick={() => void load()}
             >
-              Reload
+              {t('admin.reload')}
             </button>
             {can('aboutTeam', 'update') ? (
               <button
@@ -134,35 +129,35 @@ export default function LegalPageAdminPanel({ kind }: LegalPageAdminPanelProps) 
       ) : (
         <div className="space-y-4">
           <section className="glass rounded-2xl p-5 border border-white/10 space-y-4">
-            <h3 className="text-white text-lg font-semibold">Titles</h3>
+            <h3 className="text-white text-lg font-semibold">{t('admin.legalSectionTitles')}</h3>
             <div className="grid md:grid-cols-2 gap-3">
               <label className="block">
-                <span className="text-white/70 text-sm">Title (English)</span>
+                <span className="text-white/70 text-sm">{t('admin.aboutUsTitleEn')}</span>
                 <input
                   className={inputClass}
                   value={form.titleEn}
                   onChange={(e) => setForm((f) => ({ ...f, titleEn: e.target.value }))}
                   disabled={!can('aboutTeam', 'update')}
-                  placeholder={`${titleHint} (EN)`}
+                  placeholder={`${heading} (${t('admin.localeCodeEn')})`}
                 />
               </label>
               <label className="block">
-                <span className="text-white/70 text-sm">Title (Vietnamese)</span>
+                <span className="text-white/70 text-sm">{t('admin.aboutUsTitleVi')}</span>
                 <input
                   className={inputClass}
                   value={form.titleVi}
                   onChange={(e) => setForm((f) => ({ ...f, titleVi: e.target.value }))}
                   disabled={!can('aboutTeam', 'update')}
-                  placeholder={`${titleHint} (VI)`}
+                  placeholder={`${heading} (${t('admin.localeCodeVi')})`}
                 />
               </label>
             </div>
           </section>
 
           <section className="glass rounded-2xl p-5 border border-white/10 space-y-4">
-            <h3 className="text-white text-lg font-semibold">Content</h3>
+            <h3 className="text-white text-lg font-semibold">{t('admin.legalSectionContent')}</h3>
             <label className="block">
-              <span className="text-white/70 text-sm">Body (English)</span>
+              <span className="text-white/70 text-sm">{t('admin.aboutUsBodyEn')}</span>
               <div className="mt-1">
                 <AdminTinyMceEditor
                   id={`${kind}-body-en`}
@@ -174,7 +169,7 @@ export default function LegalPageAdminPanel({ kind }: LegalPageAdminPanelProps) 
             </label>
 
             <label className="block">
-              <span className="text-white/70 text-sm">Body (Vietnamese)</span>
+              <span className="text-white/70 text-sm">{t('admin.aboutUsBodyVi')}</span>
               <div className="mt-1">
                 <AdminTinyMceEditor
                   id={`${kind}-body-vi`}
@@ -187,10 +182,10 @@ export default function LegalPageAdminPanel({ kind }: LegalPageAdminPanelProps) 
           </section>
 
           <section className="glass rounded-2xl p-5 border border-white/10 space-y-4">
-            <h3 className="text-white text-lg font-semibold">Updated label</h3>
+            <h3 className="text-white text-lg font-semibold">{t('admin.legalSectionUpdatedLabel')}</h3>
             <div className="grid md:grid-cols-2 gap-3">
               <label className="block">
-                <span className="text-white/70 text-sm">Updated label (English)</span>
+                <span className="text-white/70 text-sm">{t('admin.legalUpdatedAtLabelEn')}</span>
                 <input
                   className={inputClass}
                   value={form.updatedAtLabelEn}
@@ -199,7 +194,7 @@ export default function LegalPageAdminPanel({ kind }: LegalPageAdminPanelProps) 
                 />
               </label>
               <label className="block">
-                <span className="text-white/70 text-sm">Updated label (Vietnamese)</span>
+                <span className="text-white/70 text-sm">{t('admin.legalUpdatedAtLabelVi')}</span>
                 <input
                   className={inputClass}
                   value={form.updatedAtLabelVi}

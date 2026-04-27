@@ -20,6 +20,16 @@ import { apiPath } from '@/lib/apiRoutes';
 
 const SAVE_CHUNK = 100;
 
+/** Matches backend `KEY_RE` in `backend/app/api/admin/ui-messages/route.ts`. */
+const UI_MESSAGE_KEY_RE = /^[a-z][a-z0-9._-]*$/i;
+const MAX_UI_MESSAGE_KEY_LEN = 180;
+
+const builtInKeySet = new Set(allUiMessageKeys);
+
+function sortedUniqueStrings(values: Iterable<string>): string[] {
+  return Array.from(new Set(values)).sort((a, b) => a.localeCompare(b));
+}
+
 async function putEntriesChunked(
   entries: { locale: Locale; key: string; value: string }[],
   chunkSize: number,
@@ -57,6 +67,44 @@ function isKeyCustomized(draft: UiMessagesDraft, key: string): boolean {
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
 
+function ToolbarSpreadsheetDownloadIcon() {
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 24 24"
+      className="w-[1.05rem] h-[1.05rem] text-sky-300"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <polyline points="7 10 12 15 17 10" />
+      <line x1="12" y1="15" x2="12" y2="3" />
+    </svg>
+  );
+}
+
+function ToolbarSpreadsheetUploadIcon() {
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 24 24"
+      className="w-[1.05rem] h-[1.05rem] text-sky-300"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <polyline points="17 8 12 3 7 8" />
+      <line x1="12" y1="3" x2="12" y2="15" />
+    </svg>
+  );
+}
+
 // --- Editor + table/card views | Excel export/import (backup & restore) | Filters & pagination ---
 
 export default function TranslationsAdminPanel() {
@@ -74,20 +122,25 @@ export default function TranslationsAdminPanel() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [draft, setDraft] = useState<UiMessagesDraft>({});
+  /** Keys present in DB (or added in this session) that are not in built-in `defaultMessages`. */
+  const [extraKeys, setExtraKeys] = useState<string[]>([]);
+  const [addFormOpen, setAddFormOpen] = useState(false);
+  const [newKeyInput, setNewKeyInput] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
-  const importTargetRef = useRef<'editor' | 'server' | null>(null);
 
-  const validKeySet = useMemo(() => new Set(allUiMessageKeys), []);
+  const editorKeys = useMemo(() => [...allUiMessageKeys, ...sortedUniqueStrings(extraKeys)], [extraKeys]);
+
+  const validKeySet = useMemo(() => new Set(editorKeys), [editorKeys]);
 
   const sectionOptions = useMemo(() => {
     const counts = new Map<string, number>();
-    for (const k of allUiMessageKeys) {
+    for (const k of editorKeys) {
       const s = keySection(k);
       counts.set(s, (counts.get(s) ?? 0) + 1);
     }
     const sections = Array.from(counts.keys()).sort((a, b) => a.localeCompare(b));
     return { counts, sections };
-  }, []);
+  }, [editorKeys]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -99,11 +152,24 @@ export default function TranslationsAdminPanel() {
       }
       if (!res.ok) throw new Error('load');
       const data = (await res.json()) as Record<string, Record<string, string>>;
+      const fromApi = new Set([
+        ...Object.keys(data['en-US'] ?? {}),
+        ...Object.keys(data['vi-VN'] ?? {}),
+      ]);
+      const extras = sortedUniqueStrings([...fromApi].filter((k) => !builtInKeySet.has(k)));
+      setExtraKeys(extras);
+
       const next: UiMessagesDraft = {};
       for (const key of allUiMessageKeys) {
         next[key] = {
           'en-US': data['en-US']?.[key] ?? defaultMessagesByLocale['en-US'][key] ?? '',
           'vi-VN': data['vi-VN']?.[key] ?? defaultMessagesByLocale['vi-VN'][key] ?? '',
+        };
+      }
+      for (const key of extras) {
+        next[key] = {
+          'en-US': data['en-US']?.[key] ?? '',
+          'vi-VN': data['vi-VN']?.[key] ?? '',
         };
       }
       setDraft(next);
@@ -119,7 +185,7 @@ export default function TranslationsAdminPanel() {
   }, [load]);
 
   const filteredKeys = useMemo(() => {
-    let keys = allUiMessageKeys;
+    let keys = editorKeys;
 
     if (sectionFilter) {
       keys = keys.filter((k) => keySection(k) === sectionFilter);
@@ -142,7 +208,7 @@ export default function TranslationsAdminPanel() {
     }
 
     return keys;
-  }, [q, draft, sectionFilter, statusFilter]);
+  }, [q, draft, sectionFilter, statusFilter, editorKeys]);
 
   const pageCount = pageSize === 'all' ? 1 : Math.max(1, Math.ceil(filteredKeys.length / pageSize));
 
@@ -189,7 +255,7 @@ export default function TranslationsAdminPanel() {
     }
     setSaving(true);
     try {
-      const entries = buildSaveEntries(draft, allUiMessageKeys);
+      const entries = buildSaveEntries(draft, editorKeys);
       await putEntriesChunked(entries, SAVE_CHUNK);
       toast.success(t('admin.uiMessagesSaveDone'));
       await refreshUiMessages();
@@ -204,7 +270,7 @@ export default function TranslationsAdminPanel() {
   const exportExcel = async () => {
     try {
       const XLSX = await import('xlsx');
-      const aoa = draftToAoA(draft, allUiMessageKeys);
+      const aoa = draftToAoA(draft, editorKeys);
       const ws = XLSX.utils.aoa_to_sheet(aoa);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'UI_Translations');
@@ -216,7 +282,11 @@ export default function TranslationsAdminPanel() {
     }
   };
 
-  const runImportFromFile = async (file: File, target: 'editor' | 'server') => {
+  const runImportFromFile = async (file: File) => {
+    if (!canSave) {
+      toast.error(t('admin.uiMessagesNeedUpdate'));
+      return;
+    }
     try {
       const XLSX = await import('xlsx');
       const buf = await file.arrayBuffer();
@@ -246,24 +316,19 @@ export default function TranslationsAdminPanel() {
 
       const merged = mergeDraftWithPatch(draft, patch);
       setDraft(merged);
+      const patchExtras = Object.keys(patch).filter((k) => !builtInKeySet.has(k));
+      if (patchExtras.length > 0) {
+        setExtraKeys((prev) => sortedUniqueStrings([...prev, ...patchExtras]));
+      }
 
       if (unknownKeys.length > 0) {
         toast.info(t('admin.uiMessagesImportSkippedUnknown', { count: String(unknownKeys.length) }));
       }
 
-      if (target === 'editor') {
-        toast.success(t('admin.uiMessagesImportEditorDone'));
-        return;
-      }
-
-      if (!canSave) {
-        toast.error(t('admin.uiMessagesNeedUpdate'));
-        return;
-      }
-
       setSaving(true);
       try {
-        const entries = buildSaveEntries(merged, allUiMessageKeys);
+        const mergedKeys = sortedUniqueStrings([...editorKeys, ...Object.keys(patch)]);
+        const entries = buildSaveEntries(merged, mergedKeys);
         await putEntriesChunked(entries, SAVE_CHUNK);
         toast.success(t('admin.uiMessagesImportServerDone'));
         await refreshUiMessages();
@@ -281,19 +346,47 @@ export default function TranslationsAdminPanel() {
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = '';
-    const target = importTargetRef.current;
-    importTargetRef.current = null;
-    if (!file || !target) return;
-    void runImportFromFile(file, target);
+    if (!file) return;
+    void runImportFromFile(file);
   };
 
-  const pickImport = (target: 'editor' | 'server') => {
-    if (target === 'server' && !canSave) {
+  const pickImportExcel = () => {
+    if (!canSave) {
       toast.error(t('admin.uiMessagesNeedUpdate'));
       return;
     }
-    importTargetRef.current = target;
     fileRef.current?.click();
+  };
+
+  const applyNewKey = () => {
+    const key = newKeyInput.trim();
+    if (!key) return;
+    if (key.length > MAX_UI_MESSAGE_KEY_LEN || !UI_MESSAGE_KEY_RE.test(key)) {
+      toast.error(t('admin.uiMessagesAddKeyInvalid'));
+      return;
+    }
+    if (builtInKeySet.has(key)) {
+      toast.error(t('admin.uiMessagesAddKeyDuplicate'));
+      return;
+    }
+    if (draft[key]) {
+      toast.error(t('admin.uiMessagesAddKeyDuplicate'));
+      return;
+    }
+    setExtraKeys((prev) => {
+      if (prev.includes(key)) return prev;
+      return sortedUniqueStrings([...prev, key]);
+    });
+    setDraft((prev) => ({
+      ...prev,
+      [key]: { 'en-US': '', 'vi-VN': '' },
+    }));
+    setNewKeyInput('');
+    setAddFormOpen(false);
+    setQ(key);
+    setPage(1);
+    setSectionFilter('');
+    setStatusFilter('all');
   };
 
   if (loading && Object.keys(draft).length === 0) {
@@ -320,46 +413,97 @@ export default function TranslationsAdminPanel() {
       </header>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-3 items-stretch">
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 xl:col-span-8">
-          <div className="inline-flex rounded-lg border border-white/15 overflow-hidden">
-            <button
-              type="button"
-              className={`px-3 py-1.5 text-xs sm:text-sm w-full ${view === 'table' ? 'bg-cyan-500/25 text-white' : 'bg-white/5 text-white/70 hover:bg-white/10'}`}
-              onClick={() => setView('table')}
-            >
-              {t('admin.uiMessagesViewTable')}
-            </button>
-            <button
-              type="button"
-              className={`px-3 py-1.5 text-xs sm:text-sm w-full ${view === 'cards' ? 'bg-cyan-500/25 text-white' : 'bg-white/5 text-white/70 hover:bg-white/10'}`}
-              onClick={() => setView('cards')}
-            >
-              {t('admin.uiMessagesViewCards')}
-            </button>
+        <div className="xl:col-span-12 space-y-2">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-wrap items-center gap-2">
+              {canSave ? (
+                <>
+                  <button
+                    type="button"
+                    className={`btn-admin-secondary text-sm py-2 px-3 ${addFormOpen ? 'ring-1 ring-cyan-400/50' : ''}`}
+                    onClick={() => setAddFormOpen((o) => !o)}
+                  >
+                    {t('admin.uiMessagesAddNew')}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-admin-primary text-sm py-2 px-3 disabled:opacity-50 bg-(--brand-accent) border-(--brand-accent) hover:bg-[color-mix(in_srgb,var(--brand-accent)_88%,#ffffff)]"
+                    onClick={() => void save()}
+                    disabled={saving}
+                  >
+                    {saving ? t('admin.saving') : t('admin.uiMessagesSave')}
+                  </button>
+                </>
+              ) : null}
+            </div>
+            <div className="flex flex-wrap items-center gap-2 justify-end sm:ml-auto flex-row-reverse">
+              <select
+                value={view}
+                onChange={(e) => setView(e.target.value as 'table' | 'cards')}
+                className="px-3 py-2 rounded-lg bg-black/40 border border-white/15 text-white text-sm min-w-[9.5rem] w-1/2"
+                aria-label={t('admin.uiMessagesViewStyle')}
+              >
+                <option value="table">{t('admin.uiMessagesViewTable')}</option>
+                <option value="cards">{t('admin.uiMessagesViewCards')}</option>
+              </select>
+              <button
+                type="button"
+                className="btn-admin-icon max-md:!inline-flex"
+                title={t('admin.uiMessagesExportExcel')}
+                aria-label={t('admin.uiMessagesExportExcel')}
+                onClick={() => void exportExcel()}
+              >
+                <ToolbarSpreadsheetDownloadIcon />
+              </button>
+              <button
+                type="button"
+                className="btn-admin-icon max-md:!inline-flex disabled:opacity-40 disabled:pointer-events-none"
+                title={t('admin.uiMessagesImportExcel')}
+                aria-label={t('admin.uiMessagesImportExcel')}
+                disabled={!canSave}
+                onClick={() => pickImportExcel()}
+              >
+                <ToolbarSpreadsheetUploadIcon />
+              </button>
+            </div>
           </div>
-          <button type="button" className="btn-admin-secondary text-sm py-2 px-3 w-full" onClick={() => void exportExcel()}>
-            {t('admin.uiMessagesExportExcel')}
-          </button>
-          <button type="button" className="btn-admin-secondary text-sm py-2 px-3 w-full" onClick={() => pickImport('editor')}>
-            {t('admin.uiMessagesImportLoad')}
-          </button>
-          <button
-            type="button"
-            className="btn-admin-primary text-sm py-2 px-3 w-full disabled:opacity-50 bg-(--brand-accent) border-(--brand-accent) hover:bg-[color-mix(in_srgb,var(--brand-accent)_88%,#ffffff)]"
-            disabled={!canSave}
-            onClick={() => pickImport('server')}
-          >
-            {t('admin.uiMessagesImportSave')}
-          </button>
-          {canSave ? (
-            <button
-              type="button"
-              className="btn-admin-primary text-sm py-2 px-3 w-full disabled:opacity-50 bg-(--brand-accent) border-(--brand-accent) hover:bg-[color-mix(in_srgb,var(--brand-accent)_88%,#ffffff)]"
-              onClick={() => void save()}
-              disabled={saving}
-            >
-              {saving ? t('admin.saving') : t('admin.uiMessagesSave')}
-            </button>
+          {addFormOpen && canSave ? (
+            <div className="glass rounded-xl border border-white/10 p-4 space-y-3">
+              <p className="text-xs text-white/60 leading-relaxed">{t('admin.uiMessagesAddKeyHint')}</p>
+              <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:items-end">
+                <label className="flex-1 min-w-[220px] w-full">
+                  <span className="text-xs text-white/50">{t('admin.uiMessagesColKey')}</span>
+                  <input
+                    value={newKeyInput}
+                    onChange={(e) => setNewKeyInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        applyNewKey();
+                      }
+                    }}
+                    placeholder={t('admin.uiMessagesAddKeyPlaceholder')}
+                    className="mt-1 w-full px-3 py-2 rounded-lg bg-black/40 border border-white/15 text-white text-sm font-mono"
+                    autoComplete="off"
+                  />
+                </label>
+                <div className="flex gap-2 w-full sm:w-auto">
+                  <button
+                    type="button"
+                    className="btn-admin-secondary text-sm py-2 px-3 flex-1 sm:flex-none"
+                    onClick={() => {
+                      setAddFormOpen(false);
+                      setNewKeyInput('');
+                    }}
+                  >
+                    {t('admin.uiMessagesAddKeyCancel')}
+                  </button>
+                  <button type="button" className="btn-admin-primary text-sm py-2 px-3 flex-1 sm:flex-none" onClick={() => applyNewKey()}>
+                    {t('admin.uiMessagesAddKeyApply')}
+                  </button>
+                </div>
+              </div>
+            </div>
           ) : null}
         </div>
       </div>
@@ -373,7 +517,7 @@ export default function TranslationsAdminPanel() {
               onChange={(e) => setQ(e.target.value)}
               placeholder={t('admin.uiMessagesSearch')}
               className="px-3 py-2 rounded-lg bg-black/40 border border-white/15 text-white text-sm w-full"
-              aria-label="Search"
+              aria-label={t('admin.uiMessagesSearch')}
             />
           </label>
           <label className="flex flex-col gap-1 text-sm text-white/80 xl:col-span-3">
@@ -401,7 +545,7 @@ export default function TranslationsAdminPanel() {
               className="px-3 py-2 rounded-lg bg-black/40 border border-white/15 text-white text-sm"
             >
               <option value="">
-                {t('admin.uiMessagesFilterSectionAll')} ({allUiMessageKeys.length})
+                {t('admin.uiMessagesFilterSectionAll')} ({editorKeys.length})
               </option>
               {sectionOptions.sections.map((s) => (
                 <option key={s} value={s}>
@@ -448,7 +592,7 @@ export default function TranslationsAdminPanel() {
               to: String(rangeTo),
               total: String(filteredKeys.length),
             })}{' '}
-            <span className="text-white/35">· {filteredKeys.length} / {allUiMessageKeys.length}</span>
+            <span className="text-white/35">· {filteredKeys.length} / {editorKeys.length}</span>
           </p>
           {pageSize !== 'all' && pageCount > 1 ? (
             <div className="flex items-center gap-2">
@@ -483,9 +627,11 @@ export default function TranslationsAdminPanel() {
           <table className="w-full text-left text-xs sm:text-sm text-white/90 min-w-[720px]">
             <thead className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur border-b border-white/10">
               <tr className="text-white/60">
-                <th className="px-2 py-2 w-[22%] sticky left-0 bg-slate-900/95 z-20 border-r border-white/10">key</th>
-                <th className="px-2 py-2">en-US</th>
-                <th className="px-2 py-2">vi-VN</th>
+                <th className="px-2 py-2 w-[22%] sticky left-0 bg-slate-900/95 z-20 border-r border-white/10">
+                  {t('admin.uiMessagesColKey')}
+                </th>
+                <th className="px-2 py-2">{t('admin.uiMessagesColEnUs')}</th>
+                <th className="px-2 py-2">{t('admin.uiMessagesColViVn')}</th>
               </tr>
             </thead>
             <tbody>
@@ -524,7 +670,7 @@ export default function TranslationsAdminPanel() {
               <div className="font-mono text-xs text-emerald-200/90 break-all">{key}</div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <label className="block space-y-1">
-                  <span className="text-xs text-white/50">en-US</span>
+                  <span className="text-xs text-white/50">{t('admin.uiMessagesColEnUs')}</span>
                   <textarea
                     value={draft[key]?.['en-US'] ?? ''}
                     onChange={(e) => setCell(key, 'en-US', e.target.value)}
@@ -534,7 +680,7 @@ export default function TranslationsAdminPanel() {
                   />
                 </label>
                 <label className="block space-y-1">
-                  <span className="text-xs text-white/50">vi-VN</span>
+                  <span className="text-xs text-white/50">{t('admin.uiMessagesColViVn')}</span>
                   <textarea
                     value={draft[key]?.['vi-VN'] ?? ''}
                     onChange={(e) => setCell(key, 'vi-VN', e.target.value)}

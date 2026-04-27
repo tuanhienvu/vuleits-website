@@ -1,0 +1,2725 @@
+{
+  "aboutSections": [],
+  "aboutStats": [
+    {
+      "id": 1,
+      "number": "150+",
+      "label": "Projects Completed",
+      "labelVi": "Dự án hoàn thành",
+      "order": 0,
+      "isActive": true,
+      "createdAt": "2026-03-18T21:57:57.000Z",
+      "updatedAt": "2026-04-27T15:02:20.000Z"
+    },
+    {
+      "id": 2,
+      "number": "50+",
+      "label": "Happy Clients",
+      "labelVi": "Khách hàng hài lòng",
+      "order": 1,
+      "isActive": true,
+      "createdAt": "2026-03-18T21:57:57.000Z",
+      "updatedAt": "2026-04-27T15:02:33.000Z"
+    },
+    {
+      "id": 3,
+      "number": "3",
+      "label": "Years Experience",
+      "labelVi": "Năm kinh nghiệm",
+      "order": 2,
+      "isActive": true,
+      "createdAt": "2026-03-18T21:57:57.000Z",
+      "updatedAt": "2026-04-27T15:02:49.000Z"
+    },
+    {
+      "id": 4,
+      "number": "24/7",
+      "label": "Support Available",
+      "labelVi": "Sẵn sàng hỗ trợ",
+      "order": 3,
+      "isActive": true,
+      "createdAt": "2026-03-18T21:57:57.000Z",
+      "updatedAt": "2026-04-27T15:03:00.000Z"
+    }
+  ],
+  "aboutTeamMembers": [
+    {
+      "id": 1,
+      "emoji": "👨‍💼",
+      "name": "John Anderson",
+      "nameVi": "John Anderson",
+      "role": "CEO & Founder",
+      "roleVi": "CEO & Nha sang lap",
+      "bio": "<p>Visionary leader with 15+ years in digital innovation, driving our mission to create exceptional user experiences.</p>",
+      "bioVi": "<p>Nha lanh dao tam nhin with 15+ years in doi moi so, driving our mission to create exceptional trai nghiem nguoi dung.</p>",
+      "order": 0,
+      "isActive": true,
+      "createdAt": "2026-03-18T21:57:57.000Z",
+      "updatedAt": "2026-03-28T15:43:59.000Z"
+    },
+    {
+      "id": 2,
+      "emoji": "👩‍🎨",
+      "name": "Sarah Chen",
+      "nameVi": "Sarah Chen",
+      "role": "Creative Director",
+      "roleVi": "Giam doc sang tao",
+      "bio": "Award-winning designer specializing in modern UI/UX, bringing artistic vision to every project.",
+      "bioVi": "Nha thiet ke dat giai thuong, chuyen ve UI/UX hien dai, mang tam nhin nghe thuat vao moi du an.",
+      "order": 1,
+      "isActive": true,
+      "createdAt": "2026-03-18T21:57:57.000Z",
+      "updatedAt": "2026-03-18T21:57:57.000Z"
+    },
+    {
+      "id": 3,
+      "emoji": "👨‍💻",
+      "name": "Michael Torres",
+      "nameVi": "Michael Torres",
+      "role": "Lead Developer",
+      "roleVi": "Truong nhom phat trien",
+      "bio": "Full-stack expert passionate about clean code and innovative web technologies.",
+      "bioVi": "Chuyen gia full-stack dam me clean code va cong nghe web doi moi.",
+      "order": 2,
+      "isActive": true,
+      "createdAt": "2026-03-18T21:57:57.000Z",
+      "updatedAt": "2026-03-18T21:57:57.000Z"
+    },
+    {
+      "id": 4,
+      "emoji": "👩‍💻",
+      "name": "Emma Wilson",
+      "nameVi": "Emma Wilson",
+      "role": "Senior Developer",
+      "roleVi": "Lap trinh vien cap cao",
+      "bio": "Frontend specialist with expertise in React and modern JavaScript frameworks.",
+      "bioVi": "Chuyen gia frontend thanh thao React va cac framework JavaScript hien dai.",
+      "order": 3,
+      "isActive": true,
+      "createdAt": "2026-03-18T21:57:57.000Z",
+      "updatedAt": "2026-03-18T21:57:57.000Z"
+    },
+    {
+      "id": 5,
+      "emoji": "👨‍🎨",
+      "name": "David Kim",
+      "nameVi": "David Kim",
+      "role": "UX Designer",
+      "roleVi": "Nha thiet ke UX",
+      "bio": "User experience expert focused on creating intuitive and accessible digital products.",
+      "bioVi": "Chuyen gia trai nghiem nguoi dung, tap trung tao ra san pham so truc quan va de tiep can.",
+      "order": 4,
+      "isActive": true,
+      "createdAt": "2026-03-18T21:57:57.000Z",
+      "updatedAt": "2026-03-18T21:57:57.000Z"
+    },
+    {
+      "id": 6,
+      "emoji": "👩‍💼",
+      "name": "Lisa Martinez",
+      "nameVi": "Lisa Martinez",
+      "role": "Project Manager",
+      "roleVi": "Quan ly du an",
+      "bio": "Certified PMP with a track record of delivering complex projects on time and budget.",
+      "bioVi": "Certified PMP with a track record of delivering complex projects on time and budget.",
+      "order": 5,
+      "isActive": true,
+      "createdAt": "2026-03-18T21:57:57.000Z",
+      "updatedAt": "2026-03-18T21:57:57.000Z"
+    }
+  ],
+  "bannerSliders": [],
+  "bannerItems": [],
+  "contacts": [
+    {
+      "id": 14,
+      "name": "VU TUAN HIEN",
+      "email": "tuanhienvu@gmail.com",
+      "subject": "testing contact inbox",
+      "phone": null,
+      "message": "d ry n hr",
+      "status": "Read",
+      "submittedById": null,
+      "createdAt": "2026-04-01T06:06:27.544Z",
+      "updatedAt": "2026-04-01T06:26:58.184Z"
+    },
+    {
+      "id": 15,
+      "name": "VU TUAN HIEN",
+      "email": "tuanhienvu@gmail.com",
+      "subject": "dfs fsaf",
+      "phone": null,
+      "message": "dfas fsdafsadf",
+      "status": "Read",
+      "submittedById": null,
+      "createdAt": "2026-04-01T06:16:47.003Z",
+      "updatedAt": "2026-04-01T06:26:59.937Z"
+    },
+    {
+      "id": 31,
+      "name": "Alex Morgan",
+      "email": "new-a@seed-inbox.vuleits.local",
+      "subject": null,
+      "phone": "+1 415-555-0101",
+      "message": "[Partnership inquiry] Hi, we run a mid-size retail chain and are evaluating vendors for a new e-commerce platform. Could someone share a short overview of implementation timelines and ballpark pricing?",
+      "status": "New",
+      "submittedById": null,
+      "createdAt": "2026-04-27T06:11:27.512Z",
+      "updatedAt": "2026-04-27T08:11:27.518Z"
+    },
+    {
+      "id": 32,
+      "name": "Minh Anh",
+      "email": "new-b@seed-inbox.vuleits.local",
+      "subject": null,
+      "phone": "0901234567",
+      "message": "Chào team, tôi muốn hỏi về dịch vụ tư vấn chuyển đổi số cho doanh nghiệp nhỏ. Có thể gọi lại trong giờ hành chính không ạ?",
+      "status": "New",
+      "submittedById": null,
+      "createdAt": "2026-04-26T06:11:27.512Z",
+      "updatedAt": "2026-04-27T08:11:27.518Z"
+    },
+    {
+      "id": 33,
+      "name": "Jordan Lee",
+      "email": "read@seed-inbox.vuleits.local",
+      "subject": null,
+      "phone": null,
+      "message": "[Demo access request] Please grant demo access to our engineering team (4 seats). We are particularly interested in the API gateway product from your catalog.",
+      "status": "Read",
+      "submittedById": null,
+      "createdAt": "2026-04-24T08:11:27.512Z",
+      "updatedAt": "2026-04-27T08:11:27.518Z"
+    },
+    {
+      "id": 34,
+      "name": "Samira Patel",
+      "email": "replied@seed-inbox.vuleits.local",
+      "subject": null,
+      "phone": "+44 20 7946 0958",
+      "message": "[Support: export reports] We need CSV exports for monthly usage summaries. Is this available on the current plan or only on enterprise?",
+      "status": "Replied",
+      "submittedById": null,
+      "createdAt": "2026-04-20T08:11:27.512Z",
+      "updatedAt": "2026-04-27T08:11:27.518Z"
+    },
+    {
+      "id": 35,
+      "name": "Chris Weber",
+      "email": "archived@seed-inbox.vuleits.local",
+      "subject": null,
+      "phone": null,
+      "message": "[Newsletter] Please add chris@company.example to your newsletter. Thanks!",
+      "status": "Archived",
+      "submittedById": null,
+      "createdAt": "2026-03-28T08:11:27.512Z",
+      "updatedAt": "2026-04-27T08:11:27.518Z"
+    }
+  ],
+  "homeFeatures": [
+    {
+      "id": 1,
+      "icon": "✨",
+      "title": "Modern Design",
+      "titleVi": "Thiết kế hiện đại",
+      "description": "<p>Beautiful glass morphism effects with backdrop blur and translucent elements that create depth and visual hierarchy.</p>",
+      "descriptionVi": "<p>Hiệu ứng biến đổi k&iacute;nh tuyệt đẹp với hiệu ứng l&agrave;m mờ nền v&agrave; c&aacute;c yếu tố trong suốt tạo n&ecirc;n chiều s&acirc;u v&agrave; sự ph&acirc;n cấp thị gi&aacute;c.</p>",
+      "order": 0,
+      "isActive": true,
+      "createdAt": "2026-03-18T14:32:23.439Z",
+      "updatedAt": "2026-04-27T05:35:05.377Z"
+    },
+    {
+      "id": 2,
+      "icon": "⚡",
+      "title": "Fast Performance",
+      "titleVi": "Hiệu năng nhanh",
+      "description": "<p>Optimized animations and effects that maintain smooth 60fps performance across all modern browsers and devices.</p>",
+      "descriptionVi": "<p>Optimized animations and effects that maintain smooth 60fps hieu nang across all modern browsers and devices.</p>",
+      "order": 1,
+      "isActive": true,
+      "createdAt": "2026-03-18T14:32:23.439Z",
+      "updatedAt": "2026-04-27T05:35:25.899Z"
+    },
+    {
+      "id": 3,
+      "icon": "📱",
+      "title": "Responsive",
+      "titleVi": "Responsive",
+      "description": "Fully responsive design that adapts beautifully to any screen size, from mobile phones to desktop displays.",
+      "descriptionVi": "Fully responsive design that adapts beautifully to any screen size, from mobile phones to desktop displays.",
+      "order": 2,
+      "isActive": true,
+      "createdAt": "2026-03-18T14:32:23.439Z",
+      "updatedAt": "2026-03-18T14:32:23.439Z"
+    },
+    {
+      "id": 4,
+      "icon": "🎨",
+      "title": "Interactive UI",
+      "titleVi": "Interactive UI",
+      "description": "Engaging hover effects, smooth transitions, and micro-animations that create delightful user experiences.",
+      "descriptionVi": "Engaging hover effects, smooth transitions, and micro-animations that create delightful trai nghiem nguoi dung.",
+      "order": 3,
+      "isActive": true,
+      "createdAt": "2026-03-18T14:32:23.439Z",
+      "updatedAt": "2026-03-18T14:32:23.439Z"
+    },
+    {
+      "id": 5,
+      "icon": "🔒",
+      "title": "Secure & Safe",
+      "titleVi": "Secure & Safe",
+      "description": "Built with modern security standards and best practices to ensure your data and user privacy are protected.",
+      "descriptionVi": "Built with modern security standards and thuc hanh tot nhat to ensure your data and user privacy are protected.",
+      "order": 4,
+      "isActive": true,
+      "createdAt": "2026-03-18T14:32:23.439Z",
+      "updatedAt": "2026-03-18T14:32:23.439Z"
+    },
+    {
+      "id": 6,
+      "icon": "🚀",
+      "title": "Easy Integration",
+      "titleVi": "Easy Integration",
+      "description": "Simple to implement and customize for any project with clean, well-documented code and flexible components.",
+      "descriptionVi": "Simple to implement and customize for any project with clean, well-documented code and flexible components.",
+      "order": 5,
+      "isActive": true,
+      "createdAt": "2026-03-18T14:32:23.439Z",
+      "updatedAt": "2026-03-18T14:32:23.439Z"
+    }
+  ],
+  "media": [
+    {
+      "id": 1,
+      "filename": "1774163278470-j1eu8zng.jpg",
+      "mimeType": "image/jpeg",
+      "size": 1176514,
+      "folder": "company",
+      "url": "/uploads/company/1774163278470-j1eu8zng.jpg",
+      "uploadedById": 1,
+      "createdAt": "2026-03-22T07:07:58.477Z"
+    },
+    {
+      "id": 3,
+      "filename": "1774187333139-5bd2ec7118.png",
+      "mimeType": "image/png",
+      "size": 13925,
+      "folder": "library",
+      "url": "/uploads/library/1774187333139-5bd2ec7118.png",
+      "uploadedById": 1,
+      "createdAt": "2026-03-22T13:48:53.146Z"
+    },
+    {
+      "id": 4,
+      "filename": "1774187433102-5dae9a499e.jpg",
+      "mimeType": "image/jpeg",
+      "size": 21237,
+      "folder": "library",
+      "url": "/uploads/library/1774187433102-5dae9a499e.jpg",
+      "uploadedById": 1,
+      "createdAt": "2026-03-22T13:50:33.119Z"
+    },
+    {
+      "id": 5,
+      "filename": "1774262153787-a8bbd9d9e1.jpg",
+      "mimeType": "image/jpeg",
+      "size": 21237,
+      "folder": "library",
+      "url": "/uploads/library/1774262153787-a8bbd9d9e1.jpg",
+      "uploadedById": 1,
+      "createdAt": "2026-03-23T10:35:53.800Z"
+    }
+  ],
+  "news": [
+    {
+      "id": 1,
+      "title": "Ecosystem Update: VULE ITS introduces new dashboard",
+      "titleVi": "Ecosystem Cap nhat: VULE ITS introduces new bang dieu khien",
+      "slug": "ecosystem-update-vule-its-introduces-new-dashboard",
+      "description": "A quick look at the latest dashboard improvements and performance optimizations.",
+      "descriptionVi": "A quick look at the latest bang dieu khien improvements and hieu nang optimizations.",
+      "content": "\n          <h1>Ecosystem Update</h1>\n          <p>We’re excited to share improvements to our admin experience and public content rendering.</p>\n          <h2>What changed</h2>\n          <ul>\n            <li>Faster pages with lazy-loaded thumbnails</li>\n            <li>Better SEO metadata generation</li>\n            <li>More flexible rich content blocks</li>\n          </ul>\n          <h3>TypeScript snippet</h3>\n          <pre><code class=\"language-ts\">type Article = { title: string; slug: string };</code></pre>\n        ",
+      "contentVi": "\n          <h1>Ecosystem Cap nhat</h1>\n          <p>We’re excited to share improvements to our admin experience and public content ket xuat.</p>\n          <h2>What changed</h2>\n          <ul>\n            <li>Faster pages with lazy-loaded thumbnails</li>\n            <li>Better SEO metadata generation</li>\n            <li>More flexible rich content blocks</li>\n          </ul>\n          <h3>TypeScript snippet</h3>\n          <pre><code class=\"language-ts\">type Article = { title: string; slug: string };</code></pre>\n        ",
+      "tags": "[\"Updates\",\"Technology\"]",
+      "status": "Active",
+      "category": "Technology",
+      "imageId": null,
+      "startDate": null,
+      "endDate": null,
+      "publishedAt": "2026-03-23T11:27:37.545Z",
+      "authorId": 1,
+      "seoTitle": "Ecosystem Update: VULE ITS introduces new dashboard",
+      "seoDescription": "A quick look at the latest dashboard improvements and performance optimizations.",
+      "seoKeywords": "Updates, Technology",
+      "createdAt": "2026-03-25T18:27:37.000Z",
+      "updatedAt": "2026-03-25T18:27:37.000Z"
+    },
+    {
+      "id": 2,
+      "title": "Politics Brief: Policy focus for the quarter",
+      "titleVi": "Chinh tri Tong quan: Policy focus for the quarter",
+      "slug": "politics-brief-policy-focus-for-the-quarter",
+      "description": "Highlights from our policy focus for the upcoming quarter.",
+      "descriptionVi": "Diem nhan trong trong tam chinh sach cho quy sap toi.",
+      "content": "\n          <h1>Politics Brief</h1>\n          <p>Here are the main points we’re focusing on this quarter.</p>\n          <h2>Key themes</h2>\n          <ol>\n            <li>Transparency</li>\n            <li>Community engagement</li>\n            <li>Execution and accountability</li>\n          </ol>\n          <h3>Code example</h3>\n          <pre><code class=\"language-javascript\">console.log('Hello from news content');</code></pre>\n        ",
+      "contentVi": "\n          <h1>Chinh tri Tong quan</h1>\n          <p>Here are the main points we’re focusing on this quarter.</p>\n          <h2>Key themes</h2>\n          <ol>\n            <li>Transparency</li>\n            <li>Community engagement</li>\n            <li>Execution and accountability</li>\n          </ol>\n          <h3>Code example</h3>\n          <pre><code class=\"language-javascript\">console.log('Hello from news content');</code></pre>\n        ",
+      "tags": "[\"Policy\",\"Politics\"]",
+      "status": "Active",
+      "category": "Politics",
+      "imageId": null,
+      "startDate": null,
+      "endDate": null,
+      "publishedAt": "2026-03-20T11:27:37.545Z",
+      "authorId": 1,
+      "seoTitle": "Politics Brief: Policy focus for the quarter",
+      "seoDescription": "Highlights from our policy focus for the upcoming quarter.",
+      "seoKeywords": "Policy, Politics",
+      "createdAt": "2026-03-25T18:27:37.000Z",
+      "updatedAt": "2026-03-25T18:27:37.000Z"
+    },
+    {
+      "id": 3,
+      "title": "Economy Watch: Market signals to track",
+      "titleVi": "Kinh te Theo doi: Market signals to track",
+      "slug": "economy-watch-market-signals-to-track",
+      "description": "A short list of signals we’re monitoring for economic movements.",
+      "descriptionVi": "Danh sach ngan cac tin hieu chung toi dang theo doi cho bien dong kinh te.",
+      "content": "\n          <h1>Economy Watch</h1>\n          <p>We monitor a set of market and operational indicators.</p>\n          <h2>Signals</h2>\n          <p>Inflation trend, job reports, consumer sentiment, and investment activity.</p>\n          <h3>CSS snippet</h3>\n          <pre><code class=\"language-css\">.badge { padding: 4px 8px; border-radius: 999px; }</code></pre>\n        ",
+      "contentVi": "\n          <h1>Kinh te Theo doi</h1>\n          <p>We monitor a set of market and operational indicators.</p>\n          <h2>Signals</h2>\n          <p>Inflation trend, job reports, consumer sentiment, and investment activity.</p>\n          <h3>CSS snippet</h3>\n          <pre><code class=\"language-css\">.badge { padding: 4px 8px; border-radius: 999px; }</code></pre>\n        ",
+      "tags": "[\"Economy\",\"Trends\"]",
+      "status": "Active",
+      "category": "Economy",
+      "imageId": null,
+      "startDate": null,
+      "endDate": null,
+      "publishedAt": "2026-03-17T11:27:37.545Z",
+      "authorId": 1,
+      "seoTitle": "Economy Watch: Market signals to track",
+      "seoDescription": "A short list of signals we’re monitoring for economic movements.",
+      "seoKeywords": "Economy, Trends",
+      "createdAt": "2026-03-25T18:27:37.000Z",
+      "updatedAt": "2026-03-25T18:27:37.000Z"
+    },
+    {
+      "id": 4,
+      "title": "Entertainment: Behind the scenes of our redesign",
+      "titleVi": "Giai tri: Behind the scenes of our redesign",
+      "slug": "entertainment-behind-the-scenes-of-our-redesign",
+      "description": "A behind-the-scenes look at the design decisions and layout improvements.",
+      "descriptionVi": "Goc nhin hau truong ve cac quyet dinh thiet ke va cai tien bo cuc.",
+      "content": "\n          <h1>Behind the Scenes</h1>\n          <p>We rebuilt major UI blocks for a more immersive experience.</p>\n          <h2>Design goals</h2>\n          <ul>\n            <li>Modern glass effects</li>\n            <li>Readable typography</li>\n            <li>Consistent spacing system</li>\n          </ul>\n          <h3>HTML block</h3>\n          <p><code>&lt;div&gt;New layout component&lt;/div&gt;</code></p>\n        ",
+      "contentVi": "\n          <h1>Behind the Scenes</h1>\n          <p>We rebuilt major UI blocks for a more immersive experience.</p>\n          <h2>Design goals</h2>\n          <ul>\n            <li>Modern glass effects</li>\n            <li>Readable typography</li>\n            <li>Consistent spacing system</li>\n          </ul>\n          <h3>HTML block</h3>\n          <p><code>&lt;div&gt;New layout component&lt;/div&gt;</code></p>\n        ",
+      "tags": "[\"Entertainment\",\"Design\"]",
+      "status": "Active",
+      "category": "Entertainment",
+      "imageId": null,
+      "startDate": null,
+      "endDate": null,
+      "publishedAt": "2026-03-24T11:27:37.545Z",
+      "authorId": 1,
+      "seoTitle": "Entertainment: Behind the scenes of our redesign",
+      "seoDescription": "A behind-the-scenes look at the design decisions and layout improvements.",
+      "seoKeywords": "Entertainment, Design",
+      "createdAt": "2026-03-25T18:27:37.000Z",
+      "updatedAt": "2026-03-25T18:27:37.000Z"
+    },
+    {
+      "id": 5,
+      "title": "Health Update: Tips for better content clarity",
+      "titleVi": "Suc khoe Cap nhat: Tips for better content clarity",
+      "slug": "health-update-tips-for-better-content-clarity",
+      "description": "Practical tips to keep articles clear, structured, and SEO-friendly.",
+      "descriptionVi": "Meo thuc te giup bai viet ro rang, co cau truc va than thien SEO.",
+      "content": "\n          <h1>Health Update</h1>\n          <p>Good structure helps both users and search engines.</p>\n          <h2>Checklist</h2>\n          <ul>\n            <li>Use headings (H1-H3)</li>\n            <li>Include meta descriptions</li>\n            <li>Optimize images for the web</li>\n          </ul>\n        ",
+      "contentVi": "\n          <h1>Suc khoe Cap nhat</h1>\n          <p>Good structure helps both users and search engines.</p>\n          <h2>Checklist</h2>\n          <ul>\n            <li>Use headings (H1-H3)</li>\n            <li>Include meta descriptions</li>\n            <li>Optimize images for the web</li>\n          </ul>\n        ",
+      "tags": "[\"Health\",\"SEO\"]",
+      "status": "Active",
+      "category": "Health",
+      "imageId": null,
+      "startDate": null,
+      "endDate": null,
+      "publishedAt": "2026-03-15T11:27:37.545Z",
+      "authorId": 1,
+      "seoTitle": "Health Update: Tips for better content clarity",
+      "seoDescription": "Practical tips to keep articles clear, structured, and SEO-friendly.",
+      "seoKeywords": "Health, SEO",
+      "createdAt": "2026-03-25T18:27:37.000Z",
+      "updatedAt": "2026-03-25T18:27:37.000Z"
+    },
+    {
+      "id": 6,
+      "title": "Technology Deep Dive: Admin UX performance tuning",
+      "titleVi": "Cong nghe Chuyen sau: Admin UX hieu nang tuning",
+      "slug": "technology-deep-dive-admin-ux-performance-tuning",
+      "description": "We tuned loading behavior and rendering to improve perceived speed.",
+      "descriptionVi": "We tuned hanh vi tai and ket xuat to cai thien toc do cam nhan.",
+      "content": "\n          <h1>Admin UX Performance Tuning</h1>\n          <p>We optimized UI interactions and reduced unnecessary re-renders.</p>\n          <h2>Key improvements</h2>\n          <ul>\n            <li>Lazy-load non-critical UI sections</li>\n            <li>Smarter data fetch timing</li>\n            <li>Reduce expensive state updates</li>\n          </ul>\n          <h3>JavaScript snippet</h3>\n          <pre><code class=\"language-javascript\">const delay = (ms) => new Promise(r => setTimeout(r, ms));</code></pre>\n        ",
+      "contentVi": "\n          <h1>Admin UX Performance Tuning</h1>\n          <p>We optimized UI interactions and reduced unnecessary re-renders.</p>\n          <h2>Key improvements</h2>\n          <ul>\n            <li>Lazy-load non-critical UI sections</li>\n            <li>Smarter data fetch timing</li>\n            <li>Reduce expensive state updates</li>\n          </ul>\n          <h3>JavaScript snippet</h3>\n          <pre><code class=\"language-javascript\">const delay = (ms) => new Promise(r => setTimeout(r, ms));</code></pre>\n        ",
+      "tags": "[\"Technology\",\"Performance\",\"UX\"]",
+      "status": "Active",
+      "category": "Technology",
+      "imageId": null,
+      "startDate": null,
+      "endDate": null,
+      "publishedAt": "2026-03-19T11:45:29.963Z",
+      "authorId": 1,
+      "seoTitle": "Technology Deep Dive: Admin UX performance tuning",
+      "seoDescription": "We tuned loading behavior and rendering to improve perceived speed.",
+      "seoKeywords": "Technology, Performance, UX",
+      "createdAt": "2026-03-25T18:45:29.000Z",
+      "updatedAt": "2026-03-25T18:45:29.000Z"
+    },
+    {
+      "id": 7,
+      "title": "Technology Security: Hardening rich content rendering",
+      "titleVi": "Cong nghe Security: Hardening rich content ket xuat",
+      "slug": "technology-security-hardening-rich-content-rendering",
+      "description": "Safer handling of embedded code and media in article content.",
+      "descriptionVi": "Xu ly an toan hon doi voi ma nhung va media trong noi dung bai viet.",
+      "content": "\n          <h1>Hardening Rich Content</h1>\n          <p>We sanitize stored HTML while preserving code blocks for readability.</p>\n          <h2>What we allow</h2>\n          <ul>\n            <li>Headings (H1-H3)</li>\n            <li>Images with lazy loading</li>\n            <li>Preformatted code snippets</li>\n          </ul>\n          <h3>TypeScript example</h3>\n          <pre><code class=\"language-ts\">type Sanitized = { html: string };</code></pre>\n        ",
+      "contentVi": "\n          <h1>Hardening Rich Content</h1>\n          <p>We sanitize stored HTML while preserving code blocks for readability.</p>\n          <h2>What we allow</h2>\n          <ul>\n            <li>Headings (H1-H3)</li>\n            <li>Images with lazy loading</li>\n            <li>Preformatted code snippets</li>\n          </ul>\n          <h3>TypeScript example</h3>\n          <pre><code class=\"language-ts\">type Sanitized = { html: string };</code></pre>\n        ",
+      "tags": "[\"Technology\",\"Security\"]",
+      "status": "Active",
+      "category": "Technology",
+      "imageId": null,
+      "startDate": null,
+      "endDate": null,
+      "publishedAt": "2026-03-13T11:45:29.963Z",
+      "authorId": 1,
+      "seoTitle": "Technology Security: Hardening rich content rendering",
+      "seoDescription": "Safer handling of embedded code and media in article content.",
+      "seoKeywords": "Technology, Security",
+      "createdAt": "2026-03-25T18:45:29.000Z",
+      "updatedAt": "2026-03-25T18:45:29.000Z"
+    },
+    {
+      "id": 8,
+      "title": "Technology Benchmark: Measuring real page speed",
+      "titleVi": "Cong nghe Benchmark: Measuring real page speed",
+      "slug": "technology-benchmark-measuring-real-page-speed",
+      "description": "A practical guide to performance measurements and follow-ups.",
+      "descriptionVi": "A practical guide to hieu nang measurements and follow-ups.",
+      "content": "\n          <h1>Measuring Real Page Speed</h1>\n          <p>Use consistent metrics and track regressions over time.</p>\n          <h2>Suggested checklist</h2>\n          <ol>\n            <li>Measure LCP and CLS</li>\n            <li>Check image sizes</li>\n            <li>Verify caching headers</li>\n          </ol>\n          <h3>CSS snippet</h3>\n          <pre><code class=\"language-css\">img { content-visibility: auto; }</code></pre>\n        ",
+      "contentVi": "\n          <h1>Measuring Real Page Speed</h1>\n          <p>Use consistent metrics and track regressions over time.</p>\n          <h2>Suggested checklist</h2>\n          <ol>\n            <li>Measure LCP and CLS</li>\n            <li>Check image sizes</li>\n            <li>Verify caching headers</li>\n          </ol>\n          <h3>CSS snippet</h3>\n          <pre><code class=\"language-css\">img { content-visibility: auto; }</code></pre>\n        ",
+      "tags": "[\"Technology\",\"Benchmark\"]",
+      "status": "Active",
+      "category": "Technology",
+      "imageId": null,
+      "startDate": null,
+      "endDate": null,
+      "publishedAt": "2026-03-07T11:45:29.963Z",
+      "authorId": 1,
+      "seoTitle": "Technology Benchmark: Measuring real page speed",
+      "seoDescription": "A practical guide to performance measurements and follow-ups.",
+      "seoKeywords": "Technology, Benchmark",
+      "createdAt": "2026-03-25T18:45:29.000Z",
+      "updatedAt": "2026-03-25T18:45:29.000Z"
+    },
+    {
+      "id": 9,
+      "title": "Politics Update: Transparency report highlights",
+      "titleVi": "Chinh tri Cap nhat: Transparency report highlights",
+      "slug": "politics-update-transparency-report-highlights",
+      "description": "A short transparency report with the top highlights.",
+      "descriptionVi": "A short transparency report with the top highlights.",
+      "content": "\n          <h1>Transparency Report</h1>\n          <p>We’re sharing the most important changes and metrics.</p>\n          <h2>Highlights</h2>\n          <ul>\n            <li>Improved communication cadence</li>\n            <li>Clearer reporting</li>\n            <li>Stronger accountability</li>\n          </ul>\n          <h3>JavaScript sample</h3>\n          <pre><code class=\"language-javascript\">function formatDate(d){ return d.toISOString().slice(0,10); }</code></pre>\n        ",
+      "contentVi": "\n          <h1>Transparency Report</h1>\n          <p>We’re sharing the most important changes and metrics.</p>\n          <h2>Highlights</h2>\n          <ul>\n            <li>Improved communication cadence</li>\n            <li>Clearer reporting</li>\n            <li>Stronger accountability</li>\n          </ul>\n          <h3>JavaScript sample</h3>\n          <pre><code class=\"language-javascript\">function formatDate(d){ return d.toISOString().slice(0,10); }</code></pre>\n        ",
+      "tags": "[\"Politics\",\"Transparency\"]",
+      "status": "Active",
+      "category": "Politics",
+      "imageId": null,
+      "startDate": null,
+      "endDate": null,
+      "publishedAt": "2026-03-18T11:45:29.963Z",
+      "authorId": 1,
+      "seoTitle": "Politics Update: Transparency report highlights",
+      "seoDescription": "A short transparency report with the top highlights.",
+      "seoKeywords": "Politics, Transparency",
+      "createdAt": "2026-03-25T18:45:29.000Z",
+      "updatedAt": "2026-03-25T18:45:29.000Z"
+    },
+    {
+      "id": 10,
+      "title": "Politics Brief: Community engagement initiatives",
+      "titleVi": "Chinh tri Tong quan: Community engagement initiatives",
+      "slug": "politics-brief-community-engagement-initiatives",
+      "description": "New community initiatives for feedback, events, and collaboration.",
+      "descriptionVi": "New community initiatives for feedback, events, and collaboration.",
+      "content": "\n          <h1>Community Engagement</h1>\n          <p>We’re launching new ways to gather and publish feedback.</p>\n          <h2>Plan</h2>\n          <ol>\n            <li>Monthly feedback threads</li>\n            <li>Quarterly public summaries</li>\n            <li>Volunteer-led sessions</li>\n          </ol>\n        ",
+      "contentVi": "\n          <h1>Community Engagement</h1>\n          <p>We’re launching new ways to gather and publish feedback.</p>\n          <h2>Plan</h2>\n          <ol>\n            <li>Monthly feedback threads</li>\n            <li>Quarterly public summaries</li>\n            <li>Volunteer-led sessions</li>\n          </ol>\n        ",
+      "tags": "[\"Politics\",\"Community\"]",
+      "status": "Active",
+      "category": "Politics",
+      "imageId": null,
+      "startDate": null,
+      "endDate": null,
+      "publishedAt": "2026-03-11T11:45:29.963Z",
+      "authorId": 1,
+      "seoTitle": "Politics Brief: Community engagement initiatives",
+      "seoDescription": "New community initiatives for feedback, events, and collaboration.",
+      "seoKeywords": "Politics, Community",
+      "createdAt": "2026-03-25T18:45:29.000Z",
+      "updatedAt": "2026-03-25T18:45:29.000Z"
+    },
+    {
+      "id": 11,
+      "title": "Politics Desk: Budget allocation overview",
+      "titleVi": "Chinh tri Desk: Budget allocation overview",
+      "slug": "politics-desk-budget-allocation-overview",
+      "description": "An overview of budget allocation for the next quarter.",
+      "descriptionVi": "An overview of budget allocation for the next quarter.",
+      "content": "\n          <h1>Budget Allocation</h1>\n          <p>Where resources are directed to maximize impact.</p>\n          <h2>Allocation</h2>\n          <ul>\n            <li>Operations</li>\n            <li>Infrastructure</li>\n            <li>Community programs</li>\n          </ul>\n        ",
+      "contentVi": "\n          <h1>Budget Allocation</h1>\n          <p>Where resources are directed to maximize impact.</p>\n          <h2>Allocation</h2>\n          <ul>\n            <li>Operations</li>\n            <li>Infrastructure</li>\n            <li>Community programs</li>\n          </ul>\n        ",
+      "tags": "[\"Politics\",\"Budget\"]",
+      "status": "Active",
+      "category": "Politics",
+      "imageId": null,
+      "startDate": null,
+      "endDate": null,
+      "publishedAt": "2026-02-28T11:45:29.963Z",
+      "authorId": 1,
+      "seoTitle": "Politics Desk: Budget allocation overview",
+      "seoDescription": "An overview of budget allocation for the next quarter.",
+      "seoKeywords": "Politics, Budget",
+      "createdAt": "2026-03-25T18:45:29.000Z",
+      "updatedAt": "2026-03-25T18:45:29.000Z"
+    },
+    {
+      "id": 12,
+      "title": "Economy Insight: Growth signals to watch",
+      "titleVi": "Kinh te Insight: Growth signals to watch",
+      "slug": "economy-insight-growth-signals-to-watch",
+      "description": "Tracking growth and stability using practical indicators.",
+      "descriptionVi": "Tracking growth and stability using practical indicators.",
+      "content": "\n          <h1>Growth Signals</h1>\n          <p>These are the indicators we monitor for a stable trajectory.</p>\n          <h2>Signals</h2>\n          <ul>\n            <li>Revenue trends</li>\n            <li>Operational efficiency</li>\n            <li>Customer retention</li>\n          </ul>\n          <h3>TypeScript snippet</h3>\n          <pre><code class=\"language-ts\">type Signal = 'revenue'|'retention';</code></pre>\n        ",
+      "contentVi": "\n          <h1>Growth Signals</h1>\n          <p>These are the indicators we monitor for a stable trajectory.</p>\n          <h2>Signals</h2>\n          <ul>\n            <li>Revenue trends</li>\n            <li>Operational efficiency</li>\n            <li>Customer retention</li>\n          </ul>\n          <h3>TypeScript snippet</h3>\n          <pre><code class=\"language-ts\">type Signal = 'revenue'|'retention';</code></pre>\n        ",
+      "tags": "[\"Economy\",\"Growth\"]",
+      "status": "Active",
+      "category": "Economy",
+      "imageId": null,
+      "startDate": null,
+      "endDate": null,
+      "publishedAt": "2026-03-16T11:45:29.963Z",
+      "authorId": 1,
+      "seoTitle": "Economy Insight: Growth signals to watch",
+      "seoDescription": "Tracking growth and stability using practical indicators.",
+      "seoKeywords": "Economy, Growth",
+      "createdAt": "2026-03-25T18:45:29.000Z",
+      "updatedAt": "2026-03-25T18:45:29.000Z"
+    },
+    {
+      "id": 13,
+      "title": "Economy Watch: Financial health checks",
+      "titleVi": "Kinh te Theo doi: Financial health checks",
+      "slug": "economy-watch-financial-health-checks",
+      "description": "A simple checklist for financial health and decision making.",
+      "descriptionVi": "A simple checklist for financial health and decision making.",
+      "content": "\n          <h1>Financial Health Checks</h1>\n          <p>Keep your metrics actionable and consistent.</p>\n          <h2>Checklist</h2>\n          <ol>\n            <li>Cash runway</li>\n            <li>Cost control</li>\n            <li>Risk assessment</li>\n          </ol>\n        ",
+      "contentVi": "\n          <h1>Financial Suc khoe Checks</h1>\n          <p>Keep your metrics actionable and consistent.</p>\n          <h2>Checklist</h2>\n          <ol>\n            <li>Cash runway</li>\n            <li>Cost control</li>\n            <li>Risk assessment</li>\n          </ol>\n        ",
+      "tags": "[\"Economy\",\"Finance\"]",
+      "status": "Active",
+      "category": "Economy",
+      "imageId": null,
+      "startDate": null,
+      "endDate": null,
+      "publishedAt": "2026-03-09T11:45:29.963Z",
+      "authorId": 1,
+      "seoTitle": "Economy Watch: Financial health checks",
+      "seoDescription": "A simple checklist for financial health and decision making.",
+      "seoKeywords": "Economy, Finance",
+      "createdAt": "2026-03-25T18:45:30.000Z",
+      "updatedAt": "2026-03-25T18:45:30.000Z"
+    },
+    {
+      "id": 14,
+      "title": "Economy Operations: Measuring efficiency",
+      "titleVi": "Kinh te Operations: Measuring efficiency",
+      "slug": "economy-operations-measuring-efficiency",
+      "description": "How we measure efficiency across teams and workflows.",
+      "descriptionVi": "How we measure efficiency across teams and workflows.",
+      "content": "\n          <h1>Measuring Efficiency</h1>\n          <p>Efficiency is a composite metric—optimize the system, not only output.</p>\n          <h2>Approach</h2>\n          <ul>\n            <li>Cycle time tracking</li>\n            <li>Automation opportunities</li>\n            <li>Continuous improvement</li>\n          </ul>\n        ",
+      "contentVi": "\n          <h1>Measuring Efficiency</h1>\n          <p>Efficiency is a composite metric—optimize the system, not only output.</p>\n          <h2>Approach</h2>\n          <ul>\n            <li>Cycle time tracking</li>\n            <li>Automation opportunities</li>\n            <li>Continuous improvement</li>\n          </ul>\n        ",
+      "tags": "[\"Economy\",\"Operations\"]",
+      "status": "Active",
+      "category": "Economy",
+      "imageId": null,
+      "startDate": null,
+      "endDate": null,
+      "publishedAt": "2026-02-23T11:45:29.963Z",
+      "authorId": 1,
+      "seoTitle": "Economy Operations: Measuring efficiency",
+      "seoDescription": "How we measure efficiency across teams and workflows.",
+      "seoKeywords": "Economy, Operations",
+      "createdAt": "2026-03-25T18:45:30.000Z",
+      "updatedAt": "2026-03-25T18:45:30.000Z"
+    },
+    {
+      "id": 15,
+      "title": "Entertainment Feature: UX storytelling for articles",
+      "titleVi": "Giai tri Feature: UX storytelling for articles",
+      "slug": "entertainment-feature-ux-storytelling-for-articles",
+      "description": "A storytelling approach to improve readability and engagement.",
+      "descriptionVi": "A storytelling approach to improve readability and engagement.",
+      "content": "\n          <h1>UX Storytelling</h1>\n          <p>Structure your articles like a narrative: set context, then deliver value.</p>\n          <h2>Structure</h2>\n          <ul>\n            <li>Hook with the headline</li>\n            <li>Use H2 sections for clarity</li>\n            <li>End with a takeaway</li>\n          </ul>\n          <h3>HTML example</h3>\n          <pre><code class=\"language-html\">&lt;h2&gt;Structure&lt;/h2&gt;</code></pre>\n        ",
+      "contentVi": "\n          <h1>UX Storytelling</h1>\n          <p>Structure your articles like a narrative: set context, then deliver value.</p>\n          <h2>Structure</h2>\n          <ul>\n            <li>Hook with the headline</li>\n            <li>Use H2 sections for clarity</li>\n            <li>End with a takeaway</li>\n          </ul>\n          <h3>HTML example</h3>\n          <pre><code class=\"language-html\">&lt;h2&gt;Structure&lt;/h2&gt;</code></pre>\n        ",
+      "tags": "[\"Entertainment\",\"Storytelling\"]",
+      "status": "Active",
+      "category": "Entertainment",
+      "imageId": null,
+      "startDate": null,
+      "endDate": null,
+      "publishedAt": "2026-03-21T11:45:29.963Z",
+      "authorId": 1,
+      "seoTitle": "Entertainment Feature: UX storytelling for articles",
+      "seoDescription": "A storytelling approach to improve readability and engagement.",
+      "seoKeywords": "Entertainment, Storytelling",
+      "createdAt": "2026-03-25T18:45:30.000Z",
+      "updatedAt": "2026-03-25T18:45:30.000Z"
+    },
+    {
+      "id": 16,
+      "title": "Entertainment Update: Media and layout polish",
+      "titleVi": "Giai tri Cap nhat: Media and layout polish",
+      "slug": "entertainment-update-media-and-layout-polish",
+      "description": "Polishing media presentation and improving spacing consistency.",
+      "descriptionVi": "Polishing media presentation and improving spacing consistency.",
+      "content": "\n          <h1>Media & Layout Polish</h1>\n          <p>Small changes that make a big visual difference across devices.</p>\n          <h2>Improvements</h2>\n          <ul>\n            <li>Consistent card heights</li>\n            <li>Better typography scale</li>\n            <li>Improved responsive spacing</li>\n          </ul>\n        ",
+      "contentVi": "\n          <h1>Media & Layout Polish</h1>\n          <p>Small changes that make a big visual difference across devices.</p>\n          <h2>Improvements</h2>\n          <ul>\n            <li>Consistent card heights</li>\n            <li>Better typography scale</li>\n            <li>Improved responsive spacing</li>\n          </ul>\n        ",
+      "tags": "[\"Entertainment\",\"Design\"]",
+      "status": "Active",
+      "category": "Entertainment",
+      "imageId": null,
+      "startDate": null,
+      "endDate": null,
+      "publishedAt": "2026-03-14T11:45:29.963Z",
+      "authorId": 1,
+      "seoTitle": "Entertainment Update: Media and layout polish",
+      "seoDescription": "Polishing media presentation and improving spacing consistency.",
+      "seoKeywords": "Entertainment, Design",
+      "createdAt": "2026-03-25T18:45:30.000Z",
+      "updatedAt": "2026-03-25T18:45:30.000Z"
+    },
+    {
+      "id": 17,
+      "title": "Entertainment Lab: Interaction micro-animations",
+      "titleVi": "Giai tri Lab: Interaction micro-animations",
+      "slug": "entertainment-lab-interaction-micro-animations",
+      "description": "Using micro-animations to create delightful UX without affecting performance.",
+      "descriptionVi": "Using micro-animations to create delightful UX without affecting hieu nang.",
+      "content": "\n          <h1>Micro-animations</h1>\n          <p>Keep animations subtle and performance-friendly.</p>\n          <h2>Rules of thumb</h2>\n          <ol>\n            <li>Use transforms over layout changes</li>\n            <li>Avoid heavy repaints</li>\n            <li>Prefer short durations</li>\n          </ol>\n          <h3>JavaScript example</h3>\n          <pre><code class=\"language-javascript\">requestAnimationFrame(() => console.log('anim'));</code></pre>\n        ",
+      "contentVi": "\n          <h1>Micro-animations</h1>\n          <p>Keep animations subtle and hieu nang-friendly.</p>\n          <h2>Rules of thumb</h2>\n          <ol>\n            <li>Use transforms over layout changes</li>\n            <li>Avoid heavy repaints</li>\n            <li>Prefer short durations</li>\n          </ol>\n          <h3>JavaScript example</h3>\n          <pre><code class=\"language-javascript\">requestAnimationFrame(() => console.log('anim'));</code></pre>\n        ",
+      "tags": "[\"Entertainment\",\"Interaction\"]",
+      "status": "Active",
+      "category": "Entertainment",
+      "imageId": null,
+      "startDate": null,
+      "endDate": null,
+      "publishedAt": "2026-03-03T11:45:29.963Z",
+      "authorId": 1,
+      "seoTitle": "Entertainment Lab: Interaction micro-animations",
+      "seoDescription": "Using micro-animations to create delightful UX without affecting performance.",
+      "seoKeywords": "Entertainment, Interaction",
+      "createdAt": "2026-03-25T18:45:30.000Z",
+      "updatedAt": "2026-03-25T18:45:30.000Z"
+    },
+    {
+      "id": 18,
+      "title": "Health Brief: Accessibility checklist for articles",
+      "titleVi": "Suc khoe Tong quan: Accessibility checklist for articles",
+      "slug": "health-brief-accessibility-checklist-for-articles",
+      "description": "Accessibility improvements that help both users and SEO.",
+      "descriptionVi": "Accessibility improvements that help both users and SEO.",
+      "content": "\n          <h1>Accessibility Checklist</h1>\n          <p>Accessible content improves usability and helps search engines understand structure.</p>\n          <h2>Checklist</h2>\n          <ul>\n            <li>Use semantic headings</li>\n            <li>Ensure readable contrast</li>\n            <li>Optimize images and alt text</li>\n          </ul>\n        ",
+      "contentVi": "\n          <h1>Accessibility Checklist</h1>\n          <p>Accessible content improves usability and helps search engines understand structure.</p>\n          <h2>Checklist</h2>\n          <ul>\n            <li>Use semantic headings</li>\n            <li>Ensure readable contrast</li>\n            <li>Optimize images and alt text</li>\n          </ul>\n        ",
+      "tags": "[\"Health\",\"Accessibility\"]",
+      "status": "Active",
+      "category": "Health",
+      "imageId": null,
+      "startDate": null,
+      "endDate": null,
+      "publishedAt": "2026-03-22T11:45:29.963Z",
+      "authorId": 1,
+      "seoTitle": "Health Brief: Accessibility checklist for articles",
+      "seoDescription": "Accessibility improvements that help both users and SEO.",
+      "seoKeywords": "Health, Accessibility",
+      "createdAt": "2026-03-25T18:45:30.000Z",
+      "updatedAt": "2026-03-25T18:45:30.000Z"
+    },
+    {
+      "id": 19,
+      "title": "Health Update: Practical SEO content habits",
+      "titleVi": "Suc khoe Cap nhat: Practical SEO content habits",
+      "slug": "health-update-practical-seo-content-habits",
+      "description": "Simple habits that keep content SEO-friendly and easy to scan.",
+      "descriptionVi": "Simple habits that keep content SEO-friendly and easy to scan.",
+      "content": "\n          <h1>Practical SEO Habits</h1>\n          <p>Focus on clarity: clean structure, meaningful headings, and useful sections.</p>\n          <h2>Habits</h2>\n          <ol>\n            <li>Write a strong description</li>\n            <li>Use consistent heading order</li>\n            <li>Add relevant internal context</li>\n          </ol>\n          <h3>CSS snippet</h3>\n          <pre><code class=\"language-css\">.lead{ line-height: 1.6; }</code></pre>\n        ",
+      "contentVi": "\n          <h1>Practical SEO Habits</h1>\n          <p>Focus on clarity: clean structure, meaningful headings, and useful sections.</p>\n          <h2>Habits</h2>\n          <ol>\n            <li>Write a strong description</li>\n            <li>Use consistent heading order</li>\n            <li>Add relevant internal context</li>\n          </ol>\n          <h3>CSS snippet</h3>\n          <pre><code class=\"language-css\">.lead{ line-height: 1.6; }</code></pre>\n        ",
+      "tags": "[\"Health\",\"SEO\"]",
+      "status": "Active",
+      "category": "Health",
+      "imageId": null,
+      "startDate": null,
+      "endDate": null,
+      "publishedAt": "2026-03-12T11:45:29.963Z",
+      "authorId": 1,
+      "seoTitle": "Health Update: Practical SEO content habits",
+      "seoDescription": "Simple habits that keep content SEO-friendly and easy to scan.",
+      "seoKeywords": "Health, SEO",
+      "createdAt": "2026-03-25T18:45:30.000Z",
+      "updatedAt": "2026-03-25T18:45:30.000Z"
+    },
+    {
+      "id": 20,
+      "title": "Health Watch: Optimizing images for the web",
+      "titleVi": "Suc khoe Theo doi: Optimizing images for the web",
+      "slug": "health-watch-optimizing-images-for-the-web",
+      "description": "How to reduce payload while keeping images clear and fast.",
+      "descriptionVi": "How to reduce payload while keeping images clear and fast.",
+      "content": "\n          <h1>Optimize Images</h1>\n          <p>Smaller images load faster and improve Core Web Vitals.</p>\n          <h2>Tips</h2>\n          <ul>\n            <li>Use modern formats</li>\n            <li>Resize to expected dimensions</li>\n            <li>Lazy-load non-critical images</li>\n          </ul>\n        ",
+      "contentVi": "\n          <h1>Optimize Images</h1>\n          <p>Smaller images load faster and improve Core Web Vitals.</p>\n          <h2>Tips</h2>\n          <ul>\n            <li>Use modern formats</li>\n            <li>Resize to expected dimensions</li>\n            <li>Lazy-load non-critical images</li>\n          </ul>\n        ",
+      "tags": "[\"Health\",\"Performance\"]",
+      "status": "Active",
+      "category": "Health",
+      "imageId": null,
+      "startDate": null,
+      "endDate": null,
+      "publishedAt": "2026-03-04T11:45:29.963Z",
+      "authorId": 1,
+      "seoTitle": "Health Watch: Optimizing images for the web",
+      "seoDescription": "How to reduce payload while keeping images clear and fast.",
+      "seoKeywords": "Health, Performance",
+      "createdAt": "2026-03-25T18:45:30.000Z",
+      "updatedAt": "2026-03-25T18:45:30.000Z"
+    },
+    {
+      "id": 21,
+      "title": "Technology Feature: Content rendering pipeline",
+      "titleVi": "Cong nghe Feature: Content ket xuat pipeline",
+      "slug": "technology-feature-content-rendering-pipeline",
+      "description": "<p>A quick overview of how content flows from editor to public rendering.</p>",
+      "descriptionVi": "<p>Tổng quan nhanh về quy tr&igrave;nh chuyển đổi nội dung từ tr&igrave;nh bi&ecirc;n tập đến khi hiển thị c&ocirc;ng khai.</p>",
+      "content": "<h1>Content Rendering Pipeline</h1>\n<p>From editor input to sanitized output, we keep the steps predictable.</p>\n<h2>Stages</h2>\n<ul>\n<li>Store content</li>\n<li>Sanitize markup</li>\n<li>Render safely</li>\n</ul>\n<h3>TypeScript</h3>\n<pre><code class=\"language-ts\">type PipelineStep = { name: string; ok: boolean };</code></pre>",
+      "contentVi": "<h1>Content Rendering Pipeline</h1>\n<p>From editor input to sanitized output, we keep the steps predictable.</p>\n<h2>Stages</h2>\n<ul>\n<li>Store content</li>\n<li>Sanitize markup</li>\n<li>Render safely</li>\n</ul>\n<h3>TypeScript</h3>\n<pre><code class=\"language-ts\">type PipelineStep = { name: string; ok: boolean };</code></pre>",
+      "tags": "[\"Technology\",\"Content\"]",
+      "status": "Active",
+      "category": "Technology",
+      "imageId": null,
+      "startDate": null,
+      "endDate": null,
+      "publishedAt": "2026-03-18T00:00:00.000Z",
+      "authorId": 1,
+      "seoTitle": "Technology Feature: Content rendering pipeline",
+      "seoDescription": "<p>A quick overview of how content flows from editor to public rendering.</p>",
+      "seoKeywords": "Technology, Content",
+      "createdAt": "2026-03-25T19:04:19.000Z",
+      "updatedAt": "2026-04-27T05:32:28.832Z"
+    },
+    {
+      "id": 22,
+      "title": "Technology Brief: Code snippet formatting rules",
+      "titleVi": "Cong nghe Tong quan: Code snippet formatting rules",
+      "slug": "technology-brief-code-snippet-formatting-rules",
+      "description": "<p>Keep code blocks readable with consistent styles and spacing.</p>",
+      "descriptionVi": "<p>Đảm bảo c&aacute;c khối m&atilde; dễ đọc bằng c&aacute;ch sử dụng kiểu định dạng v&agrave; khoảng c&aacute;ch nhất qu&aacute;n.</p>",
+      "content": "<h1>Code Snippet Formatting</h1>\n<p>Code blocks should be legible and not break layout.</p>\n<h2>Rules</h2>\n<ul>\n<li>Use pre/code tags</li>\n<li>Keep line heights consistent</li>\n<li>Avoid inline styles in content</li>\n</ul>\n<h3>CSS</h3>\n<pre><code class=\"language-css\">pre { white-space: pre-wrap; }</code></pre>",
+      "contentVi": "<h1>Code Snippet Formatting</h1>\n<p>Code blocks should be legible and not break layout.</p>\n<h2>Rules</h2>\n<ul>\n<li>Use pre/code tags</li>\n<li>Keep line heights consistent</li>\n<li>Avoid inline styles in content</li>\n</ul>\n<h3>CSS</h3>\n<pre><code class=\"language-css\">pre { white-space: pre-wrap; }</code></pre>",
+      "tags": "[\"Technology\",\"Code\"]",
+      "status": "Active",
+      "category": "Technology",
+      "imageId": null,
+      "startDate": null,
+      "endDate": null,
+      "publishedAt": "2026-03-11T00:00:00.000Z",
+      "authorId": 1,
+      "seoTitle": "Technology Brief: Code snippet formatting rules",
+      "seoDescription": "<p>Keep code blocks readable with consistent styles and spacing.</p>",
+      "seoKeywords": "Technology, Code",
+      "createdAt": "2026-03-25T19:04:19.000Z",
+      "updatedAt": "2026-04-27T05:33:19.094Z"
+    },
+    {
+      "id": 23,
+      "title": "Politics Feature: Community transparency forum",
+      "titleVi": "Chinh tri Feature: Community transparency forum",
+      "slug": "politics-feature-community-transparency-forum",
+      "description": "A forum to share progress updates and gather feedback.",
+      "descriptionVi": "A forum to share progress updates and gather feedback.",
+      "content": "\n          <h1>Transparency Forum</h1>\n          <p>We invite the community to review and propose improvements.</p>\n          <h2>Agenda</h2>\n          <ol>\n            <li>Update</li>\n            <li>Q&A</li>\n            <li>Next steps</li>\n          </ol>\n        ",
+      "contentVi": "\n          <h1>Transparency Forum</h1>\n          <p>We invite the community to review and propose improvements.</p>\n          <h2>Agenda</h2>\n          <ol>\n            <li>Cap nhat</li>\n            <li>Q&A</li>\n            <li>Next steps</li>\n          </ol>\n        ",
+      "tags": "[\"Politics\",\"Community\"]",
+      "status": "Active",
+      "category": "Politics",
+      "imageId": null,
+      "startDate": null,
+      "endDate": null,
+      "publishedAt": "2026-03-16T12:04:19.400Z",
+      "authorId": 1,
+      "seoTitle": "Politics Feature: Community transparency forum",
+      "seoDescription": "A forum to share progress updates and gather feedback.",
+      "seoKeywords": "Politics, Community",
+      "createdAt": "2026-03-25T19:04:19.000Z",
+      "updatedAt": "2026-03-25T19:04:19.000Z"
+    },
+    {
+      "id": 24,
+      "title": "Politics Brief: Operational accountability report",
+      "titleVi": "Chinh tri Tong quan: Operational accountability report",
+      "slug": "politics-brief-operational-accountability-report",
+      "description": "An accountability report highlighting execution metrics.",
+      "descriptionVi": "An accountability report highlighting execution metrics.",
+      "content": "\n          <h1>Accountability Report</h1>\n          <p>We measure outcomes and publish the results with clarity.</p>\n          <h2>Metrics</h2>\n          <ul>\n            <li>Delivery rate</li>\n            <li>Quality checks</li>\n            <li>Time to resolve</li>\n          </ul>\n        ",
+      "contentVi": "\n          <h1>Accountability Report</h1>\n          <p>We measure outcomes and publish the results with clarity.</p>\n          <h2>Metrics</h2>\n          <ul>\n            <li>Delivery rate</li>\n            <li>Quality checks</li>\n            <li>Time to resolve</li>\n          </ul>\n        ",
+      "tags": "[\"Politics\",\"Accountability\"]",
+      "status": "Active",
+      "category": "Politics",
+      "imageId": null,
+      "startDate": null,
+      "endDate": null,
+      "publishedAt": "2026-03-07T12:04:19.400Z",
+      "authorId": 1,
+      "seoTitle": "Politics Brief: Operational accountability report",
+      "seoDescription": "An accountability report highlighting execution metrics.",
+      "seoKeywords": "Politics, Accountability",
+      "createdAt": "2026-03-25T19:04:19.000Z",
+      "updatedAt": "2026-03-25T19:04:19.000Z"
+    },
+    {
+      "id": 25,
+      "title": "Economy Feature: Efficiency without burnout",
+      "titleVi": "Kinh te Feature: Efficiency without burnout",
+      "slug": "economy-feature-efficiency-without-burnout",
+      "description": "We optimize throughput while protecting wellbeing and sustainability.",
+      "descriptionVi": "We optimize throughput while protecting wellbeing and sustainability.",
+      "content": "\n          <h1>Efficiency Without Burnout</h1>\n          <p>Long-term efficiency balances performance and people.</p>\n          <h2>Approach</h2>\n          <ul>\n            <li>Clear priorities</li>\n            <li>Automate repetitive tasks</li>\n            <li>Protect focus time</li>\n          </ul>\n        ",
+      "contentVi": "\n          <h1>Efficiency Without Burnout</h1>\n          <p>Long-term efficiency balances hieu nang and people.</p>\n          <h2>Approach</h2>\n          <ul>\n            <li>Clear priorities</li>\n            <li>Automate repetitive tasks</li>\n            <li>Protect focus time</li>\n          </ul>\n        ",
+      "tags": "[\"Economy\",\"Efficiency\"]",
+      "status": "Active",
+      "category": "Economy",
+      "imageId": null,
+      "startDate": null,
+      "endDate": null,
+      "publishedAt": "2026-03-19T12:04:19.400Z",
+      "authorId": 1,
+      "seoTitle": "Economy Feature: Efficiency without burnout",
+      "seoDescription": "We optimize throughput while protecting wellbeing and sustainability.",
+      "seoKeywords": "Economy, Efficiency",
+      "createdAt": "2026-03-25T19:04:19.000Z",
+      "updatedAt": "2026-03-25T19:04:19.000Z"
+    },
+    {
+      "id": 26,
+      "title": "Economy Brief: Investment in tooling",
+      "titleVi": "Kinh te Tong quan: Investment in tooling",
+      "slug": "economy-brief-investment-in-tooling",
+      "description": "Tooling investments that reduce cost and improve reliability.",
+      "descriptionVi": "Tooling investments that reduce cost and improve reliability.",
+      "content": "\n          <h1>Investment in Tooling</h1>\n          <p>Better tooling means fewer surprises and more stable releases.</p>\n          <h2>Examples</h2>\n          <ul>\n            <li>CI improvements</li>\n            <li>Testing automation</li>\n            <li>Observability</li>\n          </ul>\n        ",
+      "contentVi": "\n          <h1>Investment in Tooling</h1>\n          <p>Better tooling means fewer surprises and more stable releases.</p>\n          <h2>Examples</h2>\n          <ul>\n            <li>CI improvements</li>\n            <li>Testing automation</li>\n            <li>Observability</li>\n          </ul>\n        ",
+      "tags": "[\"Economy\",\"Tooling\"]",
+      "status": "Active",
+      "category": "Economy",
+      "imageId": null,
+      "startDate": null,
+      "endDate": null,
+      "publishedAt": "2026-03-01T12:04:19.400Z",
+      "authorId": 1,
+      "seoTitle": "Economy Brief: Investment in tooling",
+      "seoDescription": "Tooling investments that reduce cost and improve reliability.",
+      "seoKeywords": "Economy, Tooling",
+      "createdAt": "2026-03-25T19:04:19.000Z",
+      "updatedAt": "2026-03-25T19:04:19.000Z"
+    },
+    {
+      "id": 27,
+      "title": "Entertainment Feature: Article layout improvements",
+      "titleVi": "Giai tri Feature: Article layout improvements",
+      "slug": "entertainment-feature-article-layout-improvements",
+      "description": "Layout tweaks designed to improve reading comfort.",
+      "descriptionVi": "Layout tweaks designed to improve reading comfort.",
+      "content": "\n          <h1>Layout Improvements</h1>\n          <p>Better spacing and consistent typographic rhythm.</p>\n          <h2>Changes</h2>\n          <ul>\n            <li>Improved heading scale</li>\n            <li>Readable line spacing</li>\n            <li>Cleaner spacing between sections</li>\n          </ul>\n        ",
+      "contentVi": "\n          <h1>Layout Improvements</h1>\n          <p>Better spacing and consistent typographic rhythm.</p>\n          <h2>Changes</h2>\n          <ul>\n            <li>Improved heading scale</li>\n            <li>Readable line spacing</li>\n            <li>Cleaner spacing between sections</li>\n          </ul>\n        ",
+      "tags": "[\"Entertainment\",\"Layout\"]",
+      "status": "Active",
+      "category": "Entertainment",
+      "imageId": null,
+      "startDate": null,
+      "endDate": null,
+      "publishedAt": "2026-03-17T12:04:19.400Z",
+      "authorId": 1,
+      "seoTitle": "Entertainment Feature: Article layout improvements",
+      "seoDescription": "Layout tweaks designed to improve reading comfort.",
+      "seoKeywords": "Entertainment, Layout",
+      "createdAt": "2026-03-25T19:04:19.000Z",
+      "updatedAt": "2026-03-25T19:04:19.000Z"
+    },
+    {
+      "id": 28,
+      "title": "Entertainment Brief: Micro-interactions guide",
+      "titleVi": "Giai tri Tong quan: Micro-interactions guide",
+      "slug": "entertainment-brief-micro-interactions-guide",
+      "description": "A small guide for adding micro-interactions that feel natural.",
+      "descriptionVi": "A small guide for adding micro-interactions that feel natural.",
+      "content": "\n          <h1>Micro-interactions</h1>\n          <p>Subtle interactions help users understand system state.</p>\n          <h2>Checklist</h2>\n          <ol>\n            <li>Keep durations short</li>\n            <li>Avoid layout shifts</li>\n            <li>Ensure accessibility</li>\n          </ol>\n        ",
+      "contentVi": "\n          <h1>Micro-interactions</h1>\n          <p>Subtle interactions help users understand system state.</p>\n          <h2>Checklist</h2>\n          <ol>\n            <li>Keep durations short</li>\n            <li>Avoid layout shifts</li>\n            <li>Ensure accessibility</li>\n          </ol>\n        ",
+      "tags": "[\"Entertainment\",\"UX\"]",
+      "status": "Active",
+      "category": "Entertainment",
+      "imageId": null,
+      "startDate": null,
+      "endDate": null,
+      "publishedAt": "2026-03-10T12:04:19.400Z",
+      "authorId": 1,
+      "seoTitle": "Entertainment Brief: Micro-interactions guide",
+      "seoDescription": "A small guide for adding micro-interactions that feel natural.",
+      "seoKeywords": "Entertainment, UX",
+      "createdAt": "2026-03-25T19:04:19.000Z",
+      "updatedAt": "2026-03-25T19:04:19.000Z"
+    },
+    {
+      "id": 29,
+      "title": "Health Feature: Structured content for SEO",
+      "titleVi": "Suc khoe Feature: Structured content for SEO",
+      "slug": "health-feature-structured-content-for-seo",
+      "description": "Structure content with headings and lists to improve scanability.",
+      "descriptionVi": "Structure content with headings and lists to improve scanability.",
+      "content": "\n          <h1>Structured Content</h1>\n          <p>Headings and lists make articles easier to understand and index.</p>\n          <h2>Tips</h2>\n          <ul>\n            <li>Use H1 for title</li>\n            <li>Use H2/H3 for sections</li>\n            <li>Add concise lists</li>\n          </ul>\n        ",
+      "contentVi": "\n          <h1>Structured Content</h1>\n          <p>Headings and lists make articles easier to understand and index.</p>\n          <h2>Tips</h2>\n          <ul>\n            <li>Use H1 for title</li>\n            <li>Use H2/H3 for sections</li>\n            <li>Add concise lists</li>\n          </ul>\n        ",
+      "tags": "[\"Health\",\"SEO\"]",
+      "status": "Active",
+      "category": "Health",
+      "imageId": null,
+      "startDate": null,
+      "endDate": null,
+      "publishedAt": "2026-03-20T12:04:19.400Z",
+      "authorId": 1,
+      "seoTitle": "Health Feature: Structured content for SEO",
+      "seoDescription": "Structure content with headings and lists to improve scanability.",
+      "seoKeywords": "Health, SEO",
+      "createdAt": "2026-03-25T19:04:19.000Z",
+      "updatedAt": "2026-03-25T19:04:19.000Z"
+    },
+    {
+      "id": 30,
+      "title": "Health Brief: Performance checklist for images",
+      "titleVi": "Suc khoe Tong quan: Performance checklist for images",
+      "slug": "health-brief-performance-checklist-for-images",
+      "description": "A checklist to improve image performance in article pages.",
+      "descriptionVi": "A checklist to improve image hieu nang in article pages.",
+      "content": "\n          <h1>Image Performance Checklist</h1>\n          <p>Better images reduce load time and improve user experience.</p>\n          <h2>Checklist</h2>\n          <ul>\n            <li>Use modern formats</li>\n            <li>Resize before upload</li>\n            <li>Enable lazy loading</li>\n          </ul>\n          <h3>Code</h3>\n          <pre><code class=\"language-javascript\">const img = document.querySelector('img');</code></pre>\n        ",
+      "contentVi": "\n          <h1>Image Performance Checklist</h1>\n          <p>Better images reduce load time and improve user experience.</p>\n          <h2>Checklist</h2>\n          <ul>\n            <li>Use modern formats</li>\n            <li>Resize before upload</li>\n            <li>Enable lazy loading</li>\n          </ul>\n          <h3>Code</h3>\n          <pre><code class=\"language-javascript\">const img = document.querySelector('img');</code></pre>\n        ",
+      "tags": "[\"Health\",\"Performance\"]",
+      "status": "Active",
+      "category": "Health",
+      "imageId": null,
+      "startDate": null,
+      "endDate": null,
+      "publishedAt": "2026-03-09T12:04:19.400Z",
+      "authorId": 1,
+      "seoTitle": "Health Brief: Performance checklist for images",
+      "seoDescription": "A checklist to improve image performance in article pages.",
+      "seoKeywords": "Health, Performance",
+      "createdAt": "2026-03-25T19:04:19.000Z",
+      "updatedAt": "2026-03-25T19:04:19.000Z"
+    }
+  ],
+  "privacyPolicies": [],
+  "termsOfServices": [],
+  "productCategories": [
+    {
+      "id": 1,
+      "name": "New Products",
+      "slug": "new-product",
+      "sortOrder": 0,
+      "createdAt": "2026-03-26T06:28:25.624Z",
+      "updatedAt": "2026-04-27T08:18:16.343Z"
+    },
+    {
+      "id": 2,
+      "name": "Featured Products",
+      "slug": "featured",
+      "sortOrder": 1,
+      "createdAt": "2026-03-26T06:28:25.631Z",
+      "updatedAt": "2026-04-27T08:18:35.017Z"
+    },
+    {
+      "id": 3,
+      "name": "Trending Products",
+      "slug": "trending",
+      "sortOrder": 2,
+      "createdAt": "2026-03-26T06:28:25.636Z",
+      "updatedAt": "2026-04-27T08:11:27.465Z"
+    }
+  ],
+  "technologies": [
+    {
+      "id": 1,
+      "techName": "Next.js",
+      "techLogo": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nextjs/nextjs-original.svg",
+      "description": "React framework for production",
+      "createdAt": "2026-03-26T06:28:25.642Z",
+      "updatedAt": "2026-04-27T08:11:27.472Z"
+    },
+    {
+      "id": 2,
+      "techName": "TypeScript",
+      "techLogo": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg",
+      "description": "Typed JavaScript",
+      "createdAt": "2026-03-26T06:28:25.648Z",
+      "updatedAt": "2026-04-27T08:11:27.481Z"
+    },
+    {
+      "id": 3,
+      "techName": "Prisma",
+      "techLogo": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/prisma/prisma-original.svg",
+      "description": "Database ORM",
+      "createdAt": "2026-03-26T06:28:25.653Z",
+      "updatedAt": "2026-04-27T08:11:27.486Z"
+    },
+    {
+      "id": 4,
+      "techName": "MySQL",
+      "techLogo": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg",
+      "description": "Relational database",
+      "createdAt": "2026-03-26T06:28:25.657Z",
+      "updatedAt": "2026-04-27T08:11:27.493Z"
+    }
+  ],
+  "products": [
+    {
+      "id": 1,
+      "productName": "VULE Commerce Hub",
+      "productNameVi": "VULE Commerce Hub",
+      "slug": "vule-commerce-hub",
+      "shortDescription": "Headless storefront with real-time inventory and analytics.",
+      "shortDescriptionVi": "Headless storefront with real-time inventory and analytics.",
+      "fullDescription": "<h2>Overview</h2><p>Commerce Hub unifies catalog, orders, and customer insights in one elegant dashboard.</p><h3>Highlights</h3><ul><li>Real-time stock</li><li>Role-based admin</li><li>Export-ready reports</li></ul>",
+      "fullDescriptionVi": "<h2>Overview</h2><p>Commerce Hub unifies catalog, orders, and customer insights in one elegant bang dieu khien.</p><h3>Highlights</h3><ul><li>Real-time stock</li><li>Role-based admin</li><li>Export-ready reports</li></ul>",
+      "imageUrls": [
+        "https://picsum.photos/seed/vch1/1200/675",
+        "https://picsum.photos/seed/vch2/900/500"
+      ],
+      "videoUrls": [
+        "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+      ],
+      "demoLink": "https://example.com/demo",
+      "landingPageLink": "https://example.com/vule-commerce-hub",
+      "embedDemoUrl": "https://codesandbox.io/embed/new?fontsize=14&hidenavigation=1&theme=dark",
+      "categoryId": 2,
+      "viewsCount": 443,
+      "demoClickCount": 88,
+      "isFeatured": true,
+      "status": "Active",
+      "authorId": 1,
+      "seoTitle": "VULE Commerce Hub",
+      "seoDescription": "Headless storefront with real-time inventory and analytics.",
+      "seoKeywords": null,
+      "createdAt": "2026-03-26T06:28:25.665Z",
+      "updatedAt": "2026-04-03T15:27:46.350Z"
+    },
+    {
+      "id": 2,
+      "productName": "Insight Analytics Suite",
+      "productNameVi": "Insight Analytics Suite",
+      "slug": "insight-analytics-suite",
+      "shortDescription": "Minimal dashboards for product teams—events, funnels, retention.",
+      "shortDescriptionVi": "Minimal bang dieu khiens for product teams—events, funnels, retention.",
+      "fullDescription": "<h2>Built for clarity</h2><p>Ship faster with opinionated charts and shareable snapshots.</p>",
+      "fullDescriptionVi": "<h2>Built for clarity</h2><p>Ship faster with opinionated charts and shareable snapshots.</p>",
+      "imageUrls": [
+        "https://picsum.photos/seed/ias1/1200/675"
+      ],
+      "videoUrls": [],
+      "demoLink": "https://example.com/insight-demo",
+      "landingPageLink": null,
+      "embedDemoUrl": "https://example.com/insight-demo",
+      "categoryId": 3,
+      "viewsCount": 1044,
+      "demoClickCount": 211,
+      "isFeatured": false,
+      "status": "Active",
+      "authorId": 1,
+      "seoTitle": "Insight Analytics Suite",
+      "seoDescription": "Minimal dashboards for product teams—events, funnels, retention.",
+      "seoKeywords": null,
+      "createdAt": "2026-03-26T06:28:25.674Z",
+      "updatedAt": "2026-04-03T15:17:09.810Z"
+    },
+    {
+      "id": 3,
+      "productName": "Nova Mobile Shell",
+      "productNameVi": "Nova Mobile Shell",
+      "slug": "nova-mobile-shell",
+      "shortDescription": "Opinionated mobile shell with auth, deep links, and offline cache.",
+      "shortDescriptionVi": "Opinionated mobile shell with auth, deep links, and offline cache.",
+      "fullDescription": "<h2>Ship mobile faster</h2><p>Pre-wired navigation, secure storage, and release tooling.</p>",
+      "fullDescriptionVi": "<h2>Ship mobile faster</h2><p>Pre-wired navigation, secure storage, and release tooling.</p>",
+      "imageUrls": [
+        "https://picsum.photos/seed/nms1/1200/675",
+        "https://picsum.photos/seed/nms2/800/500"
+      ],
+      "videoUrls": [],
+      "demoLink": null,
+      "landingPageLink": "https://example.com/nova",
+      "embedDemoUrl": null,
+      "categoryId": 1,
+      "viewsCount": 128,
+      "demoClickCount": 34,
+      "isFeatured": true,
+      "status": "Active",
+      "authorId": 1,
+      "seoTitle": "Nova Mobile Shell",
+      "seoDescription": "Opinionated mobile shell with auth, deep links, and offline cache.",
+      "seoKeywords": null,
+      "createdAt": "2026-03-26T06:28:25.680Z",
+      "updatedAt": "2026-03-29T10:48:49.329Z"
+    },
+    {
+      "id": 4,
+      "productName": "Ledger API Gateway",
+      "productNameVi": "Ledger API Gateway",
+      "slug": "ledger-api-gateway",
+      "shortDescription": "Policy-aware API gateway with audit trails and rate limits.",
+      "shortDescriptionVi": "Policy-aware API gateway with audit trails and rate limits.",
+      "fullDescription": "<h2>Secure by default</h2><p>JWT validation, mTLS hooks, and structured audit events.</p>",
+      "fullDescriptionVi": "<h2>Secure by default</h2><p>JWT validation, mTLS hooks, and structured audit events.</p>",
+      "imageUrls": [
+        "https://picsum.photos/seed/lag1/1200/675"
+      ],
+      "videoUrls": [],
+      "demoLink": "https://example.com/ledger-demo",
+      "landingPageLink": "https://example.com/ledger",
+      "embedDemoUrl": null,
+      "categoryId": 3,
+      "viewsCount": 820,
+      "demoClickCount": 122,
+      "isFeatured": false,
+      "status": "Active",
+      "authorId": 1,
+      "seoTitle": "Ledger API Gateway",
+      "seoDescription": "Policy-aware API gateway with audit trails and rate limits.",
+      "seoKeywords": null,
+      "createdAt": "2026-03-26T06:28:25.687Z",
+      "updatedAt": "2026-04-16T13:40:48.958Z"
+    },
+    {
+      "id": 5,
+      "productName": "Atlas Design Kit",
+      "productNameVi": "Atlas Design Kit",
+      "slug": "atlas-design-kit",
+      "shortDescription": "Tokens, components, and motion presets for premium interfaces.",
+      "shortDescriptionVi": "Tokens, components, and motion presets for premium interfaces.",
+      "fullDescription": "<h2>Design systems</h2><p>Composable tokens with dark-mode aware palettes.</p>",
+      "fullDescriptionVi": "<h2>Design systems</h2><p>Composable tokens with dark-mode aware palettes.</p>",
+      "imageUrls": [
+        "https://picsum.photos/seed/adk1/1200/675"
+      ],
+      "videoUrls": [],
+      "demoLink": null,
+      "landingPageLink": null,
+      "embedDemoUrl": null,
+      "categoryId": 1,
+      "viewsCount": 57,
+      "demoClickCount": 12,
+      "isFeatured": false,
+      "status": "Active",
+      "authorId": 1,
+      "seoTitle": "Atlas Design Kit",
+      "seoDescription": "Tokens, components, and motion presets for premium interfaces.",
+      "seoKeywords": null,
+      "createdAt": "2026-03-26T06:28:25.694Z",
+      "updatedAt": "2026-03-30T12:35:12.271Z"
+    },
+    {
+      "id": 6,
+      "productName": "Pulse Support Desk",
+      "productNameVi": "Pulse Support Desk",
+      "slug": "pulse-support-desk",
+      "shortDescription": "Lightweight ticketing with SLA timers and customer health scores.",
+      "shortDescriptionVi": "Lightweight ticketing with SLA timers and customer health scores.",
+      "fullDescription": "<h2>Support that scales</h2><p>Queues, macros, and satisfaction surveys out of the box.</p>",
+      "fullDescriptionVi": "<h2>Support that scales</h2><p>Queues, macros, and satisfaction surveys out of the box.</p>",
+      "imageUrls": [
+        "https://picsum.photos/seed/psd1/1200/675"
+      ],
+      "videoUrls": [],
+      "demoLink": "https://example.com/pulse-demo",
+      "landingPageLink": "https://example.com/pulse",
+      "embedDemoUrl": null,
+      "categoryId": 2,
+      "viewsCount": 312,
+      "demoClickCount": 64,
+      "isFeatured": false,
+      "status": "Active",
+      "authorId": 1,
+      "seoTitle": "Pulse Support Desk",
+      "seoDescription": "Lightweight ticketing with SLA timers and customer health scores.",
+      "seoKeywords": null,
+      "createdAt": "2026-03-26T06:28:25.701Z",
+      "updatedAt": "2026-03-31T12:17:10.006Z"
+    },
+    {
+      "id": 7,
+      "productName": "Excel Data Converter",
+      "productNameVi": "Excel Data Converter",
+      "slug": "excel-data-convert",
+      "shortDescription": "Excel Data Converter\nTool chuyển đổi dữ liệu Excel/CSV chuyên nghiệp.\nHỗ trợ xử lý nhiều file, ánh xạ cột tự động, và lưu cấu hình để tái sử dụng.",
+      "shortDescriptionVi": "Excel Data Converter\nTool chuyển đổi dữ liệu Excel/CSV chuyên nghiệp.\nHỗ trợ xử lý nhiều file, ánh xạ cột tự động, và lưu cấu hình để tái sử dụng.",
+      "fullDescription": "<p><strong>Excel Data Converter</strong><br>Tool chuyển đổi dữ liệu Excel/CSV chuy&ecirc;n nghiệp.<br>Hỗ trợ xử l&yacute; nhiều file, &aacute;nh xạ cột tự động, v&agrave; lưu cấu h&igrave;nh để t&aacute;i sử dụng.</p>",
+      "fullDescriptionVi": "<p><strong>Excel Data Converter</strong><br>Tool chuyển đổi dữ liệu Excel/CSV chuy&ecirc;n nghiệp.<br>Hỗ trợ xử l&yacute; nhiều file, &aacute;nh xạ cột tự động, v&agrave; lưu cấu h&igrave;nh để t&aacute;i sử dụng.</p>",
+      "imageUrls": [],
+      "videoUrls": [],
+      "demoLink": "https://edc.vuleits.com/",
+      "landingPageLink": null,
+      "embedDemoUrl": "https://edc.vuleits.com/",
+      "categoryId": 2,
+      "viewsCount": 10,
+      "demoClickCount": 1,
+      "isFeatured": true,
+      "status": "Active",
+      "authorId": 1,
+      "seoTitle": "Excel Data Converter",
+      "seoDescription": "Excel Data Converter\nTool chuyển đổi dữ liệu Excel/CSV chuyên nghiệp.\nHỗ trợ xử lý nhiều file, ánh xạ cột tự động, và lưu cấu hình để tái sử dụng.",
+      "seoKeywords": null,
+      "createdAt": "2026-03-28T08:11:54.246Z",
+      "updatedAt": "2026-03-30T12:36:08.021Z"
+    }
+  ],
+  "productTechnologies": [
+    {
+      "productId": 1,
+      "technologyId": 1
+    },
+    {
+      "productId": 1,
+      "technologyId": 2
+    },
+    {
+      "productId": 1,
+      "technologyId": 3
+    },
+    {
+      "productId": 2,
+      "technologyId": 1
+    },
+    {
+      "productId": 2,
+      "technologyId": 2
+    },
+    {
+      "productId": 2,
+      "technologyId": 4
+    },
+    {
+      "productId": 3,
+      "technologyId": 2
+    },
+    {
+      "productId": 3,
+      "technologyId": 3
+    },
+    {
+      "productId": 4,
+      "technologyId": 3
+    },
+    {
+      "productId": 4,
+      "technologyId": 4
+    },
+    {
+      "productId": 5,
+      "technologyId": 1
+    },
+    {
+      "productId": 5,
+      "technologyId": 2
+    },
+    {
+      "productId": 6,
+      "technologyId": 2
+    },
+    {
+      "productId": 6,
+      "technologyId": 3
+    },
+    {
+      "productId": 6,
+      "technologyId": 4
+    },
+    {
+      "productId": 7,
+      "technologyId": 1
+    },
+    {
+      "productId": 7,
+      "technologyId": 2
+    }
+  ],
+  "productAnalytics": [
+    {
+      "id": 1,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-26T13:50:13.391Z"
+    },
+    {
+      "id": 2,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-27T01:15:12.395Z"
+    },
+    {
+      "id": 3,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-27T02:21:40.133Z"
+    },
+    {
+      "id": 4,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-27T06:13:14.613Z"
+    },
+    {
+      "id": 5,
+      "productId": 2,
+      "userId": null,
+      "actionType": "click_demo",
+      "createdAt": "2026-03-27T06:13:17.097Z"
+    },
+    {
+      "id": 6,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-27T08:19:04.075Z"
+    },
+    {
+      "id": 7,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-27T08:19:08.852Z"
+    },
+    {
+      "id": 8,
+      "productId": 4,
+      "userId": null,
+      "actionType": "click_demo",
+      "createdAt": "2026-03-27T08:19:10.919Z"
+    },
+    {
+      "id": 9,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T07:56:49.454Z"
+    },
+    {
+      "id": 10,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T08:03:00.828Z"
+    },
+    {
+      "id": 11,
+      "productId": 4,
+      "userId": null,
+      "actionType": "click_demo",
+      "createdAt": "2026-03-28T08:03:14.753Z"
+    },
+    {
+      "id": 12,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T08:03:27.106Z"
+    },
+    {
+      "id": 13,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T08:03:55.374Z"
+    },
+    {
+      "id": 14,
+      "productId": 7,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T08:12:15.141Z"
+    },
+    {
+      "id": 15,
+      "productId": 7,
+      "userId": null,
+      "actionType": "click_demo",
+      "createdAt": "2026-03-28T08:12:19.346Z"
+    },
+    {
+      "id": 16,
+      "productId": 7,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T08:12:31.766Z"
+    },
+    {
+      "id": 17,
+      "productId": 7,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T12:05:41.948Z"
+    },
+    {
+      "id": 18,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T12:07:12.723Z"
+    },
+    {
+      "id": 19,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T12:44:35.023Z"
+    },
+    {
+      "id": 20,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T12:44:42.211Z"
+    },
+    {
+      "id": 21,
+      "productId": 1,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T12:52:17.171Z"
+    },
+    {
+      "id": 22,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T12:54:03.725Z"
+    },
+    {
+      "id": 23,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T12:54:48.152Z"
+    },
+    {
+      "id": 24,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T12:55:00.236Z"
+    },
+    {
+      "id": 25,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:02:17.910Z"
+    },
+    {
+      "id": 26,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:02:34.165Z"
+    },
+    {
+      "id": 27,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:02:43.995Z"
+    },
+    {
+      "id": 28,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:03:04.597Z"
+    },
+    {
+      "id": 29,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:03:34.227Z"
+    },
+    {
+      "id": 30,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:07:06.903Z"
+    },
+    {
+      "id": 31,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:07:49.355Z"
+    },
+    {
+      "id": 32,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:07:52.927Z"
+    },
+    {
+      "id": 33,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:08:12.806Z"
+    },
+    {
+      "id": 34,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:14:48.493Z"
+    },
+    {
+      "id": 35,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:14:51.496Z"
+    },
+    {
+      "id": 36,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:15:11.100Z"
+    },
+    {
+      "id": 37,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:15:13.871Z"
+    },
+    {
+      "id": 38,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:15:17.768Z"
+    },
+    {
+      "id": 39,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:15:21.721Z"
+    },
+    {
+      "id": 40,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:17:02.036Z"
+    },
+    {
+      "id": 41,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:18:59.037Z"
+    },
+    {
+      "id": 42,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:19:10.507Z"
+    },
+    {
+      "id": 43,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:19:12.651Z"
+    },
+    {
+      "id": 44,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:19:25.383Z"
+    },
+    {
+      "id": 45,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:19:40.221Z"
+    },
+    {
+      "id": 46,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:19:52.616Z"
+    },
+    {
+      "id": 47,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:19:56.774Z"
+    },
+    {
+      "id": 48,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:21:37.656Z"
+    },
+    {
+      "id": 49,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:23:28.748Z"
+    },
+    {
+      "id": 50,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:23:50.292Z"
+    },
+    {
+      "id": 51,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:24:26.126Z"
+    },
+    {
+      "id": 52,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:25:06.383Z"
+    },
+    {
+      "id": 53,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:30:09.092Z"
+    },
+    {
+      "id": 54,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:30:11.636Z"
+    },
+    {
+      "id": 55,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:30:14.797Z"
+    },
+    {
+      "id": 56,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:30:19.602Z"
+    },
+    {
+      "id": 57,
+      "productId": 1,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:30:29.487Z"
+    },
+    {
+      "id": 58,
+      "productId": 1,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:30:32.840Z"
+    },
+    {
+      "id": 59,
+      "productId": 1,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:30:36.913Z"
+    },
+    {
+      "id": 60,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:31:24.632Z"
+    },
+    {
+      "id": 61,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:31:54.143Z"
+    },
+    {
+      "id": 62,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:31:57.522Z"
+    },
+    {
+      "id": 63,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:32:05.410Z"
+    },
+    {
+      "id": 64,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:32:57.224Z"
+    },
+    {
+      "id": 65,
+      "productId": 7,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:33:12.225Z"
+    },
+    {
+      "id": 66,
+      "productId": 1,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:33:14.976Z"
+    },
+    {
+      "id": 67,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:33:18.329Z"
+    },
+    {
+      "id": 68,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:33:20.191Z"
+    },
+    {
+      "id": 69,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:33:22.372Z"
+    },
+    {
+      "id": 70,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:33:34.404Z"
+    },
+    {
+      "id": 71,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:34:10.726Z"
+    },
+    {
+      "id": 72,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:34:14.757Z"
+    },
+    {
+      "id": 73,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:38:25.502Z"
+    },
+    {
+      "id": 74,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:38:32.234Z"
+    },
+    {
+      "id": 75,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:39:12.254Z"
+    },
+    {
+      "id": 76,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:39:16.706Z"
+    },
+    {
+      "id": 77,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:41:10.298Z"
+    },
+    {
+      "id": 78,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:41:22.441Z"
+    },
+    {
+      "id": 79,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:41:28.401Z"
+    },
+    {
+      "id": 80,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:41:41.933Z"
+    },
+    {
+      "id": 81,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:41:45.504Z"
+    },
+    {
+      "id": 82,
+      "productId": 1,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:43:10.327Z"
+    },
+    {
+      "id": 83,
+      "productId": 3,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:44:30.884Z"
+    },
+    {
+      "id": 84,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:44:36.277Z"
+    },
+    {
+      "id": 85,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:46:40.656Z"
+    },
+    {
+      "id": 86,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:47:24.848Z"
+    },
+    {
+      "id": 87,
+      "productId": 1,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:47:27.669Z"
+    },
+    {
+      "id": 88,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:49:54.709Z"
+    },
+    {
+      "id": 89,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:49:57.931Z"
+    },
+    {
+      "id": 90,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:50:01.877Z"
+    },
+    {
+      "id": 91,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:50:18.608Z"
+    },
+    {
+      "id": 92,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:50:30.386Z"
+    },
+    {
+      "id": 93,
+      "productId": 7,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:50:36.637Z"
+    },
+    {
+      "id": 94,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:51:42.203Z"
+    },
+    {
+      "id": 95,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:52:13.366Z"
+    },
+    {
+      "id": 96,
+      "productId": 1,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:52:19.535Z"
+    },
+    {
+      "id": 97,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:52:55.527Z"
+    },
+    {
+      "id": 98,
+      "productId": 1,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:53:07.009Z"
+    },
+    {
+      "id": 99,
+      "productId": 1,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:53:10.406Z"
+    },
+    {
+      "id": 100,
+      "productId": 1,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:53:11.180Z"
+    },
+    {
+      "id": 101,
+      "productId": 1,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:53:21.885Z"
+    },
+    {
+      "id": 102,
+      "productId": 1,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:54:08.954Z"
+    },
+    {
+      "id": 103,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T13:55:55.450Z"
+    },
+    {
+      "id": 104,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T14:06:52.033Z"
+    },
+    {
+      "id": 105,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T14:06:54.964Z"
+    },
+    {
+      "id": 106,
+      "productId": 1,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T14:07:06.460Z"
+    },
+    {
+      "id": 107,
+      "productId": 7,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T14:07:12.317Z"
+    },
+    {
+      "id": 108,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T14:10:20.005Z"
+    },
+    {
+      "id": 109,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T14:12:51.632Z"
+    },
+    {
+      "id": 110,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T14:12:57.527Z"
+    },
+    {
+      "id": 111,
+      "productId": 1,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T14:13:10.328Z"
+    },
+    {
+      "id": 112,
+      "productId": 3,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T14:13:14.294Z"
+    },
+    {
+      "id": 113,
+      "productId": 5,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T14:13:20.841Z"
+    },
+    {
+      "id": 114,
+      "productId": 3,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T14:21:30.567Z"
+    },
+    {
+      "id": 115,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-28T14:38:32.322Z"
+    },
+    {
+      "id": 116,
+      "productId": 2,
+      "userId": null,
+      "actionType": "share",
+      "createdAt": "2026-03-28T14:38:55.508Z"
+    },
+    {
+      "id": 117,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-29T10:04:26.421Z"
+    },
+    {
+      "id": 118,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-29T10:04:38.257Z"
+    },
+    {
+      "id": 119,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-29T10:04:49.062Z"
+    },
+    {
+      "id": 120,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-29T10:04:53.079Z"
+    },
+    {
+      "id": 121,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-29T10:07:47.483Z"
+    },
+    {
+      "id": 122,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-29T10:08:39.056Z"
+    },
+    {
+      "id": 123,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-29T10:12:49.592Z"
+    },
+    {
+      "id": 124,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-29T10:26:37.642Z"
+    },
+    {
+      "id": 125,
+      "productId": 3,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-29T10:34:58.459Z"
+    },
+    {
+      "id": 126,
+      "productId": 3,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-29T10:39:36.575Z"
+    },
+    {
+      "id": 127,
+      "productId": 3,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-29T10:39:37.177Z"
+    },
+    {
+      "id": 128,
+      "productId": 3,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-29T10:40:36.998Z"
+    },
+    {
+      "id": 129,
+      "productId": 3,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-29T10:48:49.320Z"
+    },
+    {
+      "id": 130,
+      "productId": 7,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-29T11:56:50.261Z"
+    },
+    {
+      "id": 131,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-29T11:57:49.716Z"
+    },
+    {
+      "id": 132,
+      "productId": 6,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-29T11:58:58.014Z"
+    },
+    {
+      "id": 133,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-29T12:02:59.366Z"
+    },
+    {
+      "id": 134,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-29T12:05:19.720Z"
+    },
+    {
+      "id": 135,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-29T12:18:11.636Z"
+    },
+    {
+      "id": 136,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-29T12:44:05.345Z"
+    },
+    {
+      "id": 137,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-29T12:44:13.603Z"
+    },
+    {
+      "id": 138,
+      "productId": 1,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-29T12:44:18.314Z"
+    },
+    {
+      "id": 139,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-29T12:44:20.243Z"
+    },
+    {
+      "id": 140,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-29T12:47:39.063Z"
+    },
+    {
+      "id": 141,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-30T12:34:11.726Z"
+    },
+    {
+      "id": 142,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-30T12:34:14.916Z"
+    },
+    {
+      "id": 143,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-30T12:34:18.379Z"
+    },
+    {
+      "id": 144,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-30T12:34:21.714Z"
+    },
+    {
+      "id": 145,
+      "productId": 1,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-30T12:34:25.633Z"
+    },
+    {
+      "id": 146,
+      "productId": 5,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-30T12:35:12.267Z"
+    },
+    {
+      "id": 147,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-30T12:35:20.455Z"
+    },
+    {
+      "id": 148,
+      "productId": 7,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-30T12:35:29.832Z"
+    },
+    {
+      "id": 149,
+      "productId": 1,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-30T12:35:51.032Z"
+    },
+    {
+      "id": 150,
+      "productId": 7,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-30T12:36:00.382Z"
+    },
+    {
+      "id": 151,
+      "productId": 7,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-30T12:36:08.016Z"
+    },
+    {
+      "id": 152,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-30T12:37:15.964Z"
+    },
+    {
+      "id": 153,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-30T12:39:45.418Z"
+    },
+    {
+      "id": 154,
+      "productId": 1,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-30T12:39:48.276Z"
+    },
+    {
+      "id": 155,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-31T12:09:04.344Z"
+    },
+    {
+      "id": 156,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-31T12:09:15.173Z"
+    },
+    {
+      "id": 157,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-31T12:16:50.560Z"
+    },
+    {
+      "id": 158,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-31T12:16:54.454Z"
+    },
+    {
+      "id": 159,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-31T12:16:59.770Z"
+    },
+    {
+      "id": 160,
+      "productId": 6,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-31T12:17:10.001Z"
+    },
+    {
+      "id": 161,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-31T12:17:12.773Z"
+    },
+    {
+      "id": 162,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-31T12:17:16.182Z"
+    },
+    {
+      "id": 163,
+      "productId": 1,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-31T12:17:21.804Z"
+    },
+    {
+      "id": 164,
+      "productId": 1,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-31T12:17:37.412Z"
+    },
+    {
+      "id": 165,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-31T14:04:15.939Z"
+    },
+    {
+      "id": 166,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-31T14:04:19.718Z"
+    },
+    {
+      "id": 167,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-31T14:06:07.734Z"
+    },
+    {
+      "id": 168,
+      "productId": 1,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-03-31T14:18:51.244Z"
+    },
+    {
+      "id": 169,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-04-03T15:17:03.980Z"
+    },
+    {
+      "id": 170,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-04-03T15:17:06.587Z"
+    },
+    {
+      "id": 171,
+      "productId": 2,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-04-03T15:17:09.804Z"
+    },
+    {
+      "id": 172,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-04-03T15:27:42.220Z"
+    },
+    {
+      "id": 173,
+      "productId": 1,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-04-03T15:27:46.347Z"
+    },
+    {
+      "id": 174,
+      "productId": 4,
+      "userId": null,
+      "actionType": "view",
+      "createdAt": "2026-04-16T13:40:48.940Z"
+    }
+  ],
+  "serviceItems": [
+    {
+      "id": 1,
+      "icon": "🎨",
+      "title": "UI/UX Design",
+      "titleVi": "Thiet ke UI/UX",
+      "description": "Create stunning user interfaces with modern design principles, focusing on usability and aesthetic appeal.",
+      "descriptionVi": "Create stunning user interfaces with modern design principles, focusing on usability and aesthetic appeal.",
+      "features": "[\"User Research & Analysis\",\"Wireframing & Prototyping\",\"Visual Design & Branding\",\"Responsive Design\"]",
+      "order": 0,
+      "isActive": true,
+      "createdAt": "2026-03-18T21:57:57.000Z",
+      "updatedAt": "2026-03-22T15:50:39.000Z"
+    },
+    {
+      "id": 2,
+      "icon": "💻",
+      "title": "Web Development",
+      "titleVi": "Phat trien web",
+      "description": "Build fast, secure, and scalable websites using the latest web technologies and best practices.",
+      "descriptionVi": "Build fast, secure, and scalable websites using the latest cong nghe web and thuc hanh tot nhat.",
+      "features": "[\"Frontend Development\",\"Backend Integration\",\"Performance Optimization\",\"SEO Implementation\"]",
+      "order": 1,
+      "isActive": true,
+      "createdAt": "2026-03-18T21:57:57.000Z",
+      "updatedAt": "2026-03-18T21:57:57.000Z"
+    },
+    {
+      "id": 3,
+      "icon": "📱",
+      "title": "Mobile Apps",
+      "titleVi": "Mobile Apps",
+      "description": "Develop native and cross-platform mobile applications that deliver exceptional user experiences.",
+      "descriptionVi": "Develop native and cross-platform mobile applications that deliver exceptional trai nghiem nguoi dung.",
+      "features": "[\"iOS & Android Development\",\"Cross-platform Solutions\",\"App Store Optimization\",\"Maintenance & Updates\"]",
+      "order": 2,
+      "isActive": true,
+      "createdAt": "2026-03-18T21:57:57.000Z",
+      "updatedAt": "2026-03-18T21:57:57.000Z"
+    },
+    {
+      "id": 4,
+      "icon": "🚀",
+      "title": "Digital Strategy",
+      "titleVi": "Digital Strategy",
+      "description": "Strategic consulting to help your business thrive in the digital landscape with data-driven insights.",
+      "descriptionVi": "Strategic consulting to help your business thrive in the digital landscape with data-driven insights.",
+      "features": "[\"Digital Transformation\",\"Analytics & Reporting\",\"Growth Strategy\",\"Technology Consulting\"]",
+      "order": 3,
+      "isActive": true,
+      "createdAt": "2026-03-18T21:57:57.000Z",
+      "updatedAt": "2026-03-18T21:57:57.000Z"
+    },
+    {
+      "id": 5,
+      "icon": "☁️",
+      "title": "Cloud Solutions",
+      "titleVi": "Giai phap dam may",
+      "description": "Modernize your infrastructure with scalable cloud services and seamless migration strategies.",
+      "descriptionVi": "Modernize your infrastructure with scalable cloud services and seamless migration strategies.",
+      "features": "[\"Cloud Migration\",\"DevOps & Automation\",\"Infrastructure as Code\",\"24/7 Monitoring\"]",
+      "order": 4,
+      "isActive": true,
+      "createdAt": "2026-03-18T21:57:57.000Z",
+      "updatedAt": "2026-03-18T21:57:57.000Z"
+    },
+    {
+      "id": 6,
+      "icon": "🔒",
+      "title": "Cybersecurity",
+      "titleVi": "An ninh mang",
+      "description": "Protect your digital assets with comprehensive security solutions and threat protection.",
+      "descriptionVi": "Bao ve tai san so bang giai phap bao mat toan dien va kha nang phong chong de doa.",
+      "features": "[\"Security Auditing\",\"Penetration Testing\",\"Data Protection\",\"Compliance Management\"]",
+      "order": 5,
+      "isActive": true,
+      "createdAt": "2026-03-18T21:57:57.000Z",
+      "updatedAt": "2026-03-18T21:57:57.000Z"
+    }
+  ],
+  "siteSettings": [
+    {
+      "id": 2,
+      "key": "about_page_intro",
+      "value": "{\"titleEn\":\"About Our Vision\",\"titleVi\":\"Tầm nhìn của VULE ITS\",\"bodyEn\":\"<p>At <span><strong>VULE ITS</strong>,</span> we believe that technology is not just a tool, but a bridge that creates natural, intuitive, and inspiring digital experiences. Design Philosophy We apply the \\\"Modern and Minimalist\\\" philosophy – a harmonious blend of aesthetics, depth, and refined experience. Each interface created is not only visually appealing but also user-friendly, making it enjoyable and easy for users to interact with.</p>\\n<p>Development Journey Established in 2023, <strong>VULE ITS</strong> brings together a young, creative design and development team, always striving to push the boundaries of traditional web design. We focus on accessibility, performance, and user experience, ensuring all products meet international standards. Commitment to Quality Every project is a meticulously crafted work of art. We are committed to the principle of \\\"Form follows Function\\\" — form always serves function, but never loses aesthetic appeal. The result is technological solutions that are both sophisticated in design and powerful in performance. </p>\\n<p><strong>VULE ITS</strong>' vision is to become a trusted technology partner, providing customers with modern digital solutions that help businesses thrive in the digital age. We don't just create products; we create experiences — where technology blends with art, elevating brand value and customer success.</p>\",\"bodyVi\":\"<p>Tại <strong>VULE ITS</strong><strong>, </strong>chúng tôi tin rằng công nghệ không chỉ là công cụ, mà còn là cầu nối tạo nên những trải nghiệm kỹ thuật số tự nhiên, trực quan và đầy cảm hứng. Triết lý thiết kế Chúng tôi ứng dụng triết lý “Hiện đại và tối giản” – sự kết hợp hài hòa giữa tính thẩm mỹ, chiều sâu và trải nghiệm tinh tế. Mỗi giao diện được tạo ra không chỉ đẹp mắt mà còn mang lại cảm giác thân thiện, giúp người dùng yêu thích và dễ dàng tương tác.</p>\\n<p>Thành lập năm 2023, Công ty TNHH Giải pháp Công nghệ Vũ Lê  (<strong>VULE ITS</strong>) quy tụ đội ngũ thiết kế và phát triển trẻ trung, sáng tạo, luôn khao khát vượt qua giới hạn của thiết kế web truyền thống. Chúng tôi đặt trọng tâm vào khả năng truy cập, <strong>hiệu suất</strong> và <strong>trải nghiệm người dùng</strong>, đảm bảo mọi sản phẩm đều <strong>đạt chuẩn quốc tế.</strong> Cam kết chất lượng. Mỗi dự án là một tác phẩm được trau chuốt đến từng chi tiết. Chúng tôi kiên định với nguyên tắc <strong>“Form follows Function”</strong> – hình thức luôn phục vụ cho chức năng, nhưng không bao giờ đánh mất vẻ đẹp thẩm mỹ. Kết quả là những giải pháp công nghệ vừa <strong>tinh tế về thiết kế</strong>, vừa <strong>mạnh mẽ về hiệu năng</strong>. </p>\\n<p>Tầm nhìn của <strong>VULE ITS</strong> là trở thành đối tác công nghệ đáng tin cậy, mang đến cho khách hàng những giải pháp số hiện đại, giúp doanh nghiệp bứt phá trong kỷ nguyên số. Chúng tôi không chỉ tạo ra sản phẩm, mà còn kiến tạo trải nghiệm – nơi công nghệ hòa quyện với nghệ thuật, nâng tầm giá trị thương hiệu và thành công của khách hàng.</p>\",\"heroImageUrl\":\"/uploads/library/1774187433102-5dae9a499e.jpg\",\"heroImageAltEn\":\"VULE ITS\",\"heroImageAltVi\":\"VULE ITS\"}",
+      "createdAt": "2026-03-22T09:33:35.594Z",
+      "updatedAt": "2026-03-31T15:42:48.679Z"
+    },
+    {
+      "id": 9,
+      "key": "admin.categories.banners",
+      "value": "[{\"id\":1,\"name\":\"Homepage Hero\",\"nameVi\":\"Hero trang chủ\",\"slug\":\"homepage-hero\",\"sortOrder\":0,\"isActive\":true},{\"id\":2,\"name\":\"Homepage Promo\",\"nameVi\":\"Khuyến mãi trang chủ\",\"slug\":\"homepage-promo\",\"sortOrder\":1,\"isActive\":true},{\"id\":3,\"name\":\"Product Campaign\",\"nameVi\":\"Chiến dịch sản phẩm\",\"slug\":\"product-campaign\",\"sortOrder\":2,\"isActive\":true},{\"id\":4,\"name\":\"Service Campaign\",\"nameVi\":\"Chiến dịch dịch vụ\",\"slug\":\"service-campaign\",\"sortOrder\":3,\"isActive\":true},{\"id\":5,\"name\":\"News Spotlight\",\"nameVi\":\"Điểm nhấn tin tức\",\"slug\":\"news-spotlight\",\"sortOrder\":4,\"isActive\":true},{\"id\":6,\"name\":\"Seasonal\",\"nameVi\":\"Theo mùa\",\"slug\":\"seasonal\",\"sortOrder\":5,\"isActive\":true}]",
+      "createdAt": "2026-04-27T08:11:27.422Z",
+      "updatedAt": "2026-04-27T08:11:27.422Z"
+    },
+    {
+      "id": 8,
+      "key": "admin.categories.medias",
+      "value": "[{\"id\":1,\"name\":\"Images\",\"nameVi\":\"Hình ảnh\",\"slug\":\"images\",\"sortOrder\":0,\"isActive\":true},{\"id\":2,\"name\":\"Videos\",\"nameVi\":\"Video\",\"slug\":\"videos\",\"sortOrder\":1,\"isActive\":true},{\"id\":3,\"name\":\"Documents\",\"nameVi\":\"Tài liệu\",\"slug\":\"documents\",\"sortOrder\":2,\"isActive\":true},{\"id\":4,\"name\":\"Logos\",\"nameVi\":\"Logo\",\"slug\":\"logos\",\"sortOrder\":3,\"isActive\":true},{\"id\":5,\"name\":\"Banners\",\"nameVi\":\"Banner\",\"slug\":\"banners\",\"sortOrder\":4,\"isActive\":true},{\"id\":6,\"name\":\"Downloads\",\"nameVi\":\"Tải về\",\"slug\":\"downloads\",\"sortOrder\":5,\"isActive\":true}]",
+      "createdAt": "2026-04-27T08:11:27.415Z",
+      "updatedAt": "2026-04-27T08:11:27.415Z"
+    },
+    {
+      "id": 7,
+      "key": "admin.categories.news",
+      "value": "[{\"id\":1,\"name\":\"Technology\",\"nameVi\":\"Công nghệ\",\"slug\":\"technology\",\"sortOrder\":0,\"isActive\":true},{\"id\":2,\"name\":\"Business\",\"nameVi\":\"Kinh doanh\",\"slug\":\"business\",\"sortOrder\":1,\"isActive\":true},{\"id\":3,\"name\":\"Product Updates\",\"nameVi\":\"Cập nhật sản phẩm\",\"slug\":\"product-updates\",\"sortOrder\":2,\"isActive\":true},{\"id\":4,\"name\":\"Case Studies\",\"nameVi\":\"Dự án tiêu biểu\",\"slug\":\"case-studies\",\"sortOrder\":3,\"isActive\":true},{\"id\":5,\"name\":\"Events\",\"nameVi\":\"Sự kiện\",\"slug\":\"events\",\"sortOrder\":4,\"isActive\":true},{\"id\":6,\"name\":\"Insights\",\"nameVi\":\"Góc nhìn\",\"slug\":\"insights\",\"sortOrder\":5,\"isActive\":true}]",
+      "createdAt": "2026-04-27T08:11:27.407Z",
+      "updatedAt": "2026-04-27T08:11:27.407Z"
+    },
+    {
+      "id": 6,
+      "key": "admin.categories.services",
+      "value": "[{\"id\":1,\"name\":\"Consulting\",\"nameVi\":\"Tư vấn\",\"slug\":\"consulting\",\"sortOrder\":0,\"isActive\":true},{\"id\":2,\"name\":\"Development\",\"nameVi\":\"Phát triển\",\"slug\":\"development\",\"sortOrder\":1,\"isActive\":true},{\"id\":3,\"name\":\"Design\",\"nameVi\":\"Thiết kế\",\"slug\":\"design\",\"sortOrder\":2,\"isActive\":true},{\"id\":4,\"name\":\"Operations\",\"nameVi\":\"Vận hành\",\"slug\":\"operations\",\"sortOrder\":3,\"isActive\":true},{\"id\":5,\"name\":\"Security\",\"nameVi\":\"Bảo mật\",\"slug\":\"security\",\"sortOrder\":4,\"isActive\":true},{\"id\":6,\"name\":\"Training\",\"nameVi\":\"Đào tạo\",\"slug\":\"training\",\"sortOrder\":5,\"isActive\":true}]",
+      "createdAt": "2026-04-27T08:11:27.400Z",
+      "updatedAt": "2026-04-27T08:11:27.400Z"
+    },
+    {
+      "id": 5,
+      "key": "admin.categoryAssignments.banners",
+      "value": "{}",
+      "createdAt": "2026-04-27T05:33:50.977Z",
+      "updatedAt": "2026-04-27T05:35:25.904Z"
+    },
+    {
+      "id": 1,
+      "key": "company_profile",
+      "value": "{\"companyName\":\"VULE ITS\",\"fullNameVi\":\"Công ty TNHH Giải Pháp Công Nghệ Vũ Lê\",\"fullNameEn\":\"VuLe IT Solution Limited.,\",\"slogan\":\"Bring Your Success\",\"address\":\"Số 08A, tổ 4, thôn Bắc Hội, xã Hiệp Thạnh, tỉnh Lâm Đồng\",\"logoUrl\":\"\",\"logoMediaId\":1,\"email\":\"vuleitsolution@gmail.com\",\"email2\":\"tuanhienvu@gmail.com\",\"phone\":\"+84963373213\",\"hotline\":\"+84982068806\",\"mapEmbedUrl\":\"https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1033.6955431090896!2d108.42290452699103!3d11.776852791492889!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31714127cf9a8c95%3A0xed913be985d94f9e!2zQ8O0bmcgdHkgVE5ISCBHaeG6o2kgUGjDoXAgQ8O0bmcgTmdo4buHIFbFqSBMw6o!5e0!3m2!1svi!2s!4v1777275636327!5m2!1svi!2s\",\"socialLinks\":[{\"type\":\"youtube\",\"url\":\"https://www.youtube.com/@VuLeCongtyTNHHGiaiPhapCongNghe\"},{\"type\":\"facebook\",\"url\":\"https://www.facebook.com/vuleits/?rdid=oebiQKAwgpZGOutC\"},{\"type\":\"tiktok\",\"url\":\"https://www.tiktok.com/@vuleits?_r=1&_t=ZS-94tZ3fPiueq\"}]}",
+      "createdAt": "2026-03-22T07:14:55.372Z",
+      "updatedAt": "2026-04-27T07:41:42.764Z"
+    },
+    {
+      "id": 4,
+      "key": "legal_privacy_policy_page",
+      "value": "{\"titleEn\":\"Privacy\",\"titleVi\":\"Chính sách bảo mật\",\"bodyEn\":\"<h2>1. Introduction</h2>\\n<p>Welcome to VULE ITS Website. We are committed to protecting your privacy and ensuring a safe experience on our website.</p>\\n<h2>2. Information We Collect</h2>\\n<p>We may collect contact information, usage data, and technical data required to provide and improve our services.</p>\\n<h2>3. How We Use Information</h2>\\n<p>We use collected information to operate services, provide support, and improve product quality.</p>\\n<h2>4. Contact</h2>\\n<p>For privacy-related requests, please contact us through the Contact section.</p>\",\"bodyVi\":\"<h2>1. Giới thiệu</h2>\\n<p>Chào mừng bạn đến với trang web của VULE ITS. Chúng tôi cam kết bảo vệ quyền riêng tư của bạn và đảm bảo trải nghiệm an toàn trên trang web của chúng tôi.</p>\\n<h2>2. Thông tin chúng tôi thu thập</h2>\\n<p>Chúng tôi có thể thu thập thông tin liên hệ, dữ liệu sử dụng và dữ liệu kỹ thuật cần thiết để cung cấp và cải thiện dịch vụ của chúng tôi.</p>\\n<h2>3. Cách chúng tôi sử dụng thông tin</h2>\\n<p>Chúng tôi sử dụng thông tin thu thập được để vận hành dịch vụ, cung cấp hỗ trợ và cải thiện chất lượng sản phẩm.</p>\\n<h2>4. Liên hệ</h2>\\n<p>Đối với các yêu cầu liên quan đến quyền riêng tư, vui lòng liên hệ với chúng tôi qua mục Liên hệ.</p>\",\"updatedAtLabelEn\":\"Last updated: December 13, 2025\",\"updatedAtLabelVi\":\"Cập nhật ngày: 13/12/2025\"}",
+      "createdAt": "2026-03-31T15:20:54.700Z",
+      "updatedAt": "2026-04-27T08:05:28.963Z"
+    },
+    {
+      "id": 3,
+      "key": "legal_terms_of_service_page",
+      "value": "{\"titleEn\":\"Terms\",\"titleVi\":\"Điều khoản sử dụng\",\"bodyEn\":\"<h2>1. Agreement to Terms</h2>\\n<p>By accessing this website, you agree to these terms and applicable laws.</p>\\n<h2>2. Use License</h2>\\n<p>Website materials are provided for lawful use only. You may not misuse, reverse engineer, or redistribute protected content without permission.</p>\\n<h2>3. Disclaimer</h2>\\n<p>Materials are provided \\\"as is\\\" without warranties to the fullest extent permitted by law.</p>\\n<h2>4. Contact</h2>\\n<p>For legal questions, please contact us via the Contact section.</p>\",\"bodyVi\":\"<h2>1. Thỏa thuận Điều khoản</h2>\\n<p>Bằng cách truy cập trang web này, bạn đồng ý với các điều khoản này và luật pháp hiện hành.</p>\\n<h2>2. Giấy phép Sử dụng</h2>\\n<p>Tài liệu trên trang web chỉ được cung cấp để sử dụng hợp pháp. Bạn không được phép lạm dụng, đảo ngược kỹ thuật hoặc phân phối lại nội dung được bảo vệ mà không có sự cho phép.</p>\\n<h2>3. Tuyên bố Miễn trừ trách nhiệm</h2>\\n<p>Tài liệu được cung cấp \\\"nguyên trạng\\\" mà không có bất kỳ hạn chế nào trong phạm vi tối đa được pháp luật cho phép.</p>\\n<h2>4. Liên hệ</h2>\\n<p>Đối với các câu hỏi pháp lý, vui lòng liên hệ với chúng tôi qua mục Liên hệ.</p>\",\"updatedAtLabelEn\":\"Last updated: December 13, 2025\",\"updatedAtLabelVi\":\"Cập nhật ngày: 13/12/2025\"}",
+      "createdAt": "2026-03-31T15:19:51.072Z",
+      "updatedAt": "2026-04-27T08:05:45.424Z"
+    }
+  ],
+  "uiMessages": []
+}

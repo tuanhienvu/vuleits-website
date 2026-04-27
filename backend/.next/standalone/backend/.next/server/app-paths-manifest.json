@@ -10,6 +10,8 @@
   "/api/admin/about-stats/route": "app/api/admin/about-stats/route.js",
   "/api/admin/about-team/[id]/route": "app/api/admin/about-team/[id]/route.js",
   "/api/admin/about-team/route": "app/api/admin/about-team/route.js",
+  "/api/admin/categories/[entity]/[id]/route": "app/api/admin/categories/[entity]/[id]/route.js",
+  "/api/admin/categories/[entity]/route": "app/api/admin/categories/[entity]/route.js",
   "/api/admin/company-profile/logo/route": "app/api/admin/company-profile/logo/route.js",
   "/api/admin/company-profile/route": "app/api/admin/company-profile/route.js",
   "/api/admin/contact-submissions/[id]/route": "app/api/admin/contact-submissions/[id]/route.js",

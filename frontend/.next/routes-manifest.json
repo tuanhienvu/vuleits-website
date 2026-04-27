@@ -36,7 +36,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://www.googletagmanager.com https://connect.facebook.net https://analytics.tiktok.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: blob: https: http:; font-src 'self' data: https://cdn.jsdelivr.net https://fonts.gstatic.com; connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://region1.google-analytics.com https://graph.facebook.com https://www.facebook.com https://analytics.tiktok.com https://analytics-ipv6.tiktok.com; media-src 'self' blob:; frame-src 'self' https://www.googletagmanager.com https://www.youtube.com https://www.youtube-nocookie.com; worker-src 'self' blob:; frame-ancestors 'self'; base-uri 'self'; form-action 'self'"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://www.googletagmanager.com https://connect.facebook.net https://analytics.tiktok.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; style-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; img-src 'self' data: blob: https: http:; font-src 'self' data: https://cdn.jsdelivr.net https://fonts.gstatic.com; connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://region1.google-analytics.com https://graph.facebook.com https://www.facebook.com https://analytics.tiktok.com https://analytics-ipv6.tiktok.com; media-src 'self' blob:; frame-src 'self' https://www.googletagmanager.com https://www.youtube.com https://www.youtube-nocookie.com https://www.google.com https://maps.google.com; worker-src 'self' blob:; frame-ancestors 'self'; base-uri 'self'; form-action 'self'"
         }
       ],
       "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))?(?:/)?$"
@@ -147,6 +147,12 @@
       "namedRegex": "^/admin/privacy\\-policy(?:/)?$"
     },
     {
+      "page": "/admin/products/categories",
+      "regex": "^/admin/products/categories(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/products/categories(?:/)?$"
+    },
+    {
       "page": "/admin/profile",
       "regex": "^/admin/profile(?:/)?$",
       "routeKeys": {},
@@ -157,6 +163,12 @@
       "regex": "^/admin/settings/about(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/admin/settings/about(?:/)?$"
+    },
+    {
+      "page": "/admin/settings/categories",
+      "regex": "^/admin/settings/categories(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/settings/categories(?:/)?$"
     },
     {
       "page": "/admin/settings/company",

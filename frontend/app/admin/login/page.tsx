@@ -82,7 +82,7 @@ export default function AdminLogin() {
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@vuleits.com"
+              placeholder={locale === 'vi-VN' ? 'admin@vuleits.com (ví dụ)' : 'admin@vuleits.com (example)'}
               className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-white/50"
               autoComplete="username"
               disabled={loading}

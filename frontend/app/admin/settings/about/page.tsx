@@ -8,6 +8,7 @@ import AboutTeamAdminPanel from '@/components/admin/AboutTeamAdminPanel';
 import AboutStatsAdminPanel from '@/components/admin/AboutStatsAdminPanel';
 import { useAdminPermissions } from '@/components/admin/AdminPermissionContext';
 import { useLocale } from '@/components/providers/LocaleProvider';
+import AdminPageSuspenseFallback from '@/components/admin/AdminPageSuspenseFallback';
 
 function AboutSettingsContent() {
   const { t } = useLocale();
@@ -53,17 +54,9 @@ function AboutSettingsContent() {
   );
 }
 
-function Fallback() {
-  return (
-    <div className="glass p-8 rounded-2xl text-white/70" role="status">
-      Loading…
-    </div>
-  );
-}
-
 export default function AdminSettingsAboutPage() {
   return (
-    <Suspense fallback={<Fallback />}>
+    <Suspense fallback={<AdminPageSuspenseFallback />}>
       <AboutSettingsContent />
     </Suspense>
   );

@@ -97,7 +97,7 @@ export default function Navigation() {
               {t('nav.admin')}
             </Link>
 
-            <LocaleSwitcher className="px-2 py-1.5 rounded-lg text-sm border border-[color:var(--locale-switch-border)] bg-[color:var(--locale-switch-bg)] hover:bg-[color:var(--locale-switch-bg-hover)]" />
+            <LocaleSwitcher className="p-0 bg-transparent border-0 rounded-none hover:bg-transparent" />
           </div>
 
           {mobileOpen && (
@@ -126,7 +126,7 @@ export default function Navigation() {
                 >
                   {t('nav.admin')}
                 </Link>
-                <LocaleSwitcher className="w-full px-3 py-2 rounded-lg text-sm border border-[color:var(--locale-switch-border)] bg-[color:var(--locale-switch-bg)] hover:bg-[color:var(--locale-switch-bg-hover)] justify-start" />
+                <LocaleSwitcher className="w-auto p-0 bg-transparent border-0 rounded-none hover:bg-transparent" />
               </div>
             </div>
           )}

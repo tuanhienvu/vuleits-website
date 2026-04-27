@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useLocale } from '@/components/providers/LocaleProvider';
 
 export type AdminSettingsTabItem = { id: string; label: string };
 
@@ -14,10 +15,11 @@ export default function AdminSettingsTabs({
   activeId: string;
 }) {
   const router = useRouter();
+  const { t } = useLocale();
   if (tabs.length <= 1) return null;
 
   return (
-    <div className="flex flex-wrap gap-2 mb-6" role="tablist" aria-label="Section">
+    <div className="flex flex-wrap gap-2 mb-6" role="tablist" aria-label={t('admin.uiMessagesFilterSection')}>
       {tabs.map((tab) => {
         const selected = tab.id === activeId;
         return (

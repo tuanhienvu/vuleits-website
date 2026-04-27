@@ -1,0 +1,3 @@
+{
+  "/api/admin/categories/[entity]/[id]/route": "app/api/admin/categories/[entity]/[id]/route.js"
+}

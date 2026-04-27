@@ -8,6 +8,7 @@ import ContactMessagesAdminPanel from '@/components/admin/ContactMessagesAdminPa
 import { useAdminPermissions } from '@/components/admin/AdminPermissionContext';
 import { useLocale } from '@/components/providers/LocaleProvider';
 import { useAdminCompanyProfileNav } from '@/hooks/useAdminCompanyProfileNav';
+import AdminPageSuspenseFallback from '@/components/admin/AdminPageSuspenseFallback';
 
 function CompanySettingsContent() {
   const { t } = useLocale();
@@ -50,17 +51,9 @@ function CompanySettingsContent() {
   );
 }
 
-function Fallback() {
-  return (
-    <div className="glass p-8 rounded-2xl text-white/70" role="status">
-      Loading…
-    </div>
-  );
-}
-
 export default function AdminSettingsCompanyPage() {
   return (
-    <Suspense fallback={<Fallback />}>
+    <Suspense fallback={<AdminPageSuspenseFallback />}>
       <CompanySettingsContent />
     </Suspense>
   );

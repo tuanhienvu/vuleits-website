@@ -1,0 +1,68 @@
+SOP: CI/CD AUTOMATION AND DOCKER WATCHTOWER OPERATIONS (V2)
+Organization: VULE ITS
+Objective: Automate Docker Image updates using Label-based filtering and establish management operations on Ubuntu 24.04.
+1. INITIALIZING THE MANAGEMENT SCRIPT
+Using a Shell Script allows for easy configuration updates without the need to memorize or re-type complex commands.
+Step 1: Create the script file
+nano deploy-watchtower.sh
+Step 2: Script Content
+#!/bin/bash
+# Watchtower Management Script for Ubuntu 24.04 - VULE ITS
+
+echo "Setting up automated update system..."
+
+# Remove existing Watchtower container (if any) to prevent configuration conflicts
+docker stop watchtower 2>/dev/null
+docker rm watchtower 2>/dev/null
+
+# Run Watchtower with optimized parameters:
+# --label-enable: Only updates containers with the specific allow-label
+# --cleanup: Automatically removes old images to save disk space
+# --schedule: Runs at 02:00 AM daily (Sec Min Hour Day Month DayOfWeek)
+docker run -d \
+  --name watchtower \
+  --restart always \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  containrrr/watchtower \
+  --label-enable \
+  --cleanup \
+  --schedule "0 0 2 * * *"
+
+echo "Watchtower is activated and running in the background!"
+
+
+Step 3: Permissions and Execution
+Grant permissions: 
+chmod +x deploy-watchtower.sh
+Execute script:
+./deploy-watchtower.sh
+2. LABEL CONFIGURATION IN DOCKER COMPOSE
+Add the following label to the docker-compose.yml file of each application you wish to enable for automated updates:
+services:
+  webapp:
+    image: username/repository:latest
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+
+3. ADMINISTRATIVE AND OPERATIONAL COMMANDS
+Action
+Docker Command
+View Update Logs
+docker logs watchtower
+Stop Automation
+docker stop watchtower
+Restart Watchtower
+docker start watchtower
+Freeze Operations (Pause)
+docker pause watchtower
+Resume Operations (Unpause)
+docker unpause watchtower
+Immediate Manual Update
+docker run --rm -v /var/run/docker.sock:/var/run/docker.sock containrrr/watchtower --run-once --cleanup [Container_Name]
+
+4. CRITICAL TECHNICAL NOTES
+Data Volumes: Ensure critical data (databases, uploads) is mounted to host volumes. When Watchtower updates a container, any data stored inside the container layer will be lost.
+Private Registries: You must perform docker login on the server if your images are hosted in a private repository.
+Disk Maintenance: The --cleanup flag is essential; it prunes the old image immediately after the new version is successfully deployed to prevent disk saturation.
+

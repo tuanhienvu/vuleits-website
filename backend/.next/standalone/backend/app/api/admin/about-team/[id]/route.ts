@@ -1,17 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { authorize } from '@/lib/adminAuth';
-import { jsonObjectBody } from '@/lib/jsonBody';
-
-type AboutTeamRow = {
-  id: number;
-  emoji: string;
-  name: string;
-  role: string;
-  bio: string;
-  order: number;
-  isActive: number | boolean;
-};
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = await authorize(req, 'aboutTeam.read');
@@ -21,23 +10,20 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const id = Number(idParam);
   if (!Number.isFinite(id)) return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
 
-  const rows = await prisma.$queryRaw<AboutTeamRow[]>`
-    SELECT id, emoji, name, role, bio, \`order\` as \`order\`, isActive
-    FROM AboutTeamMember
-    WHERE id = ${id}
-    LIMIT 1
-  `;
-  const member = rows[0];
+  const member = await prisma.aboutTeamMember.findUnique({ where: { id } });
   if (!member) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   return NextResponse.json({
-    id: Number(member.id),
+    id: member.id,
     emoji: member.emoji,
     name: member.name,
+    nameVi: member.nameVi ?? '',
     role: member.role,
+    roleVi: member.roleVi ?? '',
     bio: member.bio,
-    order: Number(member.order),
-    isActive: Boolean(member.isActive),
+    bioVi: member.bioVi ?? '',
+    order: member.order,
+    isActive: member.isActive,
   });
 }
 
@@ -49,71 +35,55 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const id = Number(idParam);
   if (!Number.isFinite(id)) return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
 
-  const body = jsonObjectBody(await req.json());
-  const data: { emoji?: string; name?: string; role?: string; bio?: string; order?: number; isActive?: boolean } = {};
-
-  if (body.emoji !== undefined) data.emoji = String(body.emoji ?? '').trim();
-  if (body.name !== undefined) data.name = String(body.name ?? '').trim();
-  if (body.role !== undefined) data.role = String(body.role ?? '').trim();
-  if (body.bio !== undefined) data.bio = String(body.bio ?? '').trim();
-  if (body.order !== undefined) data.order = Number(body.order);
-  if (body.isActive !== undefined) data.isActive = Boolean(body.isActive);
-
-  if (data.emoji !== undefined && !data.emoji) return NextResponse.json({ error: 'Emoji is required' }, { status: 400 });
-  if (data.name !== undefined && !data.name) return NextResponse.json({ error: 'Name is required' }, { status: 400 });
-  if (data.role !== undefined && !data.role) return NextResponse.json({ error: 'Role is required' }, { status: 400 });
-  if (data.bio !== undefined && !data.bio) return NextResponse.json({ error: 'Bio is required' }, { status: 400 });
-  if (data.order !== undefined && !Number.isFinite(data.order)) return NextResponse.json({ error: 'Invalid order' }, { status: 400 });
-
-  const currentRows = await prisma.$queryRaw<AboutTeamRow[]>`
-    SELECT id, emoji, name, role, bio, \`order\` as \`order\`, isActive
-    FROM AboutTeamMember
-    WHERE id = ${id}
-    LIMIT 1
-  `;
-  const current = currentRows[0];
+  const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
+  const current = await prisma.aboutTeamMember.findUnique({ where: { id } });
   if (!current) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-  const nextEmoji = data.emoji ?? current.emoji;
-  const nextName = data.name ?? current.name;
-  const nextRole = data.role ?? current.role;
-  const nextBio = data.bio ?? current.bio;
-  const nextOrder = data.order ?? current.order;
-  const nextIsActive = data.isActive ?? Boolean(current.isActive);
+  const nextEmoji = body.emoji !== undefined ? String(body.emoji ?? '').trim() : current.emoji;
+  const nextName = body.name !== undefined ? String(body.name ?? '').trim() : current.name;
+  const nextNameVi = body.nameVi !== undefined ? String(body.nameVi ?? '').trim() : (current.nameVi ?? '');
+  const nextRole = body.role !== undefined ? String(body.role ?? '').trim() : current.role;
+  const nextRoleVi = body.roleVi !== undefined ? String(body.roleVi ?? '').trim() : (current.roleVi ?? '');
+  const nextBio = body.bio !== undefined ? String(body.bio ?? '').trim() : current.bio;
+  const nextBioVi = body.bioVi !== undefined ? String(body.bioVi ?? '').trim() : (current.bioVi ?? '');
+  const nextOrder = body.order !== undefined ? Number(body.order) : current.order;
+  const nextIsActive = body.isActive !== undefined ? Boolean(body.isActive) : current.isActive;
 
-  await prisma.$executeRaw`
-    UPDATE AboutTeamMember
-    SET emoji = ${nextEmoji},
-        name = ${nextName},
-        role = ${nextRole},
-        bio = ${nextBio},
-        \`order\` = ${nextOrder},
-        isActive = ${nextIsActive},
-        updatedAt = NOW()
-    WHERE id = ${id}
-  `;
+  if (!nextEmoji) return NextResponse.json({ error: 'Emoji is required' }, { status: 400 });
+  if (!nextName) return NextResponse.json({ error: 'Name is required' }, { status: 400 });
+  if (!nextRole) return NextResponse.json({ error: 'Role is required' }, { status: 400 });
+  if (!nextBio) return NextResponse.json({ error: 'Bio is required' }, { status: 400 });
+  if (!Number.isFinite(nextOrder)) return NextResponse.json({ error: 'Invalid order' }, { status: 400 });
 
-  const updatedRows = await prisma.$queryRaw<AboutTeamRow[]>`
-    SELECT id, emoji, name, role, bio, \`order\` as \`order\`, isActive
-    FROM AboutTeamMember
-    WHERE id = ${id}
-    LIMIT 1
-  `;
-  const updated = updatedRows[0];
+  const updated = await prisma.aboutTeamMember.update({
+    where: { id },
+    data: {
+      emoji: nextEmoji,
+      name: nextName,
+      nameVi: nextNameVi || null,
+      role: nextRole,
+      roleVi: nextRoleVi || null,
+      bio: nextBio,
+      bioVi: nextBioVi || null,
+      order: nextOrder,
+      isActive: nextIsActive,
+    },
+  });
 
   return NextResponse.json({
     ok: true,
-    member: updated
-      ? {
-          id: Number(updated.id),
-          emoji: updated.emoji,
-          name: updated.name,
-          role: updated.role,
-          bio: updated.bio,
-          order: Number(updated.order),
-          isActive: Boolean(updated.isActive),
-        }
-      : null,
+    member: {
+      id: updated.id,
+      emoji: updated.emoji,
+      name: updated.name,
+      nameVi: updated.nameVi ?? '',
+      role: updated.role,
+      roleVi: updated.roleVi ?? '',
+      bio: updated.bio,
+      bioVi: updated.bioVi ?? '',
+      order: updated.order,
+      isActive: updated.isActive,
+    },
   });
 }
 
@@ -125,7 +95,6 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   const id = Number(idParam);
   if (!Number.isFinite(id)) return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
 
-  await prisma.$executeRaw`DELETE FROM AboutTeamMember WHERE id = ${id}`;
+  await prisma.aboutTeamMember.delete({ where: { id } }).catch(() => null);
   return NextResponse.json({ ok: true });
 }
-

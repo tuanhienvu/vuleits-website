@@ -103,7 +103,7 @@ export default function SeoMarketingAdminPanel() {
       </label>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <FieldGroup title="Google">
+        <FieldGroup title={t('admin.seoGroupGoogle')}>
           <CheckRow
             label={t('admin.seoMarketingEnablePlatform')}
             checked={form.google.enabled}
@@ -126,7 +126,7 @@ export default function SeoMarketingAdminPanel() {
           />
         </FieldGroup>
 
-        <FieldGroup title="Meta (Facebook / Instagram)">
+        <FieldGroup title={t('admin.seoGroupMeta')}>
           <CheckRow
             label={t('admin.seoMarketingEnablePlatform')}
             checked={form.meta.enabled}
@@ -136,7 +136,7 @@ export default function SeoMarketingAdminPanel() {
           <InputRow label={t('admin.seoMarketingPixelId')} value={form.meta.pixelId} disabled={!canSave} onChange={(v) => setForm((s) => ({ ...s, meta: { ...s.meta, pixelId: v } }))} />
         </FieldGroup>
 
-        <FieldGroup title="TikTok">
+        <FieldGroup title={t('admin.seoGroupTikTok')}>
           <CheckRow
             label={t('admin.seoMarketingEnablePlatform')}
             checked={form.tiktok.enabled}
@@ -146,7 +146,7 @@ export default function SeoMarketingAdminPanel() {
           <InputRow label={t('admin.seoMarketingPixelId')} value={form.tiktok.pixelId} disabled={!canSave} onChange={(v) => setForm((s) => ({ ...s, tiktok: { ...s.tiktok, pixelId: v } }))} />
         </FieldGroup>
 
-        <FieldGroup title="Zalo">
+        <FieldGroup title={t('admin.seoGroupZalo')}>
           <CheckRow
             label={t('admin.seoMarketingEnablePlatform')}
             checked={form.zalo.enabled}
@@ -159,7 +159,7 @@ export default function SeoMarketingAdminPanel() {
             value={form.zalo.scriptUrl}
             disabled={!canSave}
             onChange={(v) => setForm((s) => ({ ...s, zalo: { ...s.zalo, scriptUrl: v } }))}
-            placeholder="https://..."
+            placeholder={t('admin.urlPlaceholder')}
           />
         </FieldGroup>
       </div>

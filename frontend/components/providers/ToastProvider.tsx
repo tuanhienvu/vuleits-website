@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { useLocale } from '@/components/providers/LocaleProvider';
 
 export type ToastVariant = 'success' | 'error' | 'info';
 
@@ -38,6 +39,7 @@ const DEFAULT_DURATION_MS = 5000;
 // --- ToastProvider: queue, timers, context; viewport toast stack ---
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
+  const { t } = useLocale();
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const idRef = useRef(0);
   const timersRef = useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map());
@@ -89,24 +91,24 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         className="fixed top-4 right-4 z-[10000] flex flex-col gap-2 items-end pointer-events-none max-w-[min(420px,calc(100vw-2rem))]"
         aria-live="polite"
       >
-        {toasts.map((t) => (
+        {toasts.map((toastItem) => (
           <div
-            key={t.id}
+            key={toastItem.id}
             role="status"
             className={`toast-pop pointer-events-auto flex items-start gap-3 rounded-xl border px-4 py-3 shadow-xl backdrop-blur-md text-sm font-medium ${
-              t.variant === 'success'
+              toastItem.variant === 'success'
                 ? 'bg-emerald-950/92 border-emerald-500/45 text-emerald-50'
-                : t.variant === 'error'
+                : toastItem.variant === 'error'
                   ? 'bg-red-950/92 border-red-500/45 text-red-50'
                   : 'bg-[#14141c]/95 border-white/20 text-white'
             }`}
           >
-            <span className="flex-1 break-words text-left">{t.message}</span>
+            <span className="flex-1 break-words text-left">{toastItem.message}</span>
             <button
               type="button"
-              onClick={() => remove(t.id)}
+              onClick={() => remove(toastItem.id)}
               className="shrink-0 opacity-70 hover:opacity-100 -mr-1 -mt-0.5 px-1 leading-none text-lg"
-              aria-label="Dismiss"
+              aria-label={t('common.dismiss')}
             >
               ×
             </button>

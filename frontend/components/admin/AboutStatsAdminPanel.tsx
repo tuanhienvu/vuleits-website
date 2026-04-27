@@ -23,6 +23,7 @@ type Row = {
   id: number;
   number: string;
   label: string;
+  labelVi?: string | null;
   order: number;
   isActive: boolean;
 };
@@ -40,7 +41,7 @@ export default function AboutStatsAdminPanel() {
   const [deleteTarget, setDeleteTarget] = useState<Row | null>(null);
   const [deleteDialogOrigin, setDeleteDialogOrigin] = useState<ModalOriginPoint | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [form, setForm] = useState({ number: '', label: '', order: 0, isActive: true });
+  const [form, setForm] = useState({ number: '', label: '', labelVi: '', order: 0, isActive: true });
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const selectAllRef = useRef<HTMLInputElement>(null);
@@ -50,7 +51,7 @@ export default function AboutStatsAdminPanel() {
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const canDelete = can('aboutStats', 'delete');
-  const colCount = canDelete ? 6 : 5;
+  const colCount = canDelete ? 7 : 6;
 
   useEscapeToClose(modal.open && !saving, () => void modal.closeAnimated());
 
@@ -82,7 +83,7 @@ export default function AboutStatsAdminPanel() {
       if (activeFilter === 'yes' && !r.isActive) return false;
       if (activeFilter === 'no' && r.isActive) return false;
       if (!q) return true;
-      const hay = `${r.number} ${r.label} ${r.order}`.toLowerCase();
+      const hay = `${r.number} ${r.label} ${String(r.labelVi ?? '')} ${r.order}`.toLowerCase();
       return hay.includes(q);
     });
   }, [rows, searchQuery, activeFilter]);
@@ -121,13 +122,13 @@ export default function AboutStatsAdminPanel() {
   const openCreate = (triggerEl?: HTMLElement | null) => {
     modal.openFromElement(triggerEl);
     setEditingId(null);
-    setForm({ number: '', label: '', order: rows.length, isActive: true });
+    setForm({ number: '', label: '', labelVi: '', order: rows.length, isActive: true });
   };
 
   const openEdit = (r: Row, triggerEl?: HTMLElement | null) => {
     modal.openFromElement(triggerEl);
     setEditingId(r.id);
-    setForm({ number: r.number, label: r.label, order: r.order, isActive: r.isActive });
+    setForm({ number: r.number, label: r.label, labelVi: r.labelVi ?? '', order: r.order, isActive: r.isActive });
   };
 
   const submit = async () => {
@@ -137,6 +138,7 @@ export default function AboutStatsAdminPanel() {
       const payload = {
         number: form.number.trim(),
         label: form.label.trim(),
+        labelVi: form.labelVi.trim() || undefined,
         order: Number(form.order) || 0,
         isActive: form.isActive,
       };
@@ -294,7 +296,8 @@ export default function AboutStatsAdminPanel() {
               ) : null}
               <th className="px-3 py-2">Order</th>
               <th className="px-3 py-2">Number</th>
-              <th className="px-3 py-2">Label</th>
+              <th className="px-3 py-2">Label (EN)</th>
+              <th className="px-3 py-2">Label (VI)</th>
               <th className="px-3 py-2">Active</th>
               <th className="px-5 py-2 text-right">Actions</th>
             </tr>
@@ -317,6 +320,7 @@ export default function AboutStatsAdminPanel() {
                   <td className="px-3 py-2">{r.order}</td>
                   <td className="px-3 py-2 font-semibold">{r.number}</td>
                   <td className="px-3 py-2">{r.label}</td>
+                  <td className="px-3 py-2">{r.labelVi || '—'}</td>
                   <td className="px-3 py-2">{r.isActive ? 'Yes' : 'No'}</td>
                   <td className="px-3 py-2 text-right space-x-1">
                     {can('aboutStats', 'update') ? (
@@ -369,7 +373,7 @@ export default function AboutStatsAdminPanel() {
                             {isVi ? 'Thứ tự' : 'Order'}: {r.order}
                           </p>
                           <p className="font-semibold text-white">
-                            {r.number} · {r.label}
+                            {r.number} · {isVi && r.labelVi ? r.labelVi : r.label}
                           </p>
                           <p className="text-xs text-white/60">{r.isActive ? (isVi ? 'Đang bật' : 'Active') : isVi ? 'Tắt' : 'Inactive'}</p>
                         </div>
@@ -392,7 +396,7 @@ export default function AboutStatsAdminPanel() {
         <div className="fixed inset-0 z-50 flex items-center justify-center px-3 sm:px-4">
           <div className="absolute inset-0 bg-black/60" onClick={() => void modal.closeAnimated()} />
           <div
-            className="relative glass max-w-md w-full rounded-2xl p-6 space-y-3"
+            className="relative glass max-w-xl w-full rounded-2xl p-6 space-y-3"
             style={{
               transformOrigin: `${modal.origin.x}px ${modal.origin.y}px`,
               animation: modal.closing
@@ -409,14 +413,27 @@ export default function AboutStatsAdminPanel() {
                 onChange={(e) => setForm((f) => ({ ...f, number: e.target.value }))}
               />
             </label>
-            <label className="block">
-              <span className="text-white/70 text-sm">Label</span>
-              <input
-                className="mt-1 w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
-                value={form.label}
-                onChange={(e) => setForm((f) => ({ ...f, label: e.target.value }))}
-              />
-            </label>
+            <section className="space-y-3 rounded-xl border border-white/10 p-3 bg-white/[0.03]">
+              <h4 className="text-white text-sm font-semibold">{isVi ? 'Nhãn chỉ số' : 'Stat labels'}</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <label className="block">
+                  <span className="text-white/70 text-sm">Label (EN)</span>
+                  <input
+                    className="mt-1 w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                    value={form.label}
+                    onChange={(e) => setForm((f) => ({ ...f, label: e.target.value }))}
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-white/70 text-sm">Label (VI)</span>
+                  <input
+                    className="mt-1 w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                    value={form.labelVi}
+                    onChange={(e) => setForm((f) => ({ ...f, labelVi: e.target.value }))}
+                  />
+                </label>
+              </div>
+            </section>
             <label className="block">
               <span className="text-white/70 text-sm">Order</span>
               <input

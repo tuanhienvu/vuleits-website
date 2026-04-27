@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable @typescript-eslint/no-require-imports */
 /**
  * Removes frontend/.next with retries. Windows/OneDrive often returns EPERM when
  * `next build` tries to rmdir `.next/build/chunks` while files are locked.

@@ -42,7 +42,7 @@ export default async function ProductDetailPage({ params }: Props) {
   const { slug } = await params;
   const initial = await fetchProduct(slug);
   if (!initial) {
-    return <div className="container mx-auto px-4 py-12 text-white">Product not found.</div>;
+    return <div className="container mx-auto px-4 py-12 text-white">Not found.</div>;
   }
   return <ProductDetailClient initial={initial} />;
 }

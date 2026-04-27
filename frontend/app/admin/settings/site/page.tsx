@@ -7,6 +7,7 @@ import LegalPageAdminPanel from '@/components/admin/LegalPageAdminPanel';
 import TranslationsAdminPanel from '@/components/admin/TranslationsAdminPanel';
 import { useAdminPermissions } from '@/components/admin/AdminPermissionContext';
 import { useLocale } from '@/components/providers/LocaleProvider';
+import AdminPageSuspenseFallback from '@/components/admin/AdminPageSuspenseFallback';
 
 function SiteSettingsContent() {
   const { t } = useLocale();
@@ -56,17 +57,9 @@ function SiteSettingsContent() {
   );
 }
 
-function Fallback() {
-  return (
-    <div className="glass p-8 rounded-2xl text-white/70" role="status">
-      Loading…
-    </div>
-  );
-}
-
 export default function AdminSettingsSitePage() {
   return (
-    <Suspense fallback={<Fallback />}>
+    <Suspense fallback={<AdminPageSuspenseFallback />}>
       <SiteSettingsContent />
     </Suspense>
   );

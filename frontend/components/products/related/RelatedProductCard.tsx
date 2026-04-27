@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { richTextAsPlain } from '@/lib/richTextAdmin';
 import type { RelatedProductListItem } from '@/components/products/related/relatedProductRotation';
+import { useLocale } from '@/components/providers/LocaleProvider';
 
 export type RelatedProductCardProps = {
   product: RelatedProductListItem;
@@ -33,6 +34,7 @@ function RelatedProductCardInner({
   onEnterComplete,
   onNavigate,
 }: RelatedProductCardProps) {
+  const { t } = useLocale();
   const reduceMotion = useReducedMotion();
   const duration = reduceMotion ? 0.1875 : 0.475;
   const ease = [0.22, 1, 0.36, 1] as const;
@@ -65,7 +67,7 @@ function RelatedProductCardInner({
             href={`/products/${encodeURIComponent(product.slug)}`}
             onClick={onNavigate}
             className="group public-card flex h-full min-h-[220px] flex-col overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60"
-            aria-label={`${product.productName}, related product`}
+            aria-label={t('products.relatedProductAria', { name: product.productName })}
           >
             <div className="aspect-4/3 max-h-36 shrink-0 overflow-hidden bg-[color:var(--pub-card-image-well-bg)]">
               {product.mainImage ? (
@@ -84,7 +86,7 @@ function RelatedProductCardInner({
               )}
             </div>
             <div className="flex min-h-0 flex-1 flex-col p-4">
-              <div className="flex flex-wrap gap-1.5" aria-label="Tags">
+              <div className="flex flex-wrap gap-1.5" aria-label={t('common.tags')}>
                 {tags.map((label) => (
                   <span key={label} className="public-tag-emerald">
                     {label}

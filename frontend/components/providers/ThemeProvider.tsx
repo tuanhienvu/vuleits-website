@@ -25,7 +25,7 @@ function applyThemeClass(mode: ThemeMode) {
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<ThemeMode>('dark');
-  const [mounted, setMounted] = useState(false);
+  const [mounted] = useState(() => typeof window !== 'undefined');
 
   const setTheme = useCallback((mode: ThemeMode) => {
     // Force dark mode only. (Light-mode UI was causing readability regressions.)
@@ -40,10 +40,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    setMounted(true);
     try {
       // Always apply dark mode (ignore persisted preference).
-      setThemeState('dark');
       applyThemeClass('dark');
     } catch {
       applyThemeClass('dark');
@@ -63,7 +61,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const toggleTheme = useCallback(() => {
     // Light mode toggle is disabled; keep dark.
     setTheme('dark');
-  }, [theme, setTheme]);
+  }, [setTheme]);
 
   const value = useMemo<ThemeContextValue>(
     () => ({

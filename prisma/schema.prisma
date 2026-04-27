@@ -78,9 +78,12 @@ model ProductTechnology {
 model Product {
   id               Int       @id @default(autoincrement()) @map("product_id")
   productName      String    @map("product_name") @db.VarChar(200)
+  productNameVi    String?   @map("product_name_vi") @db.VarChar(200)
   slug             String    @unique @db.VarChar(200)
   shortDescription String    @map("short_description") @db.VarChar(500)
+  shortDescriptionVi String? @map("short_description_vi") @db.VarChar(500)
   fullDescription  String    @map("full_description") @db.LongText
+  fullDescriptionVi String? @map("full_description_vi") @db.LongText
   imageUrls        Json      @default("[]")
   videoUrls        Json      @default("[]")
   demoLink         String?   @map("demo_link") @db.VarChar(2000)
@@ -126,9 +129,12 @@ model ProductAnalytics {
 model News {
   id              Int     @id @default(autoincrement())
   title           String  @db.VarChar(150)
+  titleVi         String? @map("title_vi") @db.VarChar(150)
   slug            String  @unique
   description     String  @db.VarChar(300)
+  descriptionVi   String? @map("description_vi") @db.VarChar(300)
   content         String  @db.LongText
+  contentVi       String? @map("content_vi") @db.LongText
   tags            String? // JSON array
   status          String  @default("Active")
 
@@ -332,7 +338,9 @@ model HomeFeature {
   id          Int      @id @default(autoincrement())
   icon        String   @db.VarChar(50)
   title       String   @db.VarChar(150)
-  description String   @db.VarChar(500)
+  titleVi     String?  @map("title_vi") @db.VarChar(150)
+  description String   @db.LongText
+  descriptionVi String? @map("description_vi") @db.LongText
   order       Int      @default(0)
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
@@ -346,6 +354,7 @@ model AboutStat {
   id        Int      @id @default(autoincrement())
   number    String   @db.VarChar(50)
   label     String   @db.VarChar(150)
+  labelVi   String?  @map("label_vi") @db.VarChar(150)
   order     Int      @default(0)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
@@ -358,8 +367,11 @@ model AboutTeamMember {
   id        Int      @id @default(autoincrement())
   emoji     String   @db.VarChar(50)
   name      String   @db.VarChar(150)
+  nameVi    String?  @map("name_vi") @db.VarChar(150)
   role      String   @db.VarChar(150)
-  bio       String   @db.VarChar(500)
+  roleVi    String?  @map("role_vi") @db.VarChar(150)
+  bio       String   @db.LongText
+  bioVi     String?  @map("bio_vi") @db.LongText
   order     Int      @default(0)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
@@ -373,7 +385,9 @@ model ServiceItem {
   id        Int      @id @default(autoincrement())
   icon      String   @db.VarChar(50)
   title     String   @db.VarChar(150)
-  description String @db.VarChar(500)
+  titleVi   String?  @map("title_vi") @db.VarChar(150)
+  description String @db.LongText
+  descriptionVi String? @map("description_vi") @db.LongText
   features  String?  @db.LongText // JSON array of strings
   order     Int      @default(0)
   isActive  Boolean  @default(true)

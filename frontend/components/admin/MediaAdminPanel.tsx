@@ -34,6 +34,7 @@ export default function MediaAdminPanel() {
   const [deleteDialogOrigin, setDeleteDialogOrigin] = useState<ModalOriginPoint | null>(null);
   const [q, setQ] = useState('');
   const [folder, setFolder] = useState('library');
+  const [folderOptions, setFolderOptions] = useState<string[]>(['library']);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const selectAllVisibleRef = useRef<HTMLInputElement>(null);
@@ -61,6 +62,33 @@ export default function MediaAdminPanel() {
     if (!can('media', 'read')) return;
     void refresh();
   }, [can, refresh]);
+
+  useEffect(() => {
+    if (!can('media', 'read')) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`${apiPath('admin/categories/medias')}?locale=${encodeURIComponent(locale)}`, {
+          credentials: 'include',
+        });
+        if (!res.ok) return;
+        const data = (await res.json()) as Array<{ name?: unknown; isActive?: unknown }>;
+        if (cancelled || !Array.isArray(data)) return;
+        const names = data
+          .filter((x) => x?.isActive !== false)
+          .map((x) => (typeof x.name === 'string' ? x.name.trim() : ''))
+          .filter(Boolean);
+        const next = Array.from(new Set(['library', ...names]));
+        setFolderOptions(next);
+        setFolder((prev) => (next.includes(prev) ? prev : next[0]));
+      } catch {
+        // ignore category list errors and keep defaults
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [can, isVi, locale]);
 
   const filtered = useMemo(() => {
     const qq = q.trim().toLowerCase();
@@ -178,12 +206,17 @@ export default function MediaAdminPanel() {
           />
           {can('media', 'create') ? (
             <>
-              <input
+              <select
                 value={folder}
                 onChange={(e) => setFolder(e.target.value)}
-                className="px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm w-32"
-                placeholder={isVi ? 'thư mục' : 'folder'}
-              />
+                className="px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm"
+              >
+                {folderOptions.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
+                ))}
+              </select>
               <label className="btn-admin-primary cursor-pointer">
                 {uploading ? (isVi ? 'Đang tải lên…' : 'Uploading…') : isVi ? 'Tải lên' : 'Upload'}
                 <input type="file" className="hidden" onChange={(e) => void upload(e)} disabled={uploading} />

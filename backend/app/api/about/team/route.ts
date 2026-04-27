@@ -1,17 +1,23 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { parseLocaleQuery, pickLocalized } from '@/lib/i18nContent';
 
-type AboutTeamRow = { id: number; emoji: string; name: string; role: string; bio: string; order: number; isActive: number | boolean };
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const locale = parseLocaleQuery(searchParams);
 
-export async function GET() {
-  const rows = await prisma.$queryRaw<AboutTeamRow[]>`
-    SELECT id, emoji, name, role, bio, \`order\` as \`order\`, isActive
-    FROM AboutTeamMember
-    WHERE isActive = true
-    ORDER BY \`order\` ASC, id ASC
-  `;
-  const list = Array.isArray(rows) ? rows : [];
+  const rows = await prisma.aboutTeamMember.findMany({
+    where: { isActive: true },
+    orderBy: [{ order: 'asc' }, { id: 'asc' }],
+  });
+
   return NextResponse.json(
-    list.map((r: AboutTeamRow) => ({ id: Number(r.id), emoji: r.emoji, name: r.name, role: r.role, bio: r.bio })),
+    rows.map((r) => ({
+      id: r.id,
+      emoji: r.emoji,
+      name: pickLocalized(r.name, r.nameVi, locale),
+      role: pickLocalized(r.role, r.roleVi, locale),
+      bio: pickLocalized(r.bio, r.bioVi, locale),
+    })),
   );
 }

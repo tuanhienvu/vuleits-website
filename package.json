@@ -22,12 +22,21 @@
     "db:push": "node backend/scripts/prisma-with-db-env.js db push",
     "db:reset": "node backend/scripts/prisma-with-db-env.js db push --force-reset --accept-data-loss",
     "seed": "node prisma/seed.js",
+    "db:seed": "node prisma/seed.js",
+    "db:seed:prisma": "npx prisma db seed",
+    "db:push:seed": "npm run db:push && npm run db:seed",
     "db:ensure-user-display-name": "node prisma/scripts/ensure-user-display-name.js",
-    "docker:backend": "docker build -f docker/Dockerfile.backend -t vuleits-backend:local .",
-    "docker:frontend": "docker build -f docker/Dockerfile.frontend -t vuleits-frontend:local .",
+    "docker:backend": "docker build -f docker/Dockerfile.backend --build-arg IMAGE_VERSION=V1.0.1 -t tuanhienvu/vuleits-website-backend:V1.0.1 .",
+    "docker:frontend": "docker build -f docker/Dockerfile.frontend --build-arg IMAGE_VERSION=V1.0.1 -t tuanhienvu/vuleits-website-frontend:V1.0.1 .",
     "docker:build:backend": "npm run docker:backend",
     "docker:build:frontend": "npm run docker:frontend",
-    "docker:compose:up": "docker compose -f compose.yaml up -d --build"
+    "docker:compose:up": "docker compose -f docker-compose.yaml up -d --build",
+    "docker:push:backend": "docker push tuanhienvu/vuleits-website-backend:V1.0.1",
+    "docker:push:frontend": "docker push tuanhienvu/vuleits-website-frontend:V1.0.1",
+    "docker:linux:redeploy": "bash docker/redeploy-linux.sh"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
   },
   "devDependencies": {
     "cross-env": "^10.1.0",

@@ -11,89 +11,14 @@ import Link from 'next/link';
 
 type HomeFeature = { icon: string; title: string; description: string };
 
-const FALLBACK_FEATURES: Record<'en-US' | 'vi-VN', HomeFeature[]> = {
-  'en-US': [
-    {
-      icon: '✨',
-      title: 'Modern Design',
-      description:
-        'Beautiful glass morphism effects with backdrop blur and translucent elements that create depth and visual hierarchy.',
-    },
-    {
-      icon: '⚡',
-      title: 'Fast Performance',
-      description:
-        'Optimized animations and effects that maintain smooth 60fps performance across all modern browsers and devices.',
-    },
-    {
-      icon: '📱',
-      title: 'Responsive',
-      description:
-        'Fully responsive design that adapts beautifully to any screen size, from mobile phones to desktop displays.',
-    },
-    {
-      icon: '🎨',
-      title: 'Interactive UI',
-      description:
-        'Engaging hover effects, smooth transitions, and micro-animations that create delightful user experiences.',
-    },
-    {
-      icon: '🔒',
-      title: 'Secure & Safe',
-      description:
-        'Built with modern security standards and best practices to ensure your data and user privacy are protected.',
-    },
-    {
-      icon: '🚀',
-      title: 'Easy Integration',
-      description:
-        'Simple to implement and customize for any project with clean, well-documented code and flexible components.',
-    },
-  ],
-  'vi-VN': [
-    {
-      icon: '✨',
-      title: 'Thiết kế hiện đại',
-      description:
-        'Hiệu ứng kính mờ đẹp mắt cùng lớp nền trong suốt tạo chiều sâu và hệ thống phân cấp thị giác rõ ràng.',
-    },
-    {
-      icon: '⚡',
-      title: 'Hiệu năng nhanh',
-      description:
-        'Hoạt ảnh và hiệu ứng được tối ưu để duy trì trải nghiệm mượt mà trên các trình duyệt và thiết bị hiện đại.',
-    },
-    {
-      icon: '📱',
-      title: 'Tương thích đa thiết bị',
-      description:
-        'Thiết kế đáp ứng linh hoạt, hiển thị đẹp từ điện thoại di động đến màn hình máy tính để bàn.',
-    },
-    {
-      icon: '🎨',
-      title: 'Giao diện tương tác',
-      description:
-        'Hiệu ứng hover, chuyển động mượt và vi tương tác giúp trải nghiệm sử dụng trở nên sinh động hơn.',
-    },
-    {
-      icon: '🔒',
-      title: 'Bảo mật an toàn',
-      description:
-        'Xây dựng theo các tiêu chuẩn bảo mật hiện đại để bảo vệ dữ liệu và quyền riêng tư của người dùng.',
-    },
-    {
-      icon: '🚀',
-      title: 'Dễ dàng tích hợp',
-      description:
-        'Dễ triển khai và tùy biến cho nhiều dự án nhờ cấu trúc mã rõ ràng, linh hoạt và có thể mở rộng.',
-    },
-  ],
-};
-
 // --- Sections: Branding & features fetch | Hero | Features grid (see JSX markers) ---
 
 function normalizeHomeFeatures(raw: unknown): HomeFeature[] {
-  return safeArray<unknown>(raw).map((item) => {
+  const source =
+    raw && typeof raw === 'object' && !Array.isArray(raw)
+      ? (raw as { items?: unknown }).items
+      : raw;
+  return safeArray<unknown>(source).map((item) => {
     const f = item as Record<string, unknown>;
     return {
       icon: String(f.icon ?? ''),
@@ -105,8 +30,8 @@ function normalizeHomeFeatures(raw: unknown): HomeFeature[] {
 
 export default function HomePage() {
   const { t, locale } = useLocale();
-  const { companyName, slogan } = useCompanyBranding();
-  const tagline = slogan || t('nav.tagline');
+  const { companyName } = useCompanyBranding();
+  const tagline = t('nav.tagline');
 
   const introHeroFallback = useMemo(
     () => toPublicIntro(defaultAboutIntroPayload(), locale),
@@ -124,28 +49,69 @@ export default function HomePage() {
   const heroImageAlt =
     heroFromApi && heroFromApi.locale === locale ? heroFromApi.alt : introHeroFallback.heroImageAlt;
 
-  const fallbackFeatures = useMemo(() => FALLBACK_FEATURES[locale], [locale]);
+  const fallbackFeatures = useMemo(
+    () => [
+      {
+        icon: '✨',
+        title: t('home.featureModernDesignTitle'),
+        description: t('home.featureModernDesignDesc'),
+      },
+      {
+        icon: '⚡',
+        title: t('home.featureFastPerformanceTitle'),
+        description: t('home.featureFastPerformanceDesc'),
+      },
+      {
+        icon: '📱',
+        title: t('home.featureResponsiveTitle'),
+        description: t('home.featureResponsiveDesc'),
+      },
+      {
+        icon: '🎨',
+        title: t('home.featureInteractiveUiTitle'),
+        description: t('home.featureInteractiveUiDesc'),
+      },
+      {
+        icon: '🔒',
+        title: t('home.featureSecureSafeTitle'),
+        description: t('home.featureSecureSafeDesc'),
+      },
+      {
+        icon: '🚀',
+        title: t('home.featureEasyIntegrationTitle'),
+        description: t('home.featureEasyIntegrationDesc'),
+      },
+    ],
+    [t],
+  );
   const [features, setFeatures] = useState<HomeFeature[] | null>(null);
+  const [featuresLoading, setFeaturesLoading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
+    // Reset to locale-specific fallback immediately so the language switch is visible
+    // even before the localized API payload returns.
+    setFeatures(null);
+    setFeaturesLoading(true);
     (async () => {
       try {
-        const res = await fetch(apiPath('home/features'));
+        const res = await fetch(`${apiPath('home/features')}?locale=${encodeURIComponent(locale)}`);
         if (!res.ok) return;
         const data = await res.json();
         const normalized = normalizeHomeFeatures(data);
-        if (!cancelled && normalized.length > 0) {
-          setFeatures(normalized);
+        if (!cancelled) {
+          setFeatures(normalized.length > 0 ? normalized : null);
         }
       } catch {
         // keep fallback
+      } finally {
+        if (!cancelled) setFeaturesLoading(false);
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [locale]);
 
   useEffect(() => {
     let cancelled = false;
@@ -180,7 +146,7 @@ export default function HomePage() {
           </p>
           <p className="text-fg-muted text-lg mb-6">{t('home.heroIntro')}</p>
           <Link href="/about" prefetch={false} className="public-cta-button inline-block text-center">
-            {locale === 'vi-VN' ? 'Tìm hiểu thêm' : 'Learn More'}
+            {t('about.learnMore')}
           </Link>
         </div>
         
@@ -190,8 +156,7 @@ export default function HomePage() {
             <Image
               src={heroImageUrl}
               alt={
-                heroImageAlt ||
-                (locale === 'vi-VN' ? 'Hình minh họa trang chủ' : 'Home page illustration')
+                heroImageAlt || t('home.heroImageAlt')
               }
               fill
               className="object-cover"
@@ -208,17 +173,29 @@ export default function HomePage() {
       {/* ==================== FEATURES GRID SECTION ==================== */}
       <section className="mb-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {(features ?? fallbackFeatures).map((feature, index) => (
-            <div key={index} className="glass p-6 rounded-2xl hover:shadow-xl transition-all duration-300">
-              <div className="text-4xl mb-3">{feature.icon}</div>
-              <h3 className="text-fg font-semibold text-xl mb-2">{feature.title}</h3>
-              <div
-                className="text-fg-muted"
-                // Allow embedded HTML/CSS/JS snippets pasted from the admin textarea.
-                dangerouslySetInnerHTML={{ __html: feature.description || '' }}
-              />
-            </div>
-          ))}
+          {featuresLoading
+            ? Array.from({ length: 6 }).map((_, index) => (
+                <div key={`feature-skeleton-${index}`} className="glass p-6 rounded-2xl animate-pulse">
+                  <div className="h-9 w-9 rounded-md bg-white/15 mb-4" />
+                  <div className="h-6 w-2/3 rounded bg-white/15 mb-3" />
+                  <div className="space-y-2">
+                    <div className="h-3.5 w-full rounded bg-white/10" />
+                    <div className="h-3.5 w-5/6 rounded bg-white/10" />
+                    <div className="h-3.5 w-4/6 rounded bg-white/10" />
+                  </div>
+                </div>
+              ))
+            : (features ?? fallbackFeatures).map((feature, index) => (
+                <div key={index} className="glass p-6 rounded-2xl hover:shadow-xl transition-all duration-300">
+                  <div className="text-4xl mb-3">{feature.icon}</div>
+                  <h3 className="text-fg font-semibold text-xl mb-2">{feature.title}</h3>
+                  <div
+                    className="text-fg-muted"
+                    // Allow embedded HTML/CSS/JS snippets pasted from the admin textarea.
+                    dangerouslySetInnerHTML={{ __html: feature.description || '' }}
+                  />
+                </div>
+              ))}
         </div>
       </section>
     </div>

@@ -47,14 +47,6 @@ function shouldEmit(level: LogLevel): boolean {
 
 const REDACT_KEYS = /password|secret|token|authorization|cookie|set-cookie|jwt/i;
 
-function redactValue(key: string, value: unknown): unknown {
-  if (REDACT_KEYS.test(key)) return '[REDACTED]';
-  if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
-    return redactDeep(value as Record<string, unknown>);
-  }
-  return value;
-}
-
 function redactDeep(obj: Record<string, unknown>): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(obj)) {

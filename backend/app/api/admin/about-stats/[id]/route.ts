@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { authorize } from '@/lib/adminAuth';
 import { jsonObjectBody } from '@/lib/jsonBody';
 
-type AboutStatRow = { id: number; number: string; label: string; order: number; isActive: number | boolean };
+type AboutStatRow = { id: number; number: string; label: string; labelVi: string | null; order: number; isActive: number | boolean };
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = await authorize(req, 'aboutStats.read');
@@ -14,7 +14,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   if (!Number.isFinite(id)) return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
 
   const rows = await prisma.$queryRaw<AboutStatRow[]>`
-    SELECT id, number, label, \`order\` as \`order\`, isActive
+    SELECT id, number, label, label_vi as labelVi, \`order\` as \`order\`, isActive
     FROM AboutStat
     WHERE id = ${id}
     LIMIT 1
@@ -27,6 +27,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     id: Number(stat.id),
     number: stat.number,
     label: stat.label,
+    labelVi: stat.labelVi,
     order: Number(stat.order),
     isActive: Boolean(stat.isActive),
   });
@@ -41,10 +42,11 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   if (!Number.isFinite(id)) return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
 
   const body = jsonObjectBody(await req.json());
-  const data: { number?: string; label?: string; order?: number; isActive?: boolean } = {};
+  const data: { number?: string; label?: string; labelVi?: string | null; order?: number; isActive?: boolean } = {};
 
   if (body.number !== undefined) data.number = String(body.number ?? '').trim();
   if (body.label !== undefined) data.label = String(body.label ?? '').trim();
+  if (body.labelVi !== undefined) data.labelVi = String(body.labelVi ?? '').trim() || null;
   if (body.order !== undefined) data.order = Number(body.order);
   if (body.isActive !== undefined) data.isActive = Boolean(body.isActive);
 
@@ -53,7 +55,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   if (data.order !== undefined && !Number.isFinite(data.order)) return NextResponse.json({ error: 'Invalid order' }, { status: 400 });
 
   const currentRows = await prisma.$queryRaw<AboutStatRow[]>`
-    SELECT id, number, label, \`order\` as \`order\`, isActive
+    SELECT id, number, label, label_vi as labelVi, \`order\` as \`order\`, isActive
     FROM AboutStat
     WHERE id = ${id}
     LIMIT 1
@@ -63,17 +65,18 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
   const nextNumber = data.number ?? current.number;
   const nextLabel = data.label ?? current.label;
+  const nextLabelVi = data.labelVi === undefined ? current.labelVi : data.labelVi;
   const nextOrder = data.order ?? current.order;
   const nextIsActive = data.isActive ?? Boolean(current.isActive);
 
   await prisma.$executeRaw`
     UPDATE AboutStat
-    SET number = ${nextNumber}, label = ${nextLabel}, \`order\` = ${nextOrder}, isActive = ${nextIsActive}, updatedAt = NOW()
+    SET number = ${nextNumber}, label = ${nextLabel}, label_vi = ${nextLabelVi}, \`order\` = ${nextOrder}, isActive = ${nextIsActive}, updatedAt = NOW()
     WHERE id = ${id}
   `;
 
   const updatedRows = await prisma.$queryRaw<AboutStatRow[]>`
-    SELECT id, number, label, \`order\` as \`order\`, isActive
+    SELECT id, number, label, label_vi as labelVi, \`order\` as \`order\`, isActive
     FROM AboutStat
     WHERE id = ${id}
     LIMIT 1
@@ -83,7 +86,14 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   return NextResponse.json({
     ok: true,
     stat: updated
-      ? { id: Number(updated.id), number: updated.number, label: updated.label, order: Number(updated.order), isActive: Boolean(updated.isActive) }
+      ? {
+          id: Number(updated.id),
+          number: updated.number,
+          label: updated.label,
+          labelVi: updated.labelVi,
+          order: Number(updated.order),
+          isActive: Boolean(updated.isActive),
+        }
       : null,
   });
 }

@@ -26,15 +26,18 @@ type Row = {
   id: number;
   emoji: string;
   name: string;
+  nameVi?: string;
   role: string;
+  roleVi?: string;
   bio: string;
+  bioVi?: string;
   order: number;
   isActive: boolean;
 };
 
 export default function AboutTeamAdminPanel() {
   const { can } = useAdminPermissions();
-  const { locale } = useLocale();
+  const { locale, t } = useLocale();
   const toast = useToast();
   const isVi = locale === 'vi-VN';
   const [rows, setRows] = useState<Row[]>([]);
@@ -45,7 +48,17 @@ export default function AboutTeamAdminPanel() {
   const [deleteTarget, setDeleteTarget] = useState<Row | null>(null);
   const [deleteDialogOrigin, setDeleteDialogOrigin] = useState<ModalOriginPoint | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [form, setForm] = useState({ emoji: '', name: '', role: '', bio: '', order: 0, isActive: true });
+  const [form, setForm] = useState({
+    emoji: '',
+    name: '',
+    nameVi: '',
+    role: '',
+    roleVi: '',
+    bio: '',
+    bioVi: '',
+    order: 0,
+    isActive: true,
+  });
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const selectAllRef = useRef<HTMLInputElement>(null);
@@ -88,7 +101,8 @@ export default function AboutTeamAdminPanel() {
       if (activeFilter === 'no' && r.isActive) return false;
       if (!q) return true;
       const bioPlain = richTextAsPlain(r.bio || '').toLowerCase();
-      const hay = `${r.name} ${r.role} ${r.emoji} ${bioPlain}`.toLowerCase();
+      const bioViPlain = richTextAsPlain(r.bioVi || '').toLowerCase();
+      const hay = `${r.name} ${r.nameVi ?? ''} ${r.role} ${r.roleVi ?? ''} ${r.emoji} ${bioPlain} ${bioViPlain}`.toLowerCase();
       return hay.includes(q);
     });
   }, [rows, searchQuery, activeFilter]);
@@ -127,13 +141,23 @@ export default function AboutTeamAdminPanel() {
   const openCreate = (triggerEl?: HTMLElement | null) => {
     modal.openFromElement(triggerEl);
     setEditingId(null);
-    setForm({ emoji: '👤', name: '', role: '', bio: '', order: rows.length, isActive: true });
+    setForm({ emoji: '👤', name: '', nameVi: '', role: '', roleVi: '', bio: '', bioVi: '', order: rows.length, isActive: true });
   };
 
   const openEdit = (r: Row, triggerEl?: HTMLElement | null) => {
     modal.openFromElement(triggerEl);
     setEditingId(r.id);
-    setForm({ emoji: r.emoji, name: r.name, role: r.role, bio: r.bio, order: r.order, isActive: r.isActive });
+    setForm({
+      emoji: r.emoji,
+      name: r.name,
+      nameVi: r.nameVi ?? '',
+      role: r.role,
+      roleVi: r.roleVi ?? '',
+      bio: r.bio,
+      bioVi: r.bioVi ?? '',
+      order: r.order,
+      isActive: r.isActive,
+    });
   };
 
   const submit = async () => {
@@ -143,8 +167,11 @@ export default function AboutTeamAdminPanel() {
       const payload = {
         emoji: form.emoji.trim(),
         name: form.name.trim(),
+        nameVi: form.nameVi.trim(),
         role: form.role.trim(),
+        roleVi: form.roleVi.trim(),
         bio: form.bio.trim(),
+        bioVi: form.bioVi.trim(),
         order: Number(form.order) || 0,
         isActive: form.isActive,
       };
@@ -420,7 +447,7 @@ export default function AboutTeamAdminPanel() {
                 type="button"
                 onClick={() => void modal.closeAnimated()}
                 className="text-white/70 hover:text-white bg-white/10 hover:bg-white/20 px-3 py-2 rounded shrink-0 min-h-10 min-w-10"
-                aria-label="Close"
+                aria-label={t('admin.close')}
               >
                 ✕
               </button>
@@ -428,23 +455,44 @@ export default function AboutTeamAdminPanel() {
 
             <div className="overflow-y-auto max-h-[calc(96vh-156px)] sm:max-h-[calc(90vh-148px)] px-4 sm:px-6 py-4 sm:py-5 pb-28 sm:pb-6">
               <div className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-[2fr_2fr_1fr] gap-3 min-w-0">
-                  <label className="block min-w-0">
-                    <span className="text-white/70 text-sm">{isVi ? 'Tên' : 'Name'}</span>
-                    <input
-                      className="mt-1 w-full min-w-0 px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
-                      value={form.name}
-                      onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                    />
-                  </label>
-                  <label className="block min-w-0">
-                    <span className="text-white/70 text-sm">{isVi ? 'Vai trò' : 'Role'}</span>
-                    <input
-                      className="mt-1 w-full min-w-0 px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
-                      value={form.role}
-                      onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))}
-                    />
-                  </label>
+                <div className="rounded-xl border border-white/10 p-3 space-y-3 bg-white/[0.03] sm:col-span-2">
+                  <h4 className="text-white text-sm font-semibold">{t('admin.legalSectionTitles')}</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <label className="block min-w-0">
+                      <span className="text-white/70 text-sm">{t('admin.aboutUsTitleEn')}</span>
+                      <input
+                        className="mt-1 w-full min-w-0 px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                        value={form.name}
+                        onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                      />
+                    </label>
+                    <label className="block min-w-0">
+                      <span className="text-white/70 text-sm">{t('admin.aboutUsTitleVi')}</span>
+                      <input
+                        className="mt-1 w-full min-w-0 px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                        value={form.nameVi}
+                        onChange={(e) => setForm((f) => ({ ...f, nameVi: e.target.value }))}
+                      />
+                    </label>
+                    <label className="block min-w-0">
+                      <span className="text-white/70 text-sm">{isVi ? 'Vai trò (EN)' : 'Role (English)'}</span>
+                      <input
+                        className="mt-1 w-full min-w-0 px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                        value={form.role}
+                        onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))}
+                      />
+                    </label>
+                    <label className="block min-w-0">
+                      <span className="text-white/70 text-sm">{isVi ? 'Vai trò (VI)' : 'Role (Vietnamese)'}</span>
+                      <input
+                        className="mt-1 w-full min-w-0 px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                        value={form.roleVi}
+                        onChange={(e) => setForm((f) => ({ ...f, roleVi: e.target.value }))}
+                      />
+                    </label>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-[1fr] gap-3 min-w-0 sm:col-span-2">
                   <div className="block min-w-0">
                     <AdminEmojiPickerField
                       id="about-team-emoji"
@@ -469,15 +517,29 @@ export default function AboutTeamAdminPanel() {
                     />
                   </div>
                 </div>
-                <div className="block min-w-0">
-                  <span className="text-white/70 text-sm">{isVi ? 'Tiểu sử (định dạng)' : 'Bio (rich text)'}</span>
-                  <div className="mt-1 w-full min-w-0 rounded-lg border border-white/20 overflow-hidden bg-[#1e1e1e] [&_.tox-tinymce]:max-w-none">
-                    <AdminTinyMceEditor
-                      id="about-team-bio"
-                      value={form.bio}
-                      onChange={(html) => setForm((f) => ({ ...f, bio: html }))}
-                      disabled={!can('aboutTeam', editingId == null ? 'create' : 'update')}
-                    />
+                <div className="block min-w-0 sm:col-span-2 space-y-3 rounded-xl border border-white/10 p-3 bg-white/[0.03]">
+                  <h4 className="text-white text-sm font-semibold">{t('admin.legalSectionContent')}</h4>
+                  <div>
+                    <span className="text-white/70 text-sm">{t('admin.aboutUsBodyEn')}</span>
+                    <div className="mt-1 w-full min-w-0 rounded-lg border border-white/20 overflow-hidden bg-[#1e1e1e] [&_.tox-tinymce]:max-w-none">
+                      <AdminTinyMceEditor
+                        id="about-team-bio-en"
+                        value={form.bio}
+                        onChange={(html) => setForm((f) => ({ ...f, bio: html }))}
+                        disabled={!can('aboutTeam', editingId == null ? 'create' : 'update')}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-white/70 text-sm">{t('admin.aboutUsBodyVi')}</span>
+                    <div className="mt-1 w-full min-w-0 rounded-lg border border-white/20 overflow-hidden bg-[#1e1e1e] [&_.tox-tinymce]:max-w-none">
+                      <AdminTinyMceEditor
+                        id="about-team-bio-vi"
+                        value={form.bioVi}
+                        onChange={(html) => setForm((f) => ({ ...f, bioVi: html }))}
+                        disabled={!can('aboutTeam', editingId == null ? 'create' : 'update')}
+                      />
+                    </div>
                   </div>
                 </div>
                 <label className="block">

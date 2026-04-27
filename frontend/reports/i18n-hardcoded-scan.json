@@ -1,0 +1,67 @@
+{
+  "generatedAt": "2026-04-27T06:05:00.000Z",
+  "method": "Regex scan over frontend/components and frontend/app for JSX text nodes and string attributes",
+  "scope": {
+    "included": ["frontend/components/**/*.tsx", "frontend/app/**/*.tsx"],
+    "excluded": ["frontend/.next/**", "frontend/node_modules/**"]
+  },
+  "publicFindings": [
+    {
+      "file": "frontend/app/(public)/products/[slug]/page.tsx",
+      "line": 45,
+      "text": "Not found.",
+      "suggestedKey": "common.notFound"
+    },
+    {
+      "file": "frontend/app/(public)/services/[id]/page.tsx",
+      "line": 42,
+      "text": "Not found.",
+      "suggestedKey": "common.notFound"
+    },
+    {
+      "file": "frontend/app/admin/dashboard/DashboardClient.tsx",
+      "line": 21,
+      "text": "Loading panel",
+      "suggestedKey": "admin.loadingPanelAria"
+    },
+    {
+      "file": "frontend/app/admin/dashboard/DashboardClient.tsx",
+      "line": 92,
+      "text": "You do not have permission to view this section.",
+      "suggestedKey": "admin.noPermissionSection"
+    },
+    {
+      "file": "frontend/app/admin/dashboard/DashboardClient.tsx",
+      "line": 121,
+      "text": "This section is available and connected to the admin shell. Select News in sidebar to manage content.",
+      "suggestedKey": "admin.sectionConnectedHint"
+    },
+    {
+      "file": "frontend/components/providers/LocaleProvider.tsx",
+      "line": 23,
+      "text": "refreshUiMessages symbol signature contains Promise<void> (likely false positive)",
+      "suggestedKey": null
+    }
+  ],
+  "adminFindingsSample": [
+    {
+      "file": "frontend/components/admin/CompanyProfileAdminPanel.tsx",
+      "line": 223,
+      "text": "Manage branding, company information, contact channels, and social links."
+    },
+    {
+      "file": "frontend/components/admin/PermissionsAdminPanel.tsx",
+      "line": 269,
+      "text": "Permissions"
+    },
+    {
+      "file": "frontend/components/admin/ContactMessagesAdminPanel.tsx",
+      "line": 120,
+      "text": "Contact messages"
+    }
+  ],
+  "totals": {
+    "publicFindings": 6,
+    "adminFindingsDetected": "many (see ripgrep output; mostly admin panel labels/placeholders)"
+  }
+}

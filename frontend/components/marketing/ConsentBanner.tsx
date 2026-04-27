@@ -6,17 +6,16 @@ import { getMarketingConfig } from '@/lib/marketing/config';
 import { useLocale } from '@/components/providers/LocaleProvider';
 
 export default function ConsentBanner() {
-  const [visible, setVisible] = useState(false);
-  const { t } = useLocale();
   const marketingConfig = getMarketingConfig();
+  const [visible, setVisible] = useState(() => marketingConfig.enabled && getConsent() == null);
+  const { t } = useLocale();
 
   useEffect(() => {
     if (!marketingConfig.enabled) return;
-    setVisible(getConsent() == null);
     const onOpen = () => setVisible(true);
     window.addEventListener('vuleits-consent-open', onOpen);
     return () => window.removeEventListener('vuleits-consent-open', onOpen);
-  }, []);
+  }, [marketingConfig.enabled]);
 
   if (!marketingConfig.enabled || !visible) return null;
 

@@ -54,10 +54,16 @@
     "[project]/frontend/app/admin/privacy-policy/page": [
       "static/media/caa3a2e1cccd8315-s.p.16t1db8_9y2o~.woff2"
     ],
+    "[project]/frontend/app/admin/products/categories/page": [
+      "static/media/caa3a2e1cccd8315-s.p.16t1db8_9y2o~.woff2"
+    ],
     "[project]/frontend/app/admin/profile/page": [
       "static/media/caa3a2e1cccd8315-s.p.16t1db8_9y2o~.woff2"
     ],
     "[project]/frontend/app/admin/settings/about/page": [
+      "static/media/caa3a2e1cccd8315-s.p.16t1db8_9y2o~.woff2"
+    ],
+    "[project]/frontend/app/admin/settings/categories/page": [
       "static/media/caa3a2e1cccd8315-s.p.16t1db8_9y2o~.woff2"
     ],
     "[project]/frontend/app/admin/settings/company/page": [

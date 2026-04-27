@@ -22,10 +22,14 @@ type ServiceRow = {
   id: number;
   icon: string;
   title: string;
+  titleVi?: string;
   description: string;
+  descriptionVi?: string;
   features: string | null;
   order: number;
   isActive: boolean;
+  categorySlug: string | null;
+  categoryName: string | null;
 };
 
 const PAGE_SIZES = [10, 20, 50];
@@ -46,7 +50,7 @@ function parseFeatures(v: string | null): string[] {
 
 export default function ServicesAdminPanel() {
   const { can } = useAdminPermissions();
-  const { locale } = useLocale();
+  const { locale, t } = useLocale();
   const toast = useToast();
   const isVi = locale === 'vi-VN';
 
@@ -63,11 +67,15 @@ export default function ServicesAdminPanel() {
     id: null as number | null,
     icon: '🧩',
     title: '',
+    titleVi: '',
     description: '',
+    descriptionVi: '',
     featuresText: '',
     order: 0,
     isActive: true,
+    categorySlug: '',
   });
+  const [categoryOptions, setCategoryOptions] = useState<Array<{ slug: string; name: string }>>([]);
 
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; title: string } | null>(null);
   const deleteModal = useAnimatedOriginModal(600, () => setDeleteTarget(null));
@@ -105,6 +113,34 @@ export default function ServicesAdminPanel() {
     void refresh();
   }, [can, refresh]);
 
+  useEffect(() => {
+    if (!can('services', 'read')) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`${apiPath('admin/categories/services')}?locale=${encodeURIComponent(locale)}`, {
+          credentials: 'include',
+        });
+        if (!res.ok) return;
+        const data = (await res.json()) as Array<{ slug?: unknown; name?: unknown; isActive?: unknown }>;
+        if (cancelled || !Array.isArray(data)) return;
+        const normalized = data
+          .filter((x) => x?.isActive !== false)
+          .map((x) => ({
+            slug: typeof x.slug === 'string' ? x.slug : '',
+            name: typeof x.name === 'string' ? x.name : '',
+          }))
+          .filter((x) => x.slug && x.name);
+        setCategoryOptions(normalized);
+      } catch {
+        // keep empty options
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [can, locale]);
+
   const filtered = useMemo(() => {
     const qq = q.trim().toLowerCase();
     return rows.filter((r) => {
@@ -112,7 +148,8 @@ export default function ServicesAdminPanel() {
       if (status === 'inactive' && r.isActive) return false;
       if (!qq) return true;
       const descPlain = richTextAsPlain(r.description || '').toLowerCase();
-      const hay = `${r.title} ${descPlain} ${parseFeatures(r.features).join(' ')}`.toLowerCase();
+      const descViPlain = richTextAsPlain(r.descriptionVi || '').toLowerCase();
+      const hay = `${r.title} ${r.titleVi ?? ''} ${descPlain} ${descViPlain} ${parseFeatures(r.features).join(' ')}`.toLowerCase();
       return hay.includes(qq);
     });
   }, [rows, q, status]);
@@ -162,7 +199,18 @@ export default function ServicesAdminPanel() {
 
   const openCreate = (triggerEl?: HTMLElement | null) => {
     modal.openFromElement(triggerEl);
-    setForm({ id: null, icon: '🧩', title: '', description: '', featuresText: '', order: rows.length, isActive: true });
+    setForm({
+      id: null,
+      icon: '🧩',
+      title: '',
+      titleVi: '',
+      description: '',
+      descriptionVi: '',
+      featuresText: '',
+      order: rows.length,
+      isActive: true,
+      categorySlug: categoryOptions[0]?.slug ?? '',
+    });
   };
 
   const openEdit = (r: ServiceRow, triggerEl?: HTMLElement | null) => {
@@ -171,10 +219,13 @@ export default function ServicesAdminPanel() {
       id: r.id,
       icon: r.icon,
       title: r.title,
+      titleVi: r.titleVi ?? '',
       description: r.description,
+      descriptionVi: r.descriptionVi ?? '',
       featuresText: parseFeatures(r.features).join('\n'),
       order: r.order,
       isActive: r.isActive,
+      categorySlug: r.categorySlug ?? '',
     });
   };
 
@@ -185,13 +236,16 @@ export default function ServicesAdminPanel() {
       const payload = {
         icon: form.icon.trim(),
         title: form.title.trim(),
+        titleVi: form.titleVi.trim(),
         description: form.description.trim(),
+        descriptionVi: form.descriptionVi.trim(),
         features: form.featuresText
           .split(/\r?\n/)
           .map((x) => x.trim())
           .filter(Boolean),
         order: Number(form.order),
         isActive: form.isActive,
+        categorySlug: form.categorySlug || null,
       };
       const isEdit = form.id != null;
       const res = await fetch(isEdit ? apiPath(`admin/services/${form.id}`) : apiPath('admin/services'), {
@@ -306,7 +360,7 @@ export default function ServicesAdminPanel() {
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 onFocus={() => setMobileFiltersOpen(true)}
-                placeholder="Title/description/features..."
+                placeholder={isVi ? 'Tiêu đề/mô tả/tính năng...' : 'Title/description/features...'}
                 className="w-full px-3 py-2 bg-white/5 border border-white/15 rounded-xl text-fg placeholder:text-fg-subtle focus:outline-none focus:ring-2 focus:ring-(--focus-ring)"
               />
             </label>
@@ -427,6 +481,7 @@ export default function ServicesAdminPanel() {
                   ) : null}
                   <div className="min-w-0 flex-1">
                     <p className="text-white font-semibold wrap-break-word">{r.title}</p>
+                    <p className="text-xs text-white/60">{r.categoryName ?? '—'}</p>
                   </div>
                   {canDelete ? (
                     <label className="flex md:hidden items-center shrink-0 px-1" onTouchStart={(e) => e.stopPropagation()}>
@@ -515,27 +570,69 @@ export default function ServicesAdminPanel() {
                     }
                   />
                 </div>
-                <label className="block md:col-span-2">
-                  <span className="text-white/80 text-sm">{isVi ? 'Tiêu đề' : 'Title'}</span>
-                  <input
-                    value={form.title}
-                    onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
-                    className="mt-1 w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2.5 text-white"
-                    placeholder="Service title"
-                  />
-                </label>
-              </div>
-              <div className="block w-full min-w-0">
-                <span className="text-white/80 text-sm">{isVi ? 'Mô tả (định dạng)' : 'Description (rich text)'}</span>
-                <div className="mt-1 w-full min-w-0 rounded-lg border border-white/20 overflow-hidden bg-[#1e1e1e] [&_.tox-tinymce]:max-w-none">
-                  <AdminTinyMceEditor
-                    id={`service-description-${form.id ?? 'new'}`}
-                    value={form.description}
-                    onChange={(html) => setForm((p) => ({ ...p, description: html }))}
-                    disabled={!can('services', form.id == null ? 'create' : 'update')}
-                  />
+                <div className="md:col-span-2 space-y-2 rounded-xl border border-white/10 p-3 bg-white/[0.03]">
+                  <h4 className="text-white text-sm font-semibold">{t('admin.legalSectionTitles')}</h4>
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    <label className="block">
+                      <span className="text-white/80 text-sm">{t('admin.aboutUsTitleEn')}</span>
+                      <input
+                        value={form.title}
+                        onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
+                        className="mt-1 w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2.5 text-white"
+                        placeholder={isVi ? 'Tiêu đề dịch vụ' : 'Service title'}
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="text-white/80 text-sm">{t('admin.aboutUsTitleVi')}</span>
+                      <input
+                        value={form.titleVi}
+                        onChange={(e) => setForm((p) => ({ ...p, titleVi: e.target.value }))}
+                        className="mt-1 w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2.5 text-white"
+                      />
+                    </label>
+                  </div>
                 </div>
               </div>
+              <label className="block">
+                <span className="text-white/80 text-sm">{isVi ? 'Danh mục' : 'Category'}</span>
+                <select
+                  value={form.categorySlug}
+                  onChange={(e) => setForm((p) => ({ ...p, categorySlug: e.target.value }))}
+                  className="mt-1 w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2.5 text-white"
+                >
+                  <option value="">{isVi ? 'Chưa gán' : 'Unassigned'}</option>
+                  {categoryOptions.map((c) => (
+                    <option key={c.slug} value={c.slug}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <section className="space-y-3 rounded-xl border border-white/10 p-3 bg-white/[0.03]">
+                <h4 className="text-white text-sm font-semibold">{t('admin.legalSectionContent')}</h4>
+                <div className="block w-full min-w-0">
+                  <span className="text-white/80 text-sm">{t('admin.aboutUsBodyEn')}</span>
+                  <div className="mt-1 w-full min-w-0 rounded-lg border border-white/20 overflow-hidden bg-[#1e1e1e] [&_.tox-tinymce]:max-w-none">
+                    <AdminTinyMceEditor
+                      id={`service-description-en-${form.id ?? 'new'}`}
+                      value={form.description}
+                      onChange={(html) => setForm((p) => ({ ...p, description: html }))}
+                      disabled={!can('services', form.id == null ? 'create' : 'update')}
+                    />
+                  </div>
+                </div>
+                <div className="block w-full min-w-0">
+                  <span className="text-white/80 text-sm">{t('admin.aboutUsBodyVi')}</span>
+                  <div className="mt-1 w-full min-w-0 rounded-lg border border-white/20 overflow-hidden bg-[#1e1e1e] [&_.tox-tinymce]:max-w-none">
+                    <AdminTinyMceEditor
+                      id={`service-description-vi-${form.id ?? 'new'}`}
+                      value={form.descriptionVi}
+                      onChange={(html) => setForm((p) => ({ ...p, descriptionVi: html }))}
+                      disabled={!can('services', form.id == null ? 'create' : 'update')}
+                    />
+                  </div>
+                </div>
+              </section>
               <label className="block">
                 <span className="text-white/80 text-sm">{isVi ? 'Tính năng (mỗi dòng một mục)' : 'Features (one line per item)'}</span>
                 <textarea

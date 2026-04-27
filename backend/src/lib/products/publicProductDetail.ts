@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { asStringArray } from '@/lib/products/jsonArrays';
 import { sanitizeProductBodyHtml } from '@/lib/products/sanitizeProductHtml';
 import { sanitizeAboutIntroBodyHtml } from '@/lib/sanitizeAboutIntroHtml';
+import { type PublicContentLocale, pickLocalized } from '@/lib/i18nContent';
 
 export type PublicProductDetail = {
   id: number;
@@ -32,7 +33,7 @@ export type PublicProductDetail = {
   }[];
 };
 
-export async function getPublicProductBySlug(slug: string): Promise<PublicProductDetail | null> {
+export async function getPublicProductBySlug(slug: string, locale: PublicContentLocale = 'en-US'): Promise<PublicProductDetail | null> {
   const clean = decodeURIComponent(String(slug ?? '').trim());
   if (!clean) return null;
 
@@ -67,12 +68,18 @@ export async function getPublicProductBySlug(slug: string): Promise<PublicProduc
     .slice(0, 4)
     .map((x) => x.p);
 
+  const productName = pickLocalized(product.productName, product.productNameVi, locale);
+  const shortDescription = pickLocalized(product.shortDescription, product.shortDescriptionVi, locale);
+  const fullDescriptionHtml = sanitizeProductBodyHtml(
+    pickLocalized(product.fullDescription, product.fullDescriptionVi, locale),
+  );
+
   return {
     id: product.id,
-    productName: product.productName,
+    productName,
     slug: product.slug,
-    shortDescription: sanitizeAboutIntroBodyHtml(product.shortDescription ?? ''),
-    fullDescriptionHtml: sanitizeProductBodyHtml(product.fullDescription),
+    shortDescription: sanitizeAboutIntroBodyHtml(shortDescription ?? ''),
+    fullDescriptionHtml,
     imageUrls: asStringArray(product.imageUrls),
     videoUrls: asStringArray(product.videoUrls),
     demoLink: product.demoLink,
@@ -93,9 +100,11 @@ export async function getPublicProductBySlug(slug: string): Promise<PublicProduc
     seoDescription: product.seoDescription,
     related: scored.map((p) => ({
       id: p.id,
-      productName: p.productName,
+      productName: pickLocalized(p.productName, p.productNameVi, locale),
       slug: p.slug,
-      shortDescription: sanitizeAboutIntroBodyHtml(p.shortDescription ?? ''),
+      shortDescription: sanitizeAboutIntroBodyHtml(
+        pickLocalized(p.shortDescription, p.shortDescriptionVi, locale) ?? '',
+      ),
       mainImage: asStringArray(p.imageUrls)[0] ?? null,
       category: p.category,
     })),

@@ -28,6 +28,8 @@ const LocaleContext = createContext<LocaleContextValue | null>(null);
 const STORAGE_KEY = 'app_locale';
 const OVERRIDES_CACHE_KEY = 'vuleits:ui-messages-cache:v1';
 const OVERRIDES_TTL_MS = 5 * 60 * 1000;
+const ENV_DEFAULT_LOCALE = process.env.NEXT_PUBLIC_DEFAULT_LOCALE;
+const DEFAULT_LOCALE: Locale = ENV_DEFAULT_LOCALE === 'vi-VN' ? 'vi-VN' : 'en-US';
 
 function parseOverridesPayload(data: unknown): Overrides {
   if (data === null || typeof data !== 'object' || Array.isArray(data)) return {};
@@ -56,7 +58,7 @@ function resolveString(
 // --- LocaleProvider: localStorage + document.lang + t() + DB overrides ---
 
 export function LocaleProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>('en-US');
+  const [locale, setLocaleState] = useState<Locale>(DEFAULT_LOCALE);
   const [hydrated, setHydrated] = useState(false);
   const [overrides, setOverrides] = useState<Overrides | null>(null);
 
@@ -109,7 +111,7 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const effectiveLocale: Locale = hydrated ? locale : 'en-US';
+  const effectiveLocale: Locale = hydrated ? locale : DEFAULT_LOCALE;
 
   useEffect(() => {
     if (typeof document !== 'undefined') document.documentElement.lang = effectiveLocale;

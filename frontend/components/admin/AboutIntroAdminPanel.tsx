@@ -181,7 +181,7 @@ export default function AboutIntroAdminPanel() {
                     value={form.heroImageUrl}
                     onChange={(e) => setForm((f) => ({ ...f, heroImageUrl: e.target.value }))}
                     disabled={!can('aboutTeam', 'update')}
-                    placeholder="https://… or /uploads/…"
+                    placeholder={t('admin.heroImageUrlPlaceholder')}
                   />
                 </label>
                 <div className="grid md:grid-cols-2 gap-3">

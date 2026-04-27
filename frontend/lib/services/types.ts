@@ -5,11 +5,14 @@ export type ServiceCard = {
   description: string;
   features: string[];
   order: number;
+  categorySlug: string | null;
+  categoryName: string | null;
 };
 
 export type ServicesListResponse = {
   items: ServiceCard[];
   spotlight: ServiceCard[];
+  categories?: Array<{ slug: string; name: string }>;
 };
 
 export type ServiceDetailResponse = {
@@ -20,5 +23,7 @@ export type ServiceDetailResponse = {
     title: string;
     description: string;
     order: number;
+    categorySlug?: string | null;
+    categoryName?: string | null;
   }>;
 };

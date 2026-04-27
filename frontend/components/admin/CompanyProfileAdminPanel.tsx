@@ -10,6 +10,7 @@ import {
 import { resolveMapPreviewSrc } from '@/lib/googleMapsEmbed';
 import { useAdminPermissions } from '@/components/admin/AdminPermissionContext';
 import { useEscapeToClose } from '@/components/admin/useEscapeToClose';
+import { useLocale } from '@/components/providers/LocaleProvider';
 import { useToast } from '@/components/providers/ToastProvider';
 import { apiPath } from '@/lib/apiRoutes';
 
@@ -28,6 +29,7 @@ function logoModeFromProfile(p: CompanyProfileData): LogoSourceMode {
 
 export default function CompanyProfileAdminPanel() {
   const { can } = useAdminPermissions();
+  const { t } = useLocale();
   const toast = useToast();
   const canUpdate = can('contacts', 'update');
   const canMediaRead = can('media', 'read');
@@ -251,7 +253,7 @@ export default function CompanyProfileAdminPanel() {
                 <label className="block">
                   <span className="text-white/70 text-sm">Company name</span>
                   <input
-                    placeholder="VULEITS"
+                    placeholder={t('admin.companyNamePlaceholder')}
                     className="mt-1 w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-white/35"
                     value={form.companyName}
                     onChange={(e) => setForm((f) => ({ ...f, companyName: e.target.value }))}
@@ -261,7 +263,7 @@ export default function CompanyProfileAdminPanel() {
                 <label className="block">
                   <span className="text-white/70 text-sm">Slogan</span>
                   <input
-                    placeholder="Innovation …"
+                    placeholder={t('admin.sloganPlaceholder')}
                     className="mt-1 w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-white/35"
                     value={form.slogan}
                     onChange={(e) => setForm((f) => ({ ...f, slogan: e.target.value }))}
@@ -271,7 +273,7 @@ export default function CompanyProfileAdminPanel() {
                 <label className="block">
                   <span className="text-white/70 text-sm">Full name (VI)</span>
                   <input
-                    placeholder="Công ty …"
+                    placeholder={t('admin.companyFullNameViPlaceholder')}
                     className="mt-1 w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-white/35"
                     value={form.fullNameVi}
                     onChange={(e) => setForm((f) => ({ ...f, fullNameVi: e.target.value }))}
@@ -281,7 +283,7 @@ export default function CompanyProfileAdminPanel() {
                 <label className="block">
                   <span className="text-white/70 text-sm">Full name (EN)</span>
                   <input
-                    placeholder="… Joint Stock Company"
+                    placeholder={t('admin.companyFullNameEnPlaceholder')}
                     className="mt-1 w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-white/35"
                     value={form.fullNameEn}
                     onChange={(e) => setForm((f) => ({ ...f, fullNameEn: e.target.value }))}
@@ -292,7 +294,7 @@ export default function CompanyProfileAdminPanel() {
                   <span className="text-white/70 text-sm">Email</span>
                   <input
                     type="email"
-                    placeholder="contact@company.com"
+                    placeholder={t('admin.contactEmailPlaceholder')}
                     className="mt-1 w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-white/35"
                     value={form.email}
                     onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
@@ -303,7 +305,7 @@ export default function CompanyProfileAdminPanel() {
                   <span className="text-white/70 text-sm">Email (secondary)</span>
                   <input
                     type="email"
-                    placeholder="support@company.com"
+                    placeholder={t('admin.secondaryEmailPlaceholder')}
                     className="mt-1 w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-white/35"
                     value={form.email2}
                     onChange={(e) => setForm((f) => ({ ...f, email2: e.target.value }))}
@@ -313,7 +315,7 @@ export default function CompanyProfileAdminPanel() {
                 <label className="block">
                   <span className="text-white/70 text-sm">Phone</span>
                   <input
-                    placeholder="+84 …"
+                    placeholder={t('admin.phonePlaceholder')}
                     className="mt-1 w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-white/35"
                     value={form.phone}
                     onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
@@ -323,7 +325,7 @@ export default function CompanyProfileAdminPanel() {
                 <label className="block">
                   <span className="text-white/70 text-sm">Hotline</span>
                   <input
-                    placeholder="1900 …"
+                    placeholder={t('admin.hotlinePlaceholder')}
                     className="mt-1 w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-white/35"
                     value={form.hotline}
                     onChange={(e) => setForm((f) => ({ ...f, hotline: e.target.value }))}
@@ -335,7 +337,7 @@ export default function CompanyProfileAdminPanel() {
                   <textarea
                     className="mt-1 w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white min-h-[72px] placeholder:text-white/35"
                     value={form.address}
-                    placeholder="Office address..."
+                    placeholder={t('admin.addressPlaceholder')}
                     onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
                     disabled={!canUpdate}
                   />
@@ -351,7 +353,7 @@ export default function CompanyProfileAdminPanel() {
                 <input
                   className="mt-1 w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white font-mono text-xs placeholder:text-white/35"
                   value={form.mapEmbedUrl}
-                  placeholder="https://www.google.com/maps/embed?..."
+                  placeholder={t('admin.mapEmbedPlaceholder')}
                   onChange={(e) => setForm((f) => ({ ...f, mapEmbedUrl: e.target.value }))}
                   disabled={!canUpdate}
                 />
@@ -364,7 +366,7 @@ export default function CompanyProfileAdminPanel() {
                 <div className="rounded-xl overflow-hidden border border-white/15 bg-black/30 aspect-video min-h-[200px]">
                   {mapPreviewSrc ? (
                     <iframe
-                      title="Map preview"
+                      title={t('admin.mapPreviewTitle')}
                       src={mapPreviewSrc}
                       className="w-full h-full min-h-[200px]"
                       loading="lazy"
@@ -414,7 +416,7 @@ export default function CompanyProfileAdminPanel() {
                       value={logoMode}
                       onChange={(e) => setLogoMode(e.target.value as LogoSourceMode)}
                       disabled={!canUpdate}
-                      aria-label="How to set the company logo"
+                      aria-label={t('admin.companyLogoHelpAria')}
                     >
                       <option value="upload" className="bg-slate-900 text-white">
                         Upload new image
@@ -455,7 +457,7 @@ export default function CompanyProfileAdminPanel() {
                       <input
                         className="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-white/35"
                         value={form.logoUrl}
-                        placeholder="https://…"
+                        placeholder={t('admin.urlPlaceholder')}
                         onChange={(e) => {
                           const v = e.target.value;
                           setForm((f) => ({
@@ -466,7 +468,7 @@ export default function CompanyProfileAdminPanel() {
                           if (v.trim()) setLogoMode('url');
                         }}
                         disabled={!canUpdate}
-                        aria-label="External image URL"
+                        aria-label={t('admin.externalImageUrlAria')}
                       />
                     ) : null}
                   </div>
@@ -538,7 +540,7 @@ export default function CompanyProfileAdminPanel() {
                       className="btn-admin-icon-danger text-sm"
                       onClick={() => removeSocial(i)}
                       disabled={!canUpdate}
-                      title="Remove"
+                      title={t('admin.remove')}
                     >
                       ✕
                     </button>
@@ -550,7 +552,7 @@ export default function CompanyProfileAdminPanel() {
                       value={link.url}
                       onChange={(e) => setSocial(i, { url: e.target.value })}
                       disabled={!canUpdate}
-                      placeholder="https://..."
+                      placeholder={t('admin.urlPlaceholder')}
                     />
                   </label>
                 </div>

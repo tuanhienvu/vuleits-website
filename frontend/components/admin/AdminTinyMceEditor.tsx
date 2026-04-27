@@ -43,9 +43,9 @@ export default function AdminTinyMceEditor({ id, value, onChange, disabled }: Ad
           skin: 'oxide-dark',
           content_css: 'dark',
           plugins:
-            'autoresize advlist lists link image table charmap anchor searchreplace visualblocks code fullscreen insertdatetime media preview help wordcount formatpainter',
+            'autoresize advlist lists link image table charmap anchor searchreplace visualblocks code fullscreen insertdatetime media preview help wordcount',
           toolbar:
-            'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough superscript subscript formatpainter | forecolor backcolor | alignleft aligncenter alignright alignjustify | outdent indent | bullist numlist | link image table | removeformat code',
+            'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough superscript subscript | forecolor backcolor | alignleft aligncenter alignright alignjustify | outdent indent | bullist numlist | link image table | removeformat code',
           font_family_formats:
             'ZCOOL XiaoWei=ZCOOL XiaoWei,serif; Arial=arial,helvetica,sans-serif; Helvetica=helvetica,sans-serif; Georgia=georgia,palatino,serif; Tahoma=tahoma,arial,helvetica,sans-serif; Times New Roman=times new roman,times,serif; Verdana=verdana,geneva,sans-serif',
           branding: false,

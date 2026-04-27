@@ -17,9 +17,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   return NextResponse.json({
     id: n.id,
     title: n.title,
+    titleVi: n.titleVi ?? '',
     slug: n.slug,
     description: n.description,
+    descriptionVi: n.descriptionVi ?? '',
     content: n.content,
+    contentVi: n.contentVi ?? '',
     category: n.category,
     tags: n.tags,
     status: n.status,
@@ -53,8 +56,11 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
   const o = body as Record<string, unknown>;
   const title = (typeof o.title === 'string' ? o.title : current.title).trim();
+  const titleVi = (typeof o.titleVi === 'string' ? o.titleVi : current.titleVi ?? '').trim();
   const description = (typeof o.description === 'string' ? o.description : current.description).trim();
+  const descriptionVi = (typeof o.descriptionVi === 'string' ? o.descriptionVi : current.descriptionVi ?? '').trim();
   const content = (typeof o.content === 'string' ? o.content : current.content).trim();
+  const contentVi = (typeof o.contentVi === 'string' ? o.contentVi : current.contentVi ?? '').trim();
   const category = (typeof o.category === 'string' && o.category.trim() ? o.category : current.category).trim() || 'General';
   const status = typeof o.status === 'string' && o.status.trim() ? o.status.trim() : current.status;
   if (!title || !description || !content) return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -92,9 +98,12 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     where: { id },
     data: {
       title,
+      titleVi: titleVi || null,
       slug,
       description,
+      descriptionVi: descriptionVi || null,
       content,
+      contentVi: contentVi || null,
       category,
       imageId,
       tags,

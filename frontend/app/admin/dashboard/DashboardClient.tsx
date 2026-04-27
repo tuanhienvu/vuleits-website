@@ -16,9 +16,10 @@ const LEGACY_DASHBOARD_TAB_REDIRECTS: Record<string, string> = {
 };
 
 function AdminPanelFallback() {
+  const { t } = useLocale();
   return (
     <div className="glass p-8 rounded-2xl space-y-3 motion-safe:animate-pulse" role="status" aria-busy>
-      <span className="sr-only">Loading panel</span>
+      <span className="sr-only">{t('admin.loadingPanel')}</span>
       <div className="h-8 w-44 rounded-lg bg-white/10" />
       <div className="h-4 w-full max-w-md rounded bg-white/5" />
       <div className="h-4 w-full max-w-sm rounded bg-white/5" />
@@ -36,7 +37,7 @@ const ServicesAdminPanel = dynamic(() => import('@/components/admin/ServicesAdmi
 const MediaAdminPanel = dynamic(() => import('@/components/admin/MediaAdminPanel'), {
   loading: () => <AdminPanelFallback />,
 });
-const HomeFeaturesAdminPanel = dynamic<{ heading: string }>(
+const HomeFeaturesAdminPanel = dynamic<{ heading: string; mode?: 'homeFeatures' | 'banners' }>(
   () => import('@/components/admin/HomeFeaturesAdminPanel'),
   { loading: () => <AdminPanelFallback /> },
 );
@@ -76,10 +77,6 @@ export default function DashboardClient() {
     if (legacyTarget) router.replace(legacyTarget);
   }, [legacyTarget, router]);
 
-  if (legacyTarget) {
-    return <div className="glass p-6 rounded-2xl text-white/70">{t('admin.redirecting')}</div>;
-  }
-
   const title = useMemo(() => {
     if (activeTab === 'overview') return 'Overview';
     if (activeTab === 'news') return 'News Management';
@@ -87,28 +84,32 @@ export default function DashboardClient() {
     return `Module: ${activeTab}`;
   }, [activeTab]);
 
+  if (legacyTarget) {
+    return <div className="glass p-6 rounded-2xl text-white/70">{t('admin.redirecting')}</div>;
+  }
+
   if (activeTab === 'news') {
     if (!can('news', 'read')) {
-      return <div className="glass p-6 rounded-2xl text-white/80">You do not have permission to view this section.</div>;
+      return <div className="glass p-6 rounded-2xl text-white/80">{t('admin.noPermissionSection')}</div>;
     }
     return <NewsAdminPanel />;
   }
 
   if (activeTab === 'services') {
     if (!can('services', 'read')) {
-      return <div className="glass p-6 rounded-2xl text-white/80">You do not have permission to view this section.</div>;
+      return <div className="glass p-6 rounded-2xl text-white/80">{t('admin.noPermissionSection')}</div>;
     }
     return <ServicesAdminPanel />;
   }
 
   if (!can(activeTab as Parameters<typeof can>[0], 'read')) {
-    return <div className="glass p-6 rounded-2xl text-white/80">You do not have permission to view this section.</div>;
+    return <div className="glass p-6 rounded-2xl text-white/80">{t('admin.noPermissionSection')}</div>;
   }
 
   if (activeTab === 'overview') return <OverviewPanel />;
   if (activeTab === 'media') return <MediaAdminPanel />;
-  if (activeTab === 'banners') return <HomeFeaturesAdminPanel heading="Banners (home features)" />;
-  if (activeTab === 'homeFeatures') return <HomeFeaturesAdminPanel heading="Home features" />;
+  if (activeTab === 'banners') return <HomeFeaturesAdminPanel heading="Banners (home features)" mode="banners" />;
+  if (activeTab === 'homeFeatures') return <HomeFeaturesAdminPanel heading="Home features" mode="homeFeatures" />;
   if (activeTab === 'products') return <ProductsAdminPanel />;
   if (activeTab === 'users') return <UsersAdminPanel />;
   if (activeTab === 'permissions') return <PermissionsAdminPanel />;
@@ -118,7 +119,7 @@ export default function DashboardClient() {
     <section className="glass p-6 rounded-2xl">
       <h2 className="text-2xl font-semibold text-white mb-3">{title}</h2>
       <p className="text-white/75">
-        This section is available and connected to the admin shell. Select <span className="font-semibold">News</span> in sidebar to manage content.
+        {t('admin.sectionConnectedHint')}
       </p>
     </section>
   );

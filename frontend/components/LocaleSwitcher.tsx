@@ -21,18 +21,16 @@ export default function LocaleSwitcher({ className, alignWithProfileAvatar }: Lo
 
   const triggerClass =
     className ??
-    'rounded-lg border border-[color:var(--locale-switch-border)] bg-[color:var(--locale-switch-bg)] px-2 py-1.5 text-sm text-(--text-primary) hover:bg-[color:var(--locale-switch-bg-hover)]';
+    'p-0 bg-transparent border-0 text-(--text-primary)';
   const fullWidth = Boolean(className?.includes('w-full'));
 
   const flagWrapBase = alignWithProfileAvatar
-    ? 'relative h-10 shrink-0 overflow-hidden rounded-lg ring-1 aspect-[3/2]'
-    : 'relative h-5 w-7 shrink-0 overflow-hidden rounded-sm ring-1';
-  const flagWrapTrigger = `${flagWrapBase} shadow-sm ring-black/20`;
+    ? 'relative h-10 shrink-0 overflow-hidden rounded-lg aspect-[3/2]'
+    : 'relative h-5 w-7 shrink-0 overflow-hidden rounded-sm';
   const imgW = alignWithProfileAvatar ? 60 : 28;
   const imgH = alignWithProfileAvatar ? 40 : 20;
 
   const nextLocale: Locale = locale === 'en-US' ? 'vi-VN' : 'en-US';
-  const currentLabel = locale === 'en-US' ? 'EN' : 'VI';
 
   function toggle() {
     setLocale(nextLocale);
@@ -42,15 +40,15 @@ export default function LocaleSwitcher({ className, alignWithProfileAvatar }: Lo
     locale === 'en-US' ? t('lang.toggleToVietnamese') : t('lang.toggleToEnglish');
 
   return (
-    <div className={fullWidth ? 'relative block w-full' : 'relative inline-block'}>
+    <div className={fullWidth ? 'relative block w-full' : 'relative inline-block pt-1'}>
       <button
         type="button"
-        className={`flex items-center justify-center text-sm text-(--text-primary) transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-(--text-primary)/25 ${fullWidth ? 'w-full' : ''} ${triggerClass}`}
+        className={`inline-flex items-center justify-center text-sm text-(--text-primary) transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-(--text-primary)/25 ${fullWidth ? 'w-full' : ''} ${triggerClass}`}
         onClick={toggle}
         aria-label={ariaLabel}
         title={ariaLabel}
       >
-        <span className={`${flagWrapTrigger} ${fullWidth ? 'mr-2' : 'mr-1.5'}`}>
+        <span className={flagWrapBase}>
           <Image
             src={FLAG[locale].src}
             alt=""
@@ -58,9 +56,6 @@ export default function LocaleSwitcher({ className, alignWithProfileAvatar }: Lo
             height={imgH}
             className="h-full w-full object-cover object-center"
           />
-        </span>
-        <span className={`${alignWithProfileAvatar ? 'text-sm font-medium' : 'text-xs font-semibold'} tracking-wide`}>
-          {currentLabel}
         </span>
       </button>
     </div>

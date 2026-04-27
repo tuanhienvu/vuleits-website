@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import { safeArray } from '@/lib/safe-array';
 import { useLocale } from '@/components/providers/LocaleProvider';
@@ -40,7 +40,7 @@ type AboutIntro = {
 // --- Sections: Intro + hero | Statistics | Team (see JSX markers) ---
 
 export default function AboutPage() {
-  const { locale } = useLocale();
+  const { locale, t } = useLocale();
   const [intro, setIntro] = useState<AboutIntro | null>(null);
   const introFallback = toPublicIntro(defaultAboutIntroPayload(), locale);
   const [activeTeamCard, setActiveTeamCard] = useState<number | null>(null);
@@ -57,12 +57,15 @@ export default function AboutPage() {
     return { title, bodyHtml, paragraphs, heroImageUrl, heroImageAlt };
   }
 
-  const fallbackStats = [
-    { number: '150+', label: 'Projects Completed' },
-    { number: '50+', label: 'Happy Clients' },
-    { number: '3', label: 'Years Experience' },
-    { number: '24/7', label: 'Support Available' },
-  ];
+  const fallbackStats = useMemo(
+    () => [
+      { number: '150+', label: t('about.statsProjectsCompleted') },
+      { number: '50+', label: t('about.statsHappyClients') },
+      { number: '3', label: t('about.statsYearsExperience') },
+      { number: '24/7', label: t('about.statsSupportAvailable') },
+    ],
+    [t],
+  );
 
   const fallbackTeam = [
     { name: 'John Anderson', role: 'CEO & Founder', emoji: '👨‍💼', bio: 'Visionary leader with 15+ years in digital innovation, driving our mission to create exceptional user experiences.' },
@@ -78,11 +81,12 @@ export default function AboutPage() {
 
   useEffect(() => {
     let cancelled = false;
+    setStats(fallbackStats);
     (async () => {
       try {
         const [statsRes, teamRes, introRes] = await Promise.all([
-          fetch(apiPath('about/stats')),
-          fetch(apiPath('about/team')),
+          fetch(`${apiPath('about/stats')}?locale=${encodeURIComponent(locale)}`),
+          fetch(`${apiPath('about/team')}?locale=${encodeURIComponent(locale)}`),
           fetch(`${apiPath('about/intro')}?locale=${encodeURIComponent(locale)}`),
         ]);
         if (!cancelled) {
@@ -108,7 +112,7 @@ export default function AboutPage() {
     return () => {
       cancelled = true;
     };
-  }, [locale]);
+  }, [locale, fallbackStats]);
 
   return (
     <div className="container mx-auto px-4">
@@ -172,7 +176,7 @@ export default function AboutPage() {
 
       {/* ==================== TEAM SECTION ==================== */}
       <section>
-        <h2 className="text-3xl md:text-4xl font-bold text-fg mb-8">Meet Our Team</h2>
+        <h2 className="text-3xl md:text-4xl font-bold text-fg mb-8">{t('about.meetOurTeam')}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {team.map((member, index: number) => (
             <div key={index} className="group perspective-distant min-h-[260px]">

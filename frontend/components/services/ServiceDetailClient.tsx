@@ -1,23 +1,52 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import DetailBackButton from '@/components/navigation/DetailBackButton';
 import RelatedItemsFlipRow from '@/components/related/RelatedItemsFlipRow';
+import { useLocale } from '@/components/providers/LocaleProvider';
+import { apiPath } from '@/lib/apiRoutes';
 import type { ServiceDetailResponse } from '@/lib/services/types';
 
 // --- Sections: Back + breadcrumb | Header | Description | Features | Related ---
 
 export default function ServiceDetailClient({ initial }: { initial: ServiceDetailResponse }) {
-  const { service, related } = initial;
+  const { locale, t } = useLocale();
+  const [detail, setDetail] = useState<ServiceDetailResponse>(initial);
+
+  useEffect(() => {
+    if (locale === 'en-US') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- sync SSR payload when switching back to English
+      setDetail(initial);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(
+          `${apiPath(`services/${encodeURIComponent(String(initial.service.id))}`)}?locale=${encodeURIComponent(locale)}`,
+          { cache: 'no-store' },
+        );
+        if (!res.ok) return;
+        const data = (await res.json()) as ServiceDetailResponse;
+        if (!cancelled && data?.service) setDetail(data);
+      } catch {
+        // keep SSR / previous payload
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [locale, initial]);
+
+  const { service, related } = detail;
 
   return (
     <div className="container mx-auto px-4 py-8 pb-16">
       {/* ==================== BACK & BREADCRUMB ==================== */}
       <DetailBackButton fallbackHref="/services" />
-      <nav className="text-sm text-white/60 mb-6" aria-label="Breadcrumb">
-        <Link href="/services" className="hover:text-white transition-colors">
-          Services
-        </Link>
+      <nav className="text-sm text-white/60 mb-6" aria-label={t('common.breadcrumb')}>
+        <Link href="/services" className="hover:text-white transition-colors">{t('nav.services')}</Link>
         <span className="mx-2">/</span>
         <span className="text-white/90">{service.title}</span>
       </nav>
@@ -41,7 +70,7 @@ export default function ServiceDetailClient({ initial }: { initial: ServiceDetai
       {/* ==================== FEATURE LIST ==================== */}
       {service.features.length > 0 ? (
         <section className="mb-12">
-          <h2 className="text-2xl font-bold text-white mb-4">Features</h2>
+          <h2 className="text-2xl font-bold text-white mb-4">{t('services.features')}</h2>
           <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {service.features.map((f, idx) => (
               <li key={idx} className="glass rounded-xl p-4 text-white/80 flex gap-2">
@@ -56,7 +85,7 @@ export default function ServiceDetailClient({ initial }: { initial: ServiceDetai
       {/* ==================== RELATED SERVICES ==================== */}
       {related.length > 0 ? (
         <section className="border-t border-white/10 pt-10">
-          <h2 className="mb-6 text-2xl font-bold text-white">Related services</h2>
+          <h2 className="mb-6 text-2xl font-bold text-white">{t('services.relatedServices')}</h2>
           <RelatedItemsFlipRow
             items={related}
             renderItem={(r) => (

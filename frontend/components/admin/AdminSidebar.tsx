@@ -35,6 +35,7 @@ const NAV = {
   PAGE_SETTINGS_SITE: 203,
   PAGE_SETTINGS_SEO: 204,
   PAGE_SETTINGS_LOGS: 205,
+  PAGE_SETTINGS_CATEGORIES: 206,
 } as const;
 
 type MenuTemplateItem =
@@ -109,6 +110,13 @@ const ADMIN_MENU_TEMPLATE: { groupId: number; labelKey: string; items: MenuTempl
         labelKey: 'admin.products',
         icon: '📦',
         path: '/admin/dashboard?tab=products',
+      },
+      {
+        kind: 'page',
+        id: NAV.PAGE_SETTINGS_CATEGORIES,
+        labelKey: 'admin.categories',
+        icon: '🗂️',
+        path: '/admin/products/categories',
       },
     ],
   },
@@ -226,6 +234,14 @@ function itemAllowed(
       return allowTab('uiTexts');
     case NAV.PAGE_SETTINGS_LOGS:
       return allowTab('auditLogs');
+    case NAV.PAGE_SETTINGS_CATEGORIES:
+      return (
+        allowTab('products') ||
+        allowTab('services') ||
+        allowTab('news') ||
+        allowTab('media') ||
+        allowTab('banners')
+      );
     default:
       return false;
   }

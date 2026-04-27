@@ -187,19 +187,31 @@ export default function AdminHeader({ onMenuClick, mobileMenuOpen }: AdminHeader
           <div className="min-w-0">
             <h1 className="text-xl lg:text-2xl font-bold text-white truncate">{t('admin.dashboardTitle')}</h1>
             <p className="text-white/60 text-sm hidden sm:block truncate font-zcool">{t('admin.dashboardWelcome')}</p>
-            {contactNewCount > 0 ? (
-              <Link
-                href="/admin/settings/company?tab=inbox"
-                className="text-amber-200/95 text-xs mt-1 hidden sm:inline-block hover:underline underline-offset-2"
-              >
-                {t('admin.contactNewBanner', { count: String(contactNewCount) })}
-              </Link>
-            ) : null}
           </div>
         </div>
 
         {/* ==================== USER MENU & LOCALE ==================== */}
         <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+          {can('contacts', 'read') ? (
+            <Link
+              href="/admin/settings/company?tab=inbox"
+              className="relative inline-flex h-10 w-10 items-center justify-center rounded-xl text-white/85 hover:bg-white/15 hover:text-white transition-colors"
+              aria-label={t('admin.contactMessages')}
+              title={t('admin.contactMessages')}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5">
+                <path
+                  d="M12 3a6 6 0 0 0-6 6v2.3c0 .8-.24 1.58-.7 2.23l-1.2 1.7A1 1 0 0 0 5 17h14a1 1 0 0 0 .9-1.47l-1.2-1.7a3.8 3.8 0 0 1-.7-2.23V9a6 6 0 0 0-6-6Zm0 19a3 3 0 0 0 2.82-2H9.18A3 3 0 0 0 12 22Z"
+                  fill="currentColor"
+                />
+              </svg>
+              {contactNewCount > 0 ? (
+                <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-amber-400 text-black text-[10px] font-bold leading-5 text-center">
+                  {contactNewCount > 99 ? '99+' : contactNewCount}
+                </span>
+              ) : null}
+            </Link>
+          ) : null}
           <div className="relative" ref={menuRef}>
             <button
               type="button"
@@ -255,7 +267,7 @@ export default function AdminHeader({ onMenuClick, mobileMenuOpen }: AdminHeader
             )}
           </div>
 
-          <LocaleSwitcher className="flex items-center bg-transparent border-0 px-2 py-1.5 rounded-lg text-sm hover:bg-[color:color-mix(in_srgb,var(--text-primary)_8%,transparent)]" />
+          <LocaleSwitcher className="p-0 bg-transparent border-0 rounded-none hover:bg-transparent" />
         </div>
       </div>
 

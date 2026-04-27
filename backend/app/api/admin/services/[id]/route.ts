@@ -2,16 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { authorize } from '@/lib/adminAuth';
 import { jsonObjectBody } from '@/lib/jsonBody';
-
-type ServiceRow = {
-  id: number;
-  icon: string;
-  title: string;
-  description: string;
-  features: string | null;
-  order: number;
-  isActive: number | boolean;
-};
+import {
+  deleteCategoryAssignment,
+  getCategoryAssignments,
+  getManagedCategories,
+  setCategoryAssignment,
+} from '@/lib/contentCategoryAssignments';
 
 function normalizeFeatures(input: unknown): string | null {
   if (input === undefined || input === null) return null;
@@ -42,24 +38,27 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const id = Number(idParam);
   if (!Number.isFinite(id)) return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
 
-  const rows = await prisma.$queryRaw<ServiceRow[]>`
-    SELECT id, icon, title, description, features, \`order\` as \`order\`, isActive
-    FROM ServiceItem
-    WHERE id = ${id}
-    LIMIT 1
-  `;
-
-  const service = rows[0];
+  const service = await prisma.serviceItem.findUnique({ where: { id } });
   if (!service) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  const [categories, assignments] = await Promise.all([
+    getManagedCategories('services'),
+    getCategoryAssignments('services'),
+  ]);
+  const categorySlug = assignments[String(id)] ?? null;
+  const categoryName = categorySlug ? categories.find((c) => c.slug === categorySlug)?.name ?? null : null;
 
   return NextResponse.json({
-    id: Number(service.id),
+    id: service.id,
     icon: service.icon,
     title: service.title,
+    titleVi: service.titleVi ?? '',
     description: service.description,
+    descriptionVi: service.descriptionVi ?? '',
     features: service.features,
-    order: Number(service.order),
-    isActive: Boolean(service.isActive),
+    order: service.order,
+    isActive: service.isActive,
+    categorySlug,
+    categoryName,
   });
 }
 
@@ -72,76 +71,63 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   if (!Number.isFinite(id)) return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
 
   const body = jsonObjectBody(await req.json());
-  const data: {
-    icon?: string;
-    title?: string;
-    description?: string;
-    features?: string | null;
-    order?: number;
-    isActive?: boolean;
-  } = {};
-
-  if (body.icon !== undefined) data.icon = String(body.icon ?? '').trim();
-  if (body.title !== undefined) data.title = String(body.title ?? '').trim();
-  if (body.description !== undefined) data.description = String(body.description ?? '').trim();
-  if (body.features !== undefined) data.features = normalizeFeatures(body.features);
-  if (body.order !== undefined) data.order = Number(body.order);
-  if (body.isActive !== undefined) data.isActive = Boolean(body.isActive);
-
-  if (data.icon !== undefined && !data.icon) return NextResponse.json({ error: 'Icon is required' }, { status: 400 });
-  if (data.title !== undefined && !data.title) return NextResponse.json({ error: 'Title is required' }, { status: 400 });
-  if (data.description !== undefined && !data.description) return NextResponse.json({ error: 'Description is required' }, { status: 400 });
-  if (data.order !== undefined && !Number.isFinite(data.order)) return NextResponse.json({ error: 'Invalid order' }, { status: 400 });
-
-  const currentRows = await prisma.$queryRaw<ServiceRow[]>`
-    SELECT id, icon, title, description, features, \`order\` as \`order\`, isActive
-    FROM ServiceItem
-    WHERE id = ${id}
-    LIMIT 1
-  `;
-  const current = currentRows[0];
+  const current = await prisma.serviceItem.findUnique({ where: { id } });
   if (!current) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-  const nextIcon = data.icon ?? current.icon;
-  const nextTitle = data.title ?? current.title;
-  const nextDescription = data.description ?? current.description;
-  const nextFeatures = data.features === undefined ? current.features : data.features;
-  const nextOrder = data.order ?? current.order;
-  const nextIsActive = data.isActive ?? Boolean(current.isActive);
+  const nextIcon = body.icon !== undefined ? String(body.icon ?? '').trim() : current.icon;
+  const nextTitle = body.title !== undefined ? String(body.title ?? '').trim() : current.title;
+  const nextTitleVi = body.titleVi !== undefined ? String(body.titleVi ?? '').trim() : (current.titleVi ?? '');
+  const nextDescription = body.description !== undefined ? String(body.description ?? '').trim() : current.description;
+  const nextDescriptionVi =
+    body.descriptionVi !== undefined ? String(body.descriptionVi ?? '').trim() : (current.descriptionVi ?? '');
+  const nextFeatures = body.features !== undefined ? normalizeFeatures(body.features) : current.features;
+  const nextOrder = body.order !== undefined ? Number(body.order) : current.order;
+  const nextIsActive = body.isActive !== undefined ? Boolean(body.isActive) : current.isActive;
 
-  await prisma.$executeRaw`
-    UPDATE ServiceItem
-    SET icon = ${nextIcon},
-        title = ${nextTitle},
-        description = ${nextDescription},
-        features = ${nextFeatures},
-        \`order\` = ${nextOrder},
-        isActive = ${nextIsActive},
-        updatedAt = NOW()
-    WHERE id = ${id}
-  `;
+  if (!nextIcon) return NextResponse.json({ error: 'Icon is required' }, { status: 400 });
+  if (!nextTitle) return NextResponse.json({ error: 'Title is required' }, { status: 400 });
+  if (!nextDescription) return NextResponse.json({ error: 'Description is required' }, { status: 400 });
+  if (!Number.isFinite(nextOrder)) return NextResponse.json({ error: 'Invalid order' }, { status: 400 });
 
-  const updatedRows = await prisma.$queryRaw<ServiceRow[]>`
-    SELECT id, icon, title, description, features, \`order\` as \`order\`, isActive
-    FROM ServiceItem
-    WHERE id = ${id}
-    LIMIT 1
-  `;
-  const updated = updatedRows[0];
+  const updated = await prisma.serviceItem.update({
+    where: { id },
+    data: {
+      icon: nextIcon,
+      title: nextTitle,
+      titleVi: nextTitleVi || null,
+      description: nextDescription,
+      descriptionVi: nextDescriptionVi || null,
+      features: nextFeatures,
+      order: nextOrder,
+      isActive: nextIsActive,
+    },
+  });
+
+  if (body.categorySlug !== undefined) {
+    await setCategoryAssignment('services', id, body.categorySlug == null ? null : String(body.categorySlug).trim() || null);
+  }
+  const [categories, assignments] = await Promise.all([
+    getManagedCategories('services'),
+    getCategoryAssignments('services'),
+  ]);
+  const categorySlug = assignments[String(id)] ?? null;
+  const categoryName = categorySlug ? categories.find((c) => c.slug === categorySlug)?.name ?? null : null;
 
   return NextResponse.json({
     ok: true,
-    service: updated
-      ? {
-          id: Number(updated.id),
-          icon: updated.icon,
-          title: updated.title,
-          description: updated.description,
-          features: updated.features,
-          order: Number(updated.order),
-          isActive: Boolean(updated.isActive),
-        }
-      : null,
+    service: {
+      id: updated.id,
+      icon: updated.icon,
+      title: updated.title,
+      titleVi: updated.titleVi ?? '',
+      description: updated.description,
+      descriptionVi: updated.descriptionVi ?? '',
+      features: updated.features,
+      order: updated.order,
+      isActive: updated.isActive,
+      categorySlug,
+      categoryName,
+    },
   });
 }
 
@@ -153,7 +139,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   const id = Number(idParam);
   if (!Number.isFinite(id)) return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
 
-  await prisma.$executeRaw`DELETE FROM ServiceItem WHERE id = ${id}`;
+  await prisma.serviceItem.delete({ where: { id } }).catch(() => null);
+  await deleteCategoryAssignment('services', id);
   return NextResponse.json({ ok: true });
 }
-

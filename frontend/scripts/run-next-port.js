@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable @typescript-eslint/no-require-imports */
 /**
  * Uses PORT from frontend/.env* for the Next server (default 3001), with IPv4+IPv6 free-port scan.
  * Loads `frontend/.env` then `frontend/.env.local` — set `BACKEND_PORT` there so `/api` rewrites match
@@ -16,6 +17,7 @@ dotenv.config({ path: path.join(frontendRoot, '.env.local'), override: true });
 
 const DEFAULT_PORT = 3001;
 const MAX_TRIES = 200;
+const DEV_LOCK_PATH = path.join(frontendRoot, '.next', 'dev', 'lock');
 
 function resolveNextBin() {
   let dir = frontendRoot;
@@ -64,11 +66,60 @@ async function pickPort(preferred) {
   throw new Error(`No free TCP port found between ${preferred} and ${end - 1}`);
 }
 
+function readDevLock() {
+  try {
+    if (!fs.existsSync(DEV_LOCK_PATH)) return null;
+    const raw = fs.readFileSync(DEV_LOCK_PATH, 'utf8');
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') return null;
+    const pid = Number(parsed.pid);
+    const port = Number(parsed.port);
+    if (!Number.isFinite(pid) || pid <= 0) return null;
+    return {
+      pid,
+      port: Number.isFinite(port) && port > 0 ? port : null,
+      appUrl: typeof parsed.appUrl === 'string' ? parsed.appUrl : null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function processExists(pid) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (err) {
+    // ESRCH: process not found. EPERM: process exists but not accessible.
+    return err && err.code === 'EPERM';
+  }
+}
+
+function clearStaleDevLock() {
+  try {
+    if (fs.existsSync(DEV_LOCK_PATH)) fs.unlinkSync(DEV_LOCK_PATH);
+  } catch {
+    // Best-effort only.
+  }
+}
+
 async function main() {
   const mode = process.argv[2];
   if (!['dev', 'start'].includes(mode)) {
     console.error('Usage: node scripts/run-next-port.js <dev|start>');
     process.exit(1);
+  }
+
+  if (mode === 'dev') {
+    const lock = readDevLock();
+    if (lock) {
+      if (processExists(lock.pid)) {
+        const where = lock.appUrl || (lock.port ? `http://localhost:${lock.port}` : 'existing URL');
+        console.log(`[frontend] Next dev is already running (PID ${lock.pid}) at ${where}. Reusing existing process.`);
+        process.exit(0);
+      }
+      clearStaleDevLock();
+    }
   }
 
   const raw = process.env.PORT;
@@ -92,7 +143,7 @@ async function main() {
   const nextBin = resolveNextBin();
   const args =
     mode === 'dev'
-      ? [nextBin, 'dev', '--turbopack', '-H', '0.0.0.0', '-p', portStr]
+      ? [nextBin, 'dev', '--webpack', '-H', '0.0.0.0', '-p', portStr]
       : [nextBin, 'start', '-p', portStr];
   const child = spawn(process.execPath, args, {
     cwd: frontendRoot,
