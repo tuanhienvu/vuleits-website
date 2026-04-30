@@ -1,10 +1,8 @@
 import { NextResponse, type NextRequest } from 'next/server';
+import { buildAllowedOriginSet } from './src/lib/corsAllowedOrigins';
 import { log } from './src/lib/logger';
 
-function allowedOrigins(): string[] {
-  return ['http://localhost:3001', 'http://127.0.0.1:3001', 'https://vuleits.com', 'https://www.vuleits.com'];
-}
-const ALLOWED_ORIGINS = new Set(allowedOrigins());
+const ALLOWED_ORIGINS = buildAllowedOriginSet();
 
 function corsHeadersFor(origin: string): Record<string, string> {
   return {

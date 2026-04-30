@@ -16,6 +16,7 @@ import { useEscapeToClose } from '@/components/admin/useEscapeToClose';
 import { useLocale } from '@/components/providers/LocaleProvider';
 import { AdminFilterSearchIconButton, adminFilterPanelClass } from '@/components/admin/AdminFilterBarMobile';
 import { apiPath } from '@/lib/apiRoutes';
+import { PasswordPreviewInput } from '@/components/ui/PasswordPreviewInput';
 
 type UserRow = {
   id: number;
@@ -32,7 +33,7 @@ type RoleRow = { id: number; name: string };
 
 export default function UsersAdminPanel() {
   const { can } = useAdminPermissions();
-  const { locale } = useLocale();
+  const { locale, t } = useLocale();
   const toast = useToast();
   const isVi = locale === 'vi-VN';
   const [users, setUsers] = useState<UserRow[]>([]);
@@ -301,7 +302,11 @@ export default function UsersAdminPanel() {
         </h2>
         <div className="flex shrink-0 items-center gap-2">
           {can('users', 'create') ? (
-            <button type="button" className="btn-admin-primary whitespace-nowrap" onClick={(e) => openCreate(e.currentTarget)}>
+            <button
+              type="button"
+              className="whitespace-nowrap rounded-lg px-3 py-2 text-sm border bg-emerald-500/20 border-emerald-300/40 text-emerald-200 hover:bg-emerald-500/30"
+              onClick={(e) => openCreate(e.currentTarget)}
+            >
               {isVi ? 'Thêm người dùng' : 'Add user'}
             </button>
           ) : null}
@@ -513,12 +518,13 @@ export default function UsersAdminPanel() {
             </label>
             <label className="block">
               <span className="text-white/70 text-sm">{editingId == null ? 'Password' : 'New password (optional)'}</span>
-              <input
-                type="password"
-                className="mt-1 w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+              <PasswordPreviewInput
+                className="mt-1"
+                inputClassName="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
                 value={form.password}
                 onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
                 autoComplete="new-password"
+                previewAriaLabel={t('admin.passwordPreviewAria')}
               />
             </label>
             <label className="block">

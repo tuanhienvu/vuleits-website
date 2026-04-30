@@ -1,0 +1,101 @@
+# Guideline Restore Server DB (DB + Public Assets)
+
+Use this guide to move local backup data (`deploy/package`) to server and restore it safely.
+
+For admin backup/schedule/restore operations from the web UI, see:
+- `Guideline_Deploying` -> **13) System Maintenance Feature (Admin)**
+
+---
+
+## 1) Re-create local backup package
+
+From project root on local Windows:
+
+- `powershell -ExecutionPolicy Bypass -File "package-local-data.ps1"`
+
+Expected output:
+
+- Creates `deploy/package/db.sql`
+- Creates `deploy/package/seed.db.snapshot.json`
+- Copies `frontend/public` to `deploy/package/public/frontend`
+- Copies `backend/public` to `deploy/package/public/backend`
+
+Quick verify:
+
+- `deploy/package/db.sql` must exist and file size must be > 0.
+
+---
+
+## 2) Upload `deploy` folder to server
+
+Server info:
+
+- SSH: `root@103.15.50.106`
+- Project path: `/home/vuleits/vuleits-website/`
+
+### Option A (preferred): `scp -r` from local machine
+
+Run on local Windows terminal from project root:
+
+- `scp -r ./deploy root@103.15.50.106:/home/vuleits/vuleits-website/`
+
+Important:
+
+- Run this on local PC, not inside server shell.
+
+### Option B: if `scp` fails with `subsystem request failed on channel 0`
+
+Use tar-over-ssh workaround (does not require SFTP subsystem):
+
+- `tar -czf - deploy | ssh root@103.15.50.106 "cd /home/vuleits/vuleits-website && tar -xzf -"`
+
+---
+
+## 3) Restore data on server
+
+SSH to server:
+
+- `ssh root@103.15.50.106`
+- `cd /home/vuleits/vuleits-website`
+
+Restore:
+
+- `bash deploy/restore-server-data.sh`
+
+What script does:
+
+- Imports `deploy/package/db.sql` into MySQL (`vuleits_db`)
+- Syncs `deploy/package/public/frontend/` -> `frontend/public/`
+- Syncs `deploy/package/public/backend/` -> `backend/public/`
+
+---
+
+## 4) Restart services after restore
+
+On server project folder:
+
+- `docker compose -f docker-compose.yaml up -d`
+
+Optional checks:
+
+- `docker compose ps`
+- `docker compose logs mysql --tail=100`
+- `docker compose logs backend --tail=100`
+- `docker compose logs frontend --tail=100`
+
+---
+
+## 5) Common issues
+
+- **`Missing deploy/package/db.sql`**
+  - Re-run local backup script and upload `deploy` again.
+
+- **`No such file or directory` when rsync runs**
+  - The current `deploy/restore-server-data.sh` already creates target directories with `mkdir -p`.
+
+- **MySQL auth error while importing**
+  - Ensure server `.env` values (`MYSQL_ROOT_PASSWORD`) match the running MySQL container.
+
+- **`scp: stat local "deploy": No such file or directory`**
+  - You are not in project root on local machine. `cd` to repo root and retry.
+

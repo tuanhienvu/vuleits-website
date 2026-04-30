@@ -14,10 +14,9 @@ import {
 } from '@/components/admin/useAnimatedOriginModal';
 import { useEscapeToClose } from '@/components/admin/useEscapeToClose';
 import { useLocale } from '@/components/providers/LocaleProvider';
-import AdminTinyMceEditor from '@/components/admin/AdminTinyMceEditor';
 import AdminEmojiPickerField from '@/components/admin/AdminEmojiPickerField';
 import { AdminFilterSearchIconButton, adminFilterPanelClass } from '@/components/admin/AdminFilterBarMobile';
-import { isRichTextEmpty, richTextAsPlain } from '@/lib/richTextAdmin';
+import { richTextAsPlain } from '@/lib/richTextAdmin';
 import { apiPath } from '@/lib/apiRoutes';
 
 // --- Sections (UI): Header & table | Edit modal | Delete confirm ---
@@ -34,6 +33,22 @@ type Row = {
   order: number;
   isActive: boolean;
 };
+
+function decodeHtmlEntities(input: string): string {
+  if (typeof window === 'undefined') return input;
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = input;
+  return textarea.value;
+}
+
+function normalizeRichTextForEditor(raw: string | null | undefined): string {
+  const s = String(raw ?? '');
+  if (!s) return '';
+  const decoded = decodeHtmlEntities(s);
+  const maybeText = decoded.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  if (maybeText) return maybeText;
+  return s.replace(/\s+/g, ' ').trim();
+}
 
 export default function AboutTeamAdminPanel() {
   const { can } = useAdminPermissions();
@@ -68,6 +83,7 @@ export default function AboutTeamAdminPanel() {
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const canDelete = can('aboutTeam', 'delete');
+  const canUpdate = can('aboutTeam', editingId == null ? 'create' : 'update');
   const colCount = canDelete ? 6 : 5;
 
   useEscapeToClose(modal.open && !saving, () => void modal.closeAnimated());
@@ -81,7 +97,15 @@ export default function AboutTeamAdminPanel() {
         throw new Error('Load failed');
       }
       const data = (await res.json()) as Row[];
-      setRows(Array.isArray(data) ? data : []);
+      setRows(
+        Array.isArray(data)
+          ? data.map((r) => ({
+              ...r,
+              bio: normalizeRichTextForEditor(r.bio),
+              bioVi: normalizeRichTextForEditor(r.bioVi ?? ''),
+            }))
+          : [],
+      );
     } catch {
       toast.error('Failed to load team');
     } finally {
@@ -153,8 +177,8 @@ export default function AboutTeamAdminPanel() {
       nameVi: r.nameVi ?? '',
       role: r.role,
       roleVi: r.roleVi ?? '',
-      bio: r.bio,
-      bioVi: r.bioVi ?? '',
+      bio: normalizeRichTextForEditor(r.bio),
+      bioVi: normalizeRichTextForEditor(r.bioVi ?? ''),
       order: r.order,
       isActive: r.isActive,
     });
@@ -175,8 +199,8 @@ export default function AboutTeamAdminPanel() {
         order: Number(form.order) || 0,
         isActive: form.isActive,
       };
-      if (!payload.emoji || !payload.name || !payload.role || isRichTextEmpty(form.bio)) {
-        toast.error('All fields are required');
+      if (!payload.emoji || !payload.name || !payload.nameVi || !payload.role || !payload.roleVi || !form.bio.trim() || !form.bioVi.trim()) {
+        toast.error(isVi ? 'Vui lòng nhập đủ EN và VI cho tất cả trường.' : 'Please fill in both EN and VI for all fields.');
         setSaving(false);
         return;
       }
@@ -252,7 +276,11 @@ export default function AboutTeamAdminPanel() {
         </h2>
         <div className="flex shrink-0 items-center gap-2">
           {can('aboutTeam', 'create') ? (
-            <button type="button" className="btn-admin-primary whitespace-nowrap" onClick={(e) => openCreate(e.currentTarget)}>
+            <button
+              type="button"
+              className="whitespace-nowrap rounded-lg px-3 py-2 text-sm border bg-emerald-500/20 border-emerald-300/40 text-emerald-200 hover:bg-emerald-500/30"
+              onClick={(e) => openCreate(e.currentTarget)}
+            >
               {isVi ? 'Thêm thành viên' : 'Add member'}
             </button>
           ) : null}
@@ -440,7 +468,7 @@ export default function AboutTeamAdminPanel() {
                   {editingId == null ? (isVi ? 'Thành viên mới' : 'New member') : isVi ? 'Sửa thành viên' : 'Edit member'}
                 </h3>
                 <p className="text-white/60 text-sm mt-1">
-                  {isVi ? 'Tên, vai trò, emoji và tiểu sử có định dạng.' : 'Name, role, emoji, and rich-text bio.'}
+                  {isVi ? 'Tên, vai trò, emoji và tiểu sử dạng văn bản thuần.' : 'Name, role, emoji, and plain-text bio.'}
                 </p>
               </div>
               <button
@@ -464,14 +492,26 @@ export default function AboutTeamAdminPanel() {
                         className="mt-1 w-full min-w-0 px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
                         value={form.name}
                         onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                        disabled={!canUpdate}
                       />
                     </label>
                     <label className="block min-w-0">
-                      <span className="text-white/70 text-sm">{t('admin.aboutUsTitleVi')}</span>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-white/70 text-sm">{t('admin.aboutUsTitleVi')}</span>
+                        <button
+                          type="button"
+                          className="text-xs text-cyan-300 hover:text-cyan-200 disabled:text-white/35"
+                          onClick={() => setForm((f) => ({ ...f, nameVi: f.name }))}
+                          disabled={!canUpdate || !form.name.trim()}
+                        >
+                          {isVi ? 'Dùng EN' : 'Use EN'}
+                        </button>
+                      </div>
                       <input
                         className="mt-1 w-full min-w-0 px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
                         value={form.nameVi}
                         onChange={(e) => setForm((f) => ({ ...f, nameVi: e.target.value }))}
+                        disabled={!canUpdate}
                       />
                     </label>
                     <label className="block min-w-0">
@@ -480,14 +520,26 @@ export default function AboutTeamAdminPanel() {
                         className="mt-1 w-full min-w-0 px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
                         value={form.role}
                         onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))}
+                        disabled={!canUpdate}
                       />
                     </label>
                     <label className="block min-w-0">
-                      <span className="text-white/70 text-sm">{isVi ? 'Vai trò (VI)' : 'Role (Vietnamese)'}</span>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-white/70 text-sm">{isVi ? 'Vai trò (VI)' : 'Role (Vietnamese)'}</span>
+                        <button
+                          type="button"
+                          className="text-xs text-cyan-300 hover:text-cyan-200 disabled:text-white/35"
+                          onClick={() => setForm((f) => ({ ...f, roleVi: f.role }))}
+                          disabled={!canUpdate || !form.role.trim()}
+                        >
+                          {isVi ? 'Dùng EN' : 'Use EN'}
+                        </button>
+                      </div>
                       <input
                         className="mt-1 w-full min-w-0 px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
                         value={form.roleVi}
                         onChange={(e) => setForm((f) => ({ ...f, roleVi: e.target.value }))}
+                        disabled={!canUpdate}
                       />
                     </label>
                   </div>
@@ -518,26 +570,37 @@ export default function AboutTeamAdminPanel() {
                   </div>
                 </div>
                 <div className="block min-w-0 sm:col-span-2 space-y-3 rounded-xl border border-white/10 p-3 bg-white/[0.03]">
-                  <h4 className="text-white text-sm font-semibold">{t('admin.legalSectionContent')}</h4>
-                  <div>
-                    <span className="text-white/70 text-sm">{t('admin.aboutUsBodyEn')}</span>
-                    <div className="mt-1 w-full min-w-0 rounded-lg border border-white/20 overflow-hidden bg-[#1e1e1e] [&_.tox-tinymce]:max-w-none">
-                      <AdminTinyMceEditor
-                        id="about-team-bio-en"
+                  <h4 className="text-white text-sm font-semibold">{isVi ? 'Nội dung giới thiệu (EN/VI)' : 'Bio content (EN/VI)'}</h4>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                    <div>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-white/70 text-sm">{isVi ? 'Mô tả (EN)' : 'Bio (English)'}</span>
+                        <span className="text-xs text-white/45">{form.bio.length} {isVi ? 'ký tự' : 'chars'}</span>
+                      </div>
+                      <textarea
+                        className="mt-1 w-full min-w-0 min-h-40 px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
                         value={form.bio}
-                        onChange={(html) => setForm((f) => ({ ...f, bio: html }))}
-                        disabled={!can('aboutTeam', editingId == null ? 'create' : 'update')}
+                        onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))}
+                        disabled={!canUpdate}
                       />
                     </div>
-                  </div>
-                  <div>
-                    <span className="text-white/70 text-sm">{t('admin.aboutUsBodyVi')}</span>
-                    <div className="mt-1 w-full min-w-0 rounded-lg border border-white/20 overflow-hidden bg-[#1e1e1e] [&_.tox-tinymce]:max-w-none">
-                      <AdminTinyMceEditor
-                        id="about-team-bio-vi"
+                    <div>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-white/70 text-sm">{isVi ? 'Mô tả (VI)' : 'Bio (Vietnamese)'}</span>
+                        <button
+                          type="button"
+                          className="text-xs text-cyan-300 hover:text-cyan-200 disabled:text-white/35"
+                          onClick={() => setForm((f) => ({ ...f, bioVi: f.bio }))}
+                          disabled={!canUpdate || !form.bio.trim()}
+                        >
+                          {isVi ? 'Dùng EN' : 'Use EN'}
+                        </button>
+                      </div>
+                      <textarea
+                        className="mt-1 w-full min-w-0 min-h-40 px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
                         value={form.bioVi}
-                        onChange={(html) => setForm((f) => ({ ...f, bioVi: html }))}
-                        disabled={!can('aboutTeam', editingId == null ? 'create' : 'update')}
+                        onChange={(e) => setForm((f) => ({ ...f, bioVi: e.target.value }))}
+                        disabled={!canUpdate}
                       />
                     </div>
                   </div>
@@ -549,6 +612,7 @@ export default function AboutTeamAdminPanel() {
                     className="mt-1 w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
                     value={form.order}
                     onChange={(e) => setForm((f) => ({ ...f, order: Number(e.target.value) }))}
+                    disabled={!canUpdate}
                   />
                 </label>
                 <label className="flex items-center gap-2 text-white/90">
@@ -556,6 +620,7 @@ export default function AboutTeamAdminPanel() {
                     type="checkbox"
                     checked={form.isActive}
                     onChange={(e) => setForm((f) => ({ ...f, isActive: e.target.checked }))}
+                    disabled={!canUpdate}
                   />
                   Active
                 </label>

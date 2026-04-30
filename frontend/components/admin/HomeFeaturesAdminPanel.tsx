@@ -14,10 +14,9 @@ import {
 } from '@/components/admin/useAnimatedOriginModal';
 import { useEscapeToClose } from '@/components/admin/useEscapeToClose';
 import { useLocale } from '@/components/providers/LocaleProvider';
-import AdminTinyMceEditor from '@/components/admin/AdminTinyMceEditor';
 import AdminEmojiPickerField from '@/components/admin/AdminEmojiPickerField';
 import { AdminFilterSearchIconButton, adminFilterPanelClass } from '@/components/admin/AdminFilterBarMobile';
-import { isRichTextEmpty, richTextAsPlain } from '@/lib/richTextAdmin';
+import { richTextAsPlain } from '@/lib/richTextAdmin';
 import { apiPath } from '@/lib/apiRoutes';
 
 // --- Sections (UI): Header & table | Edit modal | Delete confirm ---
@@ -217,7 +216,7 @@ export default function HomeFeaturesAdminPanel({ heading, mode = 'homeFeatures' 
         isActive: form.isActive,
         categorySlug: mode === 'banners' ? form.categorySlug || null : null,
       };
-      if (!payload.icon || !payload.title || isRichTextEmpty(form.description)) {
+      if (!payload.icon || !payload.title || !form.description.trim()) {
         toast.error('Icon, title, and description are required');
         setSaving(false);
         return;
@@ -292,7 +291,11 @@ export default function HomeFeaturesAdminPanel({ heading, mode = 'homeFeatures' 
         <h2 className="min-w-0 flex-1 truncate pr-1 text-xl font-bold text-white sm:text-2xl">{heading}</h2>
         <div className="flex shrink-0 items-center gap-2">
           {canAny('create') ? (
-            <button type="button" className="btn-admin-primary whitespace-nowrap" onClick={(e) => openCreate(e.currentTarget)}>
+            <button
+              type="button"
+              className="whitespace-nowrap rounded-lg px-3 py-2 text-sm border bg-emerald-500/20 border-emerald-300/40 text-emerald-200 hover:bg-emerald-500/30"
+              onClick={(e) => openCreate(e.currentTarget)}
+            >
               {isVi ? 'Thêm tính năng' : 'Add feature'}
             </button>
           ) : null}
@@ -523,25 +526,21 @@ export default function HomeFeaturesAdminPanel({ heading, mode = 'homeFeatures' 
               <h4 className="text-white text-sm font-semibold">{t('admin.legalSectionContent')}</h4>
               <div className="block min-w-0">
                 <span className="text-white/70 text-sm">{t('admin.aboutUsBodyEn')}</span>
-                <div className="mt-1 w-full min-w-0 rounded-lg border border-white/20 overflow-hidden bg-[#1e1e1e] [&_.tox-tinymce]:max-w-none">
-                  <AdminTinyMceEditor
-                    id="home-feature-description-en"
-                    value={form.description}
-                    onChange={(html) => setForm((f) => ({ ...f, description: html }))}
-                    disabled={!canAny(editingId == null ? 'create' : 'update')}
-                  />
-                </div>
+                <textarea
+                  className="mt-1 w-full min-h-32 px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                  value={form.description}
+                  onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                  disabled={!canAny(editingId == null ? 'create' : 'update')}
+                />
               </div>
               <div className="block min-w-0">
                 <span className="text-white/70 text-sm">{t('admin.aboutUsBodyVi')}</span>
-                <div className="mt-1 w-full min-w-0 rounded-lg border border-white/20 overflow-hidden bg-[#1e1e1e] [&_.tox-tinymce]:max-w-none">
-                  <AdminTinyMceEditor
-                    id="home-feature-description-vi"
-                    value={form.descriptionVi}
-                    onChange={(html) => setForm((f) => ({ ...f, descriptionVi: html }))}
-                    disabled={!canAny(editingId == null ? 'create' : 'update')}
-                  />
-                </div>
+                <textarea
+                  className="mt-1 w-full min-h-32 px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                  value={form.descriptionVi}
+                  onChange={(e) => setForm((f) => ({ ...f, descriptionVi: e.target.value }))}
+                  disabled={!canAny(editingId == null ? 'create' : 'update')}
+                />
               </div>
             </section>
             <label className="block">

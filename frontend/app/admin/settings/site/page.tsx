@@ -23,6 +23,7 @@ function SiteSettingsContent() {
     if (canLegal) {
       out.push({ id: 'privacy', label: t('admin.privacyPolicy') });
       out.push({ id: 'terms', label: t('admin.termsOfService') });
+      out.push({ id: 'cookies', label: t('admin.cookiePolicy') });
     }
     if (canUi) out.push({ id: 'ui', label: t('admin.uiMessages') });
     return out;
@@ -52,6 +53,7 @@ function SiteSettingsContent() {
       <AdminSettingsTabs basePath="/admin/settings/site" tabs={tabs} activeId={activeTab} />
       {activeTab === 'privacy' ? <LegalPageAdminPanel kind="privacy" /> : null}
       {activeTab === 'terms' ? <LegalPageAdminPanel kind="terms" /> : null}
+      {activeTab === 'cookies' ? <LegalPageAdminPanel kind="cookie" /> : null}
       {activeTab === 'ui' ? <TranslationsAdminPanel /> : null}
     </div>
   );

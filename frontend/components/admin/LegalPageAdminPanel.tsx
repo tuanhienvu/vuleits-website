@@ -25,8 +25,18 @@ export default function LegalPageAdminPanel({ kind }: LegalPageAdminPanelProps) 
   const [form, setForm] = useState<LegalPagePayload>(() => defaultLegalPagePayload(kind));
   const [baseline, setBaseline] = useState('');
 
-  const endpoint = kind === 'privacy' ? apiPath('admin/privacy-policy') : apiPath('admin/terms-of-service');
-  const heading = kind === 'privacy' ? t('admin.privacyPolicy') : t('admin.termsOfService');
+  const endpoint =
+    kind === 'privacy'
+      ? apiPath('admin/privacy-policy')
+      : kind === 'terms'
+        ? apiPath('admin/terms-of-service')
+        : apiPath('admin/cookie-policy');
+  const heading =
+    kind === 'privacy'
+      ? t('admin.privacyPolicy')
+      : kind === 'terms'
+        ? t('admin.termsOfService')
+        : t('admin.cookiePolicy');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -53,15 +63,31 @@ export default function LegalPageAdminPanel({ kind }: LegalPageAdminPanelProps) 
     void load();
   }, [can, load]);
 
+  const buildUpdatedLabels = () => {
+    const now = new Date();
+    const updatedAtLabelEn = `Last updated: ${new Intl.DateTimeFormat('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    }).format(now)}`;
+    const updatedAtLabelVi = `Cap nhat lan cuoi: ${new Intl.DateTimeFormat('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    }).format(now)}`;
+    return { updatedAtLabelEn, updatedAtLabelVi };
+  };
+
   const save = async () => {
     if (!can('aboutTeam', 'update')) return;
     setSaving(true);
     try {
+      const payload: LegalPagePayload = { ...form, ...buildUpdatedLabels() };
       const res = await fetch(endpoint, {
         method: 'PUT',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) {
         const j = (await res.json().catch(() => ({}))) as { error?: string };
@@ -164,6 +190,8 @@ export default function LegalPageAdminPanel({ kind }: LegalPageAdminPanelProps) 
                   value={form.bodyEn}
                   onChange={(html) => setForm((f) => ({ ...f, bodyEn: html }))}
                   disabled={!can('aboutTeam', 'update')}
+                  allowEmbeddedCode
+                  warnPasteSanitize={false}
                 />
               </div>
             </label>
@@ -176,6 +204,8 @@ export default function LegalPageAdminPanel({ kind }: LegalPageAdminPanelProps) 
                   value={form.bodyVi}
                   onChange={(html) => setForm((f) => ({ ...f, bodyVi: html }))}
                   disabled={!can('aboutTeam', 'update')}
+                  allowEmbeddedCode
+                  warnPasteSanitize={false}
                 />
               </div>
             </label>

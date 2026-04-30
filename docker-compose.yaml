@@ -9,19 +9,35 @@
 #   MYSQL_PASSWORD          — must match DATABASE_URL user password below
 #   MYSQL_ROOT_PASSWORD     — MySQL root password
 #
-# Recommended for public URL / CORS:
-#   NEXT_PUBLIC_SITE_URL    — e.g. http://113.161.254.4 or https://your-domain
-#   CORS_ORIGINS            — same origin(s) as the browser uses for the frontend
-#   FRONTEND_ORIGIN        — usually same as NEXT_PUBLIC_SITE_URL
+# Public URL / CORS (must match what users type in the browser, including http vs https):
+#   NEXT_PUBLIC_SITE_URL    — e.g. https://example.com or http://203.0.113.10:3001
+#   FRONTEND_ORIGIN          — usually identical to NEXT_PUBLIC_SITE_URL
+#   CORS_ORIGINS             — comma-separated list; include every origin that calls the API (www + apex, etc.)
+#   AUTH_COOKIE_SECURE      — 1 for HTTPS, 0 for plain HTTP. If unset, the backend infers from the URL scheme
+#                              in FRONTEND_ORIGIN / NEXT_PUBLIC_SITE_URL; set explicitly if TLS stops at Nginx and
+#                              those vars are still http://.
 #
-# Plain HTTP (no TLS): set AUTH_COOKIE_SECURE=0 so the admin session cookie is sent over HTTP.
+# Stack images (see env IMAGE_TAG, default V1.0.0):
+#   tuanhienvu/vuleits-website-backend:${IMAGE_TAG}
+#   tuanhienvu/vuleits-website-frontend:${IMAGE_TAG}
+# Infra: official mysql:8.4 and redis:8-alpine (pull for latest patch releases).
+# Ports: frontend 3001, backend 5001 (host mapping via FRONTEND_PORT / BACKEND_PORT, defaults unchanged).
 #
+# TLS (Certbot + Nginx): terminate HTTPS on the host; proxy to 127.0.0.1:3001 (or Docker published port).
+# Set NEXT_PUBLIC_* / CORS / FRONTEND_ORIGIN to https://your-domain (not http://container).
+# If TLS stops at Nginx but env still says http://, set AUTH_COOKIE_SECURE=1. See deploy/nginx-ssl.example.conf.
+#
+# Default project network `proxy_network` is created by Compose (no manual docker network create).
+# To attach an external reverse proxy instead: docker-compose.override.yml with networks.default.external: true
+#
+# `db-init` runs `docker/mysql-db-init.sh` (quoted passwords; supports special chars in MYSQL_* passwords).
+# If it fails: `docker logs mysql_db-init`
 # `env_file: .env` loads the repo-root `.env` into each app container. Values under `environment:`
 # still win when the same key is set both ways (e.g. DATABASE_URL, JWT_SECRET from compose).
 
 services:
   mysql:
-    image: tuanhienvu/mysql:8.4
+    image: mysql:8.4
     container_name: mysql_db
     # labels:
       # - "com.centurylinklabs.watchtower.enable=true"
@@ -50,22 +66,17 @@ services:
       mysql:
         condition: service_healthy
     environment:
-      MYSQL_DATABASE: vuleits_db
-      MYSQL_USER: vuleits
+      MYSQL_HOST: mysql
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-vuleits_db}
+      MYSQL_USER: ${MYSQL_USER:-vuleits}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-changeme}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootchangeme}
-    command: >
-      sh -c "
-      mysql -hmysql -uroot -p$$MYSQL_ROOT_PASSWORD -e
-      \"CREATE DATABASE IF NOT EXISTS \\`$$MYSQL_DATABASE\\`;
-      CREATE USER IF NOT EXISTS '$$MYSQL_USER'@'%' IDENTIFIED BY '$$MYSQL_PASSWORD';
-      ALTER USER '$$MYSQL_USER'@'%' IDENTIFIED BY '$$MYSQL_PASSWORD';
-      GRANT ALL PRIVILEGES ON \\`$$MYSQL_DATABASE\\`.* TO '$$MYSQL_USER'@'%';
-      FLUSH PRIVILEGES;\"
-      "
+    volumes:
+      - ./docker/mysql-db-init.sh:/mysql-db-init.sh:ro
+    command: ["/bin/sh", "/mysql-db-init.sh"]
 
   redis:
-    image: tuanhienvu/redis:7-alpine
+    image: redis:8-alpine
     container_name: redis-cache
     # labels:
     #   - "com.centurylinklabs.watchtower.enable=true"
@@ -82,7 +93,7 @@ services:
       retries: 5
 
   backend:
-    image: tuanhienvu/vuleits-website-backend:${IMAGE_TAG:-V1.0.1}
+    image: tuanhienvu/vuleits-website-backend:${IMAGE_TAG:-V1.0.3}
     container_name: vuleits-website-backend
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
@@ -92,6 +103,8 @@ services:
     restart: unless-stopped
     ports:
       - "${BACKEND_PORT:-5001}:5001"
+    volumes:
+      - backend_uploads:/app/.next/standalone/backend/public/uploads
     environment:
       NODE_ENV: production
       PORT: "5001"
@@ -100,10 +113,18 @@ services:
       REDIS_URL: redis://redis:6379
       JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
       TRUST_FORWARDED_FOR: "1"
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://vuleits.com:3001,http://103.10.15.106:3001}
-      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://vuleits.com:3001}
-      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://vuleits.com:3001}
-      AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-0}
+      CORS_ORIGINS: ${CORS_ORIGINS:-https://vuleits.com,https://www.vuleits.com}
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-https://vuleits.com}
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-https://vuleits.com}
+      UPLOADS_ROOT: ${UPLOADS_ROOT:-/app/.next/standalone/backend/public/uploads}
+      # Omit or leave empty in .env to infer from FRONTEND_ORIGIN / NEXT_PUBLIC_SITE_URL; use 0/1 to override.
+      AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-}
+      # 1 = on first container start, clear content tables then load prisma/seed.db.snapshot.json (users/RBAC kept).
+      # Omit or 0 = seed snapshot only into empty tables (typical deploy); avoids wiping live CMS edits.
+      SEED_RESET_CONTENT: ${SEED_RESET_CONTENT:-}
+      # Safety default: do not run seed automatically on every deploy/restart.
+      # Set SKIP_DB_SEED=0 only when you intentionally want to run seed.
+      SKIP_DB_SEED: ${SKIP_DB_SEED:-1}
     # Any HTTP response means Node is listening (GET / can be 5xx during startup).
     healthcheck:
       test:
@@ -126,7 +147,7 @@ services:
         condition: service_healthy
 
   frontend:
-    image: tuanhienvu/vuleits-website-frontend:${IMAGE_TAG:-V1.0.1}
+    image: tuanhienvu/vuleits-website-frontend:${IMAGE_TAG:-V1.0.3}
     container_name: vuleits-website-frontend
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
@@ -141,8 +162,8 @@ services:
       PORT: "3001"
       HOSTNAME: "0.0.0.0"
       BACKEND_INTERNAL_URL: ${BACKEND_INTERNAL_URL:-http://backend:5001}
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://vuleits.com:5001/api}
-      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://vuleits.com:3001}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://vuleits.com/api}
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-https://vuleits.com}
     depends_on:
       backend:
         condition: service_healthy
@@ -150,8 +171,8 @@ services:
 volumes:
   mysql_data:
   redis_data:
+  backend_uploads:
 
 networks:
   default:
     name: proxy_network
-    external: true

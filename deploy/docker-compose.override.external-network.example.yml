@@ -1,0 +1,10 @@
+# Optional: only if the host already has a Docker network named `proxy_network` and Compose must use it
+# (for example, another stack created it). Copy to the repo root as:
+#   cp deploy/docker-compose.override.external-network.example.yml docker-compose.override.yml
+#
+# Do not use this on a fresh server; the main docker-compose.yaml creates `proxy_network` for you.
+
+networks:
+  default:
+    name: proxy_network
+    external: true

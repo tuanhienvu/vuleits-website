@@ -16,6 +16,8 @@ import type { PublicProductDetail } from '@/lib/products/types';
 import { youtubeEmbedFromUrl } from '@/lib/products/videoEmbed';
 import { apiPath } from '@/lib/apiRoutes';
 import { useLocale } from '@/components/providers/LocaleProvider';
+import { richTextAsPlain } from '@/lib/richTextAdmin';
+import { normalizePublicAssetUrlForBrowser } from '@/lib/normalizePublicAssetUrl';
 
 const RelatedProductsRow = dynamic(() => import('@/components/products/related/RelatedProductsRow'), {
   ssr: false,
@@ -53,6 +55,7 @@ export default function ProductDetailClient({ initial }: { initial: PublicProduc
   const [shellFromListing, setShellFromListing] = useState(false);
   const [exiting, setExiting] = useState(false);
   const viewTrackedRef = useRef(false);
+  const shortDescriptionText = richTextAsPlain(product.shortDescription || '');
 
   useEffect(() => {
     setProduct(initial);
@@ -142,7 +145,9 @@ export default function ProductDetailClient({ initial }: { initial: PublicProduc
     finishExitAndNavigate();
   }, [exiting, finishExitAndNavigate]);
 
-  const mainImage = product.imageUrls[0] ?? null;
+  const normalizedImageUrls = product.imageUrls.map(normalizePublicAssetUrlForBrowser);
+  const normalizedVideoUrls = product.videoUrls.map(normalizePublicAssetUrlForBrowser);
+  const mainImage = normalizedImageUrls[0] ?? null;
   const useShell = shellFromListing && shellBounds != null && !skipMotion;
   const b = shellBounds;
 
@@ -196,7 +201,7 @@ export default function ProductDetailClient({ initial }: { initial: PublicProduc
           ) : null}
         </div>
         <h1 className="text-4xl md:text-5xl font-bold text-fg mb-4">{product.productName}</h1>
-        <p className="text-lg text-fg-muted max-w-3xl">{product.shortDescription}</p>
+        <p className="text-lg text-fg-muted max-w-3xl">{shortDescriptionText}</p>
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <p className="text-sm text-fg-subtle">
             {product.authorName ? `${t('news.byAuthor', { author: product.authorName })} · ` : null}
@@ -216,7 +221,7 @@ export default function ProductDetailClient({ initial }: { initial: PublicProduc
               });
               const url = typeof window !== 'undefined' ? window.location.href : '';
               if (navigator.share) {
-                void navigator.share({ title: product.productName, text: product.shortDescription, url }).catch(() => {
+                void navigator.share({ title: product.productName, text: shortDescriptionText, url }).catch(() => {
                   void navigator.clipboard.writeText(url);
                 });
               } else if (url) {
@@ -259,11 +264,11 @@ export default function ProductDetailClient({ initial }: { initial: PublicProduc
         </motion.div>
       ) : null}
 
-      {product.imageUrls.length > 1 ? (
+      {normalizedImageUrls.length > 1 ? (
         <section className="mb-12" aria-label={t('products.gallery')}>
           <h2 className="text-xl font-semibold text-fg mb-4">{t('products.gallery')}</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {product.imageUrls.slice(1).map((src, i) => (
+            {normalizedImageUrls.slice(1).map((src, i) => (
               <div
                 key={`${src}-${i}`}
                 className="group overflow-hidden rounded-2xl border border-white/10 bg-white/5 aspect-video"
@@ -281,11 +286,11 @@ export default function ProductDetailClient({ initial }: { initial: PublicProduc
         </section>
       ) : null}
 
-      {product.videoUrls.length > 0 ? (
+      {normalizedVideoUrls.length > 0 ? (
         <section className="mb-12" aria-label={t('products.videos')}>
           <h2 className="text-xl font-semibold text-fg mb-4">{t('products.videos')}</h2>
           <div className="space-y-6">
-            {product.videoUrls.map((url, i) => {
+            {normalizedVideoUrls.map((url, i) => {
               const embed = youtubeEmbedFromUrl(url);
               return (
                 <div key={`${url}-${i}`} className="overflow-hidden rounded-2xl border border-white/10 bg-black/40 aspect-video">
@@ -350,9 +355,12 @@ export default function ProductDetailClient({ initial }: { initial: PublicProduc
           <ul className="flex flex-wrap gap-3">
             {product.technologies.map((t) => (
               <li key={t.id}>
+                {(() => {
+                  const techDescriptionText = richTextAsPlain(t.description ?? '');
+                  return (
                 <span
                   className="group relative inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 py-2 transition hover:border-emerald-400/40 hover:bg-white/10"
-                  title={t.description ?? t.name}
+                  title={techDescriptionText || t.name}
                 >
                   {t.logo ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
@@ -361,12 +369,14 @@ export default function ProductDetailClient({ initial }: { initial: PublicProduc
                     <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-lg">⚙</span>
                   )}
                   <span className="text-sm text-fg-muted">{t.name}</span>
-                  {t.description ? (
+                  {techDescriptionText ? (
                     <span className="public-popover-surface pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 w-56 -translate-x-1/2 rounded-lg border border-white/10 px-3 py-2 text-xs text-fg-muted opacity-0 shadow-xl transition group-hover:opacity-100">
-                      {t.description}
+                      {techDescriptionText}
                     </span>
                   ) : null}
                 </span>
+                  );
+                })()}
               </li>
             ))}
           </ul>

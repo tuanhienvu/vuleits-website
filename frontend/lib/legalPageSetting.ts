@@ -1,4 +1,4 @@
-export type LegalPageKind = 'privacy' | 'terms';
+export type LegalPageKind = 'privacy' | 'terms' | 'cookie';
 
 export type LegalPagePayload = {
   titleEn: string;
@@ -24,6 +24,18 @@ export function defaultLegalPagePayload(kind: LegalPageKind): LegalPagePayload {
         '<h2>1. Introduction</h2><p>Welcome to VULE ITS Website. We are committed to protecting your privacy and ensuring a safe experience on our website.</p>',
       bodyVi:
         '<h2>1. Gioi thieu</h2><p>VULE ITS cam ket bao ve quyen rieng tu va mang den trai nghiem an toan cho nguoi dung.</p>',
+      updatedAtLabelEn: 'Last updated: December 13, 2025',
+      updatedAtLabelVi: 'Cap nhat lan cuoi: 13/12/2025',
+    };
+  }
+  if (kind === 'cookie') {
+    return {
+      titleEn: 'Cookie Policy',
+      titleVi: 'Chinh sach Cookie',
+      bodyEn:
+        '<h2>1. What Are Cookies</h2><p>Cookies are small text files stored on your device when you visit our website.</p>',
+      bodyVi:
+        '<h2>1. Cookie la gi</h2><p>Cookie la cac tep van ban nho duoc luu tren thiet bi khi ban truy cap website.</p>',
       updatedAtLabelEn: 'Last updated: December 13, 2025',
       updatedAtLabelVi: 'Cap nhat lan cuoi: 13/12/2025',
     };

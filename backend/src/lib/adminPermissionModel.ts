@@ -15,6 +15,7 @@ export const UI_FEATURES = [
   'userPassword',
   'permissions',
   'auditLogs',
+  'maintenance',
 ] as const;
 
 export type AdminUiFeatureId = (typeof UI_FEATURES)[number];

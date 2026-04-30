@@ -11,13 +11,19 @@ import {
 
 function normalizeFeatures(input: unknown): string | null {
   if (input === undefined || input === null) return null;
-  if (Array.isArray(input)) return JSON.stringify(input.map((x) => String(x)));
+  if (Array.isArray(input)) return JSON.stringify(input.map((x) => String(x).trim()).filter(Boolean));
   if (typeof input === 'string') {
     const s = input.trim();
     if (!s) return JSON.stringify([]);
     try {
       const parsed = JSON.parse(s);
-      if (Array.isArray(parsed)) return JSON.stringify(parsed.map((x) => String(x)));
+      if (Array.isArray(parsed)) return JSON.stringify(parsed.map((x) => String(x).trim()).filter(Boolean));
+      if (parsed && typeof parsed === 'object') {
+        const p = parsed as Record<string, unknown>;
+        const en = Array.isArray(p.en) ? p.en.map((x) => String(x).trim()).filter(Boolean) : [];
+        const vi = Array.isArray(p.vi) ? p.vi.map((x) => String(x).trim()).filter(Boolean) : [];
+        return JSON.stringify({ en, vi });
+      }
     } catch {
       // fallthrough
     }
@@ -26,6 +32,12 @@ function normalizeFeatures(input: unknown): string | null {
       .map((x) => x.trim())
       .filter(Boolean);
     return JSON.stringify(lines);
+  }
+  if (typeof input === 'object') {
+    const p = input as Record<string, unknown>;
+    const en = Array.isArray(p.en) ? p.en.map((x) => String(x).trim()).filter(Boolean) : [];
+    const vi = Array.isArray(p.vi) ? p.vi.map((x) => String(x).trim()).filter(Boolean) : [];
+    return JSON.stringify({ en, vi });
   }
   return JSON.stringify(input);
 }

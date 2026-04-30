@@ -9,6 +9,39 @@ import {
   setCategoryAssignment,
 } from '@/lib/contentCategoryAssignments';
 
+function normalizeFeatures(input: unknown): string | null {
+  if (input === undefined || input === null) return null;
+  if (Array.isArray(input)) return JSON.stringify(input.map((x) => String(x).trim()).filter(Boolean));
+  if (typeof input === 'string') {
+    const s = input.trim();
+    if (!s) return JSON.stringify([]);
+    try {
+      const parsed = JSON.parse(s);
+      if (Array.isArray(parsed)) return JSON.stringify(parsed.map((x) => String(x).trim()).filter(Boolean));
+      if (parsed && typeof parsed === 'object') {
+        const p = parsed as Record<string, unknown>;
+        const en = Array.isArray(p.en) ? p.en.map((x) => String(x).trim()).filter(Boolean) : [];
+        const vi = Array.isArray(p.vi) ? p.vi.map((x) => String(x).trim()).filter(Boolean) : [];
+        return JSON.stringify({ en, vi });
+      }
+    } catch {
+      // fallthrough
+    }
+    const lines = s
+      .split(/\r?\n/)
+      .map((x) => x.trim())
+      .filter(Boolean);
+    return JSON.stringify(lines);
+  }
+  if (typeof input === 'object') {
+    const p = input as Record<string, unknown>;
+    const en = Array.isArray(p.en) ? p.en.map((x) => String(x).trim()).filter(Boolean) : [];
+    const vi = Array.isArray(p.vi) ? p.vi.map((x) => String(x).trim()).filter(Boolean) : [];
+    return JSON.stringify({ en, vi });
+  }
+  return JSON.stringify(input);
+}
+
 export async function GET(req: Request) {
   const auth = await authorize(req, 'services.read');
   if (auth.error) return auth.error;
@@ -59,17 +92,7 @@ export async function POST(req: Request) {
   const isActive = body.isActive === undefined ? true : Boolean(body.isActive);
   const categorySlug = typeof body.categorySlug === 'string' ? body.categorySlug.trim() : '';
 
-  let features: string | null = null;
-  const rawFeatures = body.features;
-  if (rawFeatures !== undefined && rawFeatures !== null) {
-    if (Array.isArray(rawFeatures)) {
-      features = JSON.stringify(rawFeatures.map((x) => String(x)));
-    } else if (typeof rawFeatures === 'string') {
-      features = String(rawFeatures);
-    } else {
-      features = JSON.stringify(rawFeatures);
-    }
-  }
+  const features = normalizeFeatures(body.features);
 
   if (!icon || !title || !description) return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
   if (!Number.isFinite(order)) return NextResponse.json({ error: 'Invalid order' }, { status: 400 });

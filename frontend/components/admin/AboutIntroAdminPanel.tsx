@@ -1,16 +1,18 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { defaultAboutIntroPayload, sanitizeHeroImageSrc, type AboutIntroPayload } from '@/lib/aboutIntroSetting';
 import { useAdminPermissions } from '@/components/admin/AdminPermissionContext';
 import { useToast } from '@/components/providers/ToastProvider';
 import { useLocale } from '@/components/providers/LocaleProvider';
 import AdminTinyMceEditor from '@/components/admin/AdminTinyMceEditor';
 import { apiPath } from '@/lib/apiRoutes';
+import { normalizePublicAssetUrlForBrowser } from '@/lib/normalizePublicAssetUrl';
 
 // --- Sections (UI): Sticky header | Titles | Intro (TinyMCE) | Hero image & preview ---
 
 export default function AboutIntroAdminPanel() {
+  type MediaLibraryRow = { id: number; filename: string; url: string };
   const { t } = useLocale();
   const { can } = useAdminPermissions();
   const toast = useToast();
@@ -18,6 +20,11 @@ export default function AboutIntroAdminPanel() {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<AboutIntroPayload>(() => defaultAboutIntroPayload());
   const [baseline, setBaseline] = useState('');
+  const [heroUploading, setHeroUploading] = useState(false);
+  const [heroPickerOpen, setHeroPickerOpen] = useState(false);
+  const [heroPickerLoading, setHeroPickerLoading] = useState(false);
+  const [heroList, setHeroList] = useState<MediaLibraryRow[]>([]);
+  const heroFileInputRef = useRef<HTMLInputElement>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -73,7 +80,64 @@ export default function AboutIntroAdminPanel() {
   };
 
   const hasChanges = baseline !== '' && baseline !== JSON.stringify(form);
-  const heroPreviewSrc = useMemo(() => sanitizeHeroImageSrc(form.heroImageUrl), [form.heroImageUrl]);
+  const heroPreviewSrc = useMemo(() => {
+    const sanitized = sanitizeHeroImageSrc(form.heroImageUrl);
+    return sanitized ? normalizePublicAssetUrlForBrowser(sanitized) : null;
+  }, [form.heroImageUrl]);
+
+  const uploadHeroImage = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (!can('media', 'create')) return;
+      const file = e.target.files?.[0];
+      if (!file) return;
+      setHeroUploading(true);
+      try {
+        const fd = new FormData();
+        fd.append('file', file);
+        fd.append('folder', 'library');
+        const res = await fetch(apiPath('admin/media'), { method: 'POST', credentials: 'include', body: fd });
+        if (!res.ok) throw new Error('Upload failed');
+        const row = (await res.json()) as { url?: string; media?: { url?: string } };
+        const nextUrl = row?.media?.url?.trim() || row?.url?.trim() || '';
+        if (nextUrl) {
+          setForm((f) => ({ ...f, heroImageUrl: normalizePublicAssetUrlForBrowser(nextUrl) }));
+          toast.success(t('admin.uploaded'));
+        } else {
+          toast.error('Upload succeeded but URL is empty');
+        }
+      } catch {
+        toast.error('Upload failed');
+      } finally {
+        setHeroUploading(false);
+        e.target.value = '';
+      }
+    },
+    [can, t, toast],
+  );
+
+  const openHeroPicker = useCallback(async () => {
+    if (!can('media', 'read')) {
+      toast.error('Media read permission is required');
+      return;
+    }
+    setHeroPickerOpen(true);
+    setHeroPickerLoading(true);
+    try {
+      const res = await fetch(`${apiPath('admin/media')}?take=120&imagesOnly=1`, { credentials: 'include' });
+      if (!res.ok) throw new Error('Load media failed');
+      const rows = (await res.json()) as MediaLibraryRow[];
+      setHeroList(Array.isArray(rows) ? rows : []);
+    } catch {
+      setHeroList([]);
+    } finally {
+      setHeroPickerLoading(false);
+    }
+  }, [can, toast]);
+
+  const pickHeroImage = useCallback((m: MediaLibraryRow) => {
+    setForm((f) => ({ ...f, heroImageUrl: normalizePublicAssetUrlForBrowser(m.url) }));
+    setHeroPickerOpen(false);
+  }, []);
 
   if (!can('aboutTeam', 'read')) {
     return <div className="text-white/70">{t('admin.aboutUsNoPermission')}</div>;
@@ -152,6 +216,8 @@ export default function AboutIntroAdminPanel() {
                   value={form.bodyEn}
                   onChange={(html) => setForm((f) => ({ ...f, bodyEn: html }))}
                   disabled={!can('aboutTeam', 'update')}
+                  allowEmbeddedCode
+                  warnPasteSanitize={false}
                 />
               </div>
             </label>
@@ -164,6 +230,8 @@ export default function AboutIntroAdminPanel() {
                   value={form.bodyVi}
                   onChange={(html) => setForm((f) => ({ ...f, bodyVi: html }))}
                   disabled={!can('aboutTeam', 'update')}
+                  allowEmbeddedCode
+                  warnPasteSanitize={false}
                 />
               </div>
             </label>
@@ -184,6 +252,43 @@ export default function AboutIntroAdminPanel() {
                     placeholder={t('admin.heroImageUrlPlaceholder')}
                   />
                 </label>
+                <input
+                  ref={heroFileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => void uploadHeroImage(e)}
+                  disabled={!can('aboutTeam', 'update') || heroUploading}
+                />
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    className="btn-admin-secondary"
+                    onClick={() => heroFileInputRef.current?.click()}
+                    disabled={!can('aboutTeam', 'update') || !can('media', 'create') || heroUploading}
+                  >
+                    {heroUploading ? (t('admin.uploading') || 'Uploading...') : t('admin.upload')}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-admin-secondary"
+                    onClick={() => void openHeroPicker()}
+                    disabled={!can('aboutTeam', 'update') || !can('media', 'read')}
+                  >
+                    {t('admin.selectImage') || 'Select image'}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-admin-secondary"
+                    onClick={() => setForm((f) => ({ ...f, heroImageUrl: '' }))}
+                    disabled={!can('aboutTeam', 'update')}
+                  >
+                    {t('admin.remove') || 'Remove'}
+                  </button>
+                </div>
+                <p className="text-xs text-white/55">
+                  {t('admin.heroImageUrlPlaceholder')} {`(${t('admin.upload')} / ${t('admin.selectImage') || 'Select'} / URL)`}
+                </p>
                 <div className="grid md:grid-cols-2 gap-3">
                   <label className="block">
                     <span className="text-white/70 text-sm">{t('admin.aboutUsHeroAltEn')}</span>
@@ -223,6 +328,47 @@ export default function AboutIntroAdminPanel() {
           </section>
         </div>
       )}
+
+      {heroPickerOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" role="dialog" aria-modal="true">
+          <div className="glass rounded-2xl border border-white/15 max-w-2xl w-full max-h-[85vh] flex flex-col shadow-xl">
+            <div className="flex items-center justify-between gap-2 p-4 border-b border-white/10">
+              <h3 className="text-lg font-semibold text-white">{t('admin.selectImage') || 'Select image'}</h3>
+              <button
+                type="button"
+                className="text-white/70 hover:text-white px-2 py-1 rounded-lg hover:bg-white/10"
+                onClick={() => setHeroPickerOpen(false)}
+              >
+                {t('admin.close') || 'Close'}
+              </button>
+            </div>
+            <div className="overflow-y-auto p-4 min-h-[120px]">
+              {heroPickerLoading ? (
+                <p className="text-white/60 text-sm">{t('common.loading') || 'Loading...'}</p>
+              ) : heroList.length === 0 ? (
+                <p className="text-white/50 text-sm">{t('admin.noMediaYet') || 'No images in media library yet.'}</p>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {heroList.map((row) => (
+                    <button
+                      key={row.id}
+                      type="button"
+                      onClick={() => pickHeroImage(row)}
+                      className="rounded-xl border border-white/15 overflow-hidden bg-white/5 hover:border-cyan-400/50 hover:bg-white/10 transition text-left"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={normalizePublicAssetUrlForBrowser(row.url)} alt="" className="w-full aspect-square object-cover" />
+                      <span className="block px-2 py-1.5 text-white/80 text-xs truncate" title={row.filename}>
+                        {row.filename}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

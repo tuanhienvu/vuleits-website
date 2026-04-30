@@ -191,7 +191,11 @@ export default function CategoriesAdminPanel() {
           </p>
         </div>
         {can(activeFeature, 'create') ? (
-          <button type="button" className="btn-admin-primary w-full md:w-auto" onClick={(e) => startCreate(e.currentTarget)}>
+          <button
+            type="button"
+            className="w-full md:w-auto rounded-lg px-3 py-2 text-sm border bg-emerald-500/20 border-emerald-300/40 text-emerald-200 hover:bg-emerald-500/30"
+            onClick={(e) => startCreate(e.currentTarget)}
+          >
             {isVi ? 'Thêm danh mục' : 'Add category'}
           </button>
         ) : null}

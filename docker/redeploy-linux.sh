@@ -2,7 +2,7 @@
 # Run from repo clone on Linux: bash docker/redeploy-linux.sh
 # Or: npm run docker:linux:redeploy
 #
-# Stops the compose stack, removes old vuleits* app images, pulls V1.0.1, starts fresh.
+# Stops the compose stack, removes old vuleits* app images, pulls IMAGE_TAG from .env (default V1.0.0), starts fresh.
 # MySQL/Redis named volumes are kept (data preserved).
 
 set -euo pipefail
@@ -16,8 +16,12 @@ echo "==> Stopping stack (containers removed; mysql/redis volumes kept)..."
 
 echo "==> Removing previous app images (safe to ignore 'No such image')..."
 for image in \
+  tuanhienvu/vuleits-website-backend:latest \
+  tuanhienvu/vuleits-website-frontend:latest \
   tuanhienvu/vuleits-website-backend:V1.0.2 \
   tuanhienvu/vuleits-website-frontend:V1.0.2 \
+  tuanhienvu/vuleits-website-backend:V1.0.0 \
+  tuanhienvu/vuleits-website-frontend:V1.0.0 \
   tuanhienvu/vuleits-website-backend:V1.0.1 \
   tuanhienvu/vuleits-website-frontend:V1.0.1 \
   tuanhienvu/vuleits-backend:V1.0.1 \
@@ -32,10 +36,10 @@ do
   docker rmi -f "$image" 2>/dev/null || true
 done
 
-echo "==> Pulling registry images (V1.0.1)..."
+echo "==> Pulling registry images (IMAGE_TAG from .env)..."
 "${COMPOSE[@]}" pull
 
 echo "==> Starting containers..."
 "${COMPOSE[@]}" up -d
 
-echo "==> Done. Backend container runs prisma generate, db push, then npm run seed before the API (override with SKIP_DB_SEED=1)."
+echo "==> Done. Backend container runs prisma generate + db push; seed is skipped by default (SKIP_DB_SEED=1). Set SKIP_DB_SEED=0 only for intentional seeding."

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useLocale } from '@/components/providers/LocaleProvider';
+import { richTextAsPlain } from '@/lib/richTextAdmin';
 
 export type NewsCarouselCard = {
   id: number;
@@ -168,6 +169,7 @@ function NewsCardContent({ article }: { article: NewsCarouselCard }) {
 
 function NewsCardInner({ article }: { article: NewsCarouselCard }) {
   const { t } = useLocale();
+  const descriptionText = richTextAsPlain(article.description || '');
   return (
     <>
       <div className="relative w-full h-24 rounded-lg overflow-hidden bg-(--pub-card-image-well-bg) mb-4">
@@ -185,7 +187,7 @@ function NewsCardInner({ article }: { article: NewsCarouselCard }) {
         )}
       </div>
       <p className="text-fg font-semibold">{article.title}</p>
-      <p className="text-fg-muted text-sm mt-2">{article.description}</p>
+      <p className="text-fg-muted text-sm mt-2">{descriptionText}</p>
       <p className="text-fg-subtle text-xs mt-3">{new Date(article.publishedAt).toLocaleDateString()}</p>
       <p className="text-fg-subtle text-[11px] mt-1">{t('news.byAuthor', { author: article.authorName })}</p>
     </>

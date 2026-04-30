@@ -1,5 +1,8 @@
 export const PRIVACY_POLICY_SETTING_KEY = 'legal_privacy_policy_page';
 export const TERMS_OF_SERVICE_SETTING_KEY = 'legal_terms_of_service_page';
+export const COOKIE_POLICY_SETTING_KEY = 'legal_cookie_policy_page';
+
+export type LegalPageKindInternal = 'privacy' | 'terms' | 'cookie';
 
 export type LegalPagePayload = {
   titleEn: string;
@@ -16,7 +19,7 @@ export type LegalPagePublic = {
   updatedAtLabel: string;
 };
 
-function buildDefaultPayload(kind: 'privacy' | 'terms'): LegalPagePayload {
+function buildDefaultPayload(kind: LegalPageKindInternal): LegalPagePayload {
   if (kind === 'privacy') {
     return {
       titleEn: 'Privacy',
@@ -25,6 +28,19 @@ function buildDefaultPayload(kind: 'privacy' | 'terms'): LegalPagePayload {
         '<h2>1. Introduction</h2><p>Welcome to VULE ITS Website. We are committed to protecting your privacy and ensuring a safe experience on our website.</p><h2>2. Information We Collect</h2><p>We may collect contact information, usage data, and technical data required to provide and improve our services.</p><h2>3. How We Use Information</h2><p>We use collected information to operate services, provide support, and improve product quality.</p><h2>4. Contact</h2><p>For privacy-related requests, please contact us through the Contact section.</p>',
       bodyVi:
         '<h2>1. Gioi thieu</h2><p>VULE ITS cam ket bao ve quyen rieng tu va mang den trai nghiem an toan cho nguoi dung.</p><h2>2. Du lieu thu thap</h2><p>Chung toi co the thu thap thong tin lien he, du lieu su dung va thong tin ky thuat can thiet de van hanh dich vu.</p><h2>3. Muc dich su dung</h2><p>Du lieu duoc su dung de cung cap dich vu, ho tro khach hang va nang cao chat luong san pham.</p><h2>4. Lien he</h2><p>Vui long lien he qua muc Lien he neu ban co yeu cau lien quan den bao mat.</p>',
+      updatedAtLabelEn: 'Last updated: December 13, 2025',
+      updatedAtLabelVi: 'Cap nhat lan cuoi: 13/12/2025',
+    };
+  }
+
+  if (kind === 'cookie') {
+    return {
+      titleEn: 'Cookie Policy',
+      titleVi: 'Chinh sach Cookie',
+      bodyEn:
+        '<h2>1. What Are Cookies</h2><p>Cookies are small text files stored on your device when you visit our website. They help the site function, remember preferences, and improve your experience.</p><h2>2. How We Use Cookies</h2><p>We may use essential cookies for security and core functionality, and optional cookies for analytics or personalization where permitted. You can adjust preferences via the cookie controls on this site.</p><h2>3. Managing Cookies</h2><p>You can change your choices at any time using the cookie preference link in the footer. You can also control cookies through your browser settings.</p><h2>4. Contact</h2><p>For questions about this policy, please use the Contact section.</p>',
+      bodyVi:
+        '<h2>1. Cookie la gi</h2><p>Cookie la cac tep van ban nho duoc luu tren thiet bi khi ban truy cap website. Chung giup van hanh trang web, ghi nho tuy chon va cai thien trai nghiem.</p><h2>2. Muc dich su dung</h2><p>Chung toi co the su dung cookie thiet yeu cho bao mat va chuc nang cot loi, va cookie tuy chon cho phan tich hoac ca nhan hoa khi duoc phep. Ban co the dieu chinh qua phan quan ly cookie tren website.</p><h2>3. Quan ly cookie</h2><p>Ban co the thay doi lua chon bat ky luc nao bang lien ket tuy chon cookie o chan trang. Ban cung co the dieu khien cookie trong cai dat trinh duyet.</p><h2>4. Lien he</h2><p>Neu co cau hoi ve chinh sach nay, vui long lien he qua muc Lien he.</p>',
       updatedAtLabelEn: 'Last updated: December 13, 2025',
       updatedAtLabelVi: 'Cap nhat lan cuoi: 13/12/2025',
     };
@@ -50,9 +66,13 @@ export function defaultTermsOfServicePayload(): LegalPagePayload {
   return buildDefaultPayload('terms');
 }
 
+export function defaultCookiePolicyPayload(): LegalPagePayload {
+  return buildDefaultPayload('cookie');
+}
+
 export function parseLegalPageJson(
   raw: string | null | undefined,
-  kind: 'privacy' | 'terms',
+  kind: LegalPageKindInternal,
 ): LegalPagePayload {
   const base = buildDefaultPayload(kind);
   if (!raw?.trim()) return base;

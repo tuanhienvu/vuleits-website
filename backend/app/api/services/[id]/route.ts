@@ -4,11 +4,18 @@ import { sanitizeAboutIntroBodyHtml } from '@/lib/sanitizeAboutIntroHtml';
 import { getCategoryAssignments, getManagedCategories } from '@/lib/contentCategoryAssignments';
 import { parseLocaleQuery, pickLocalized } from '@/lib/i18nContent';
 
-function parseFeatures(features: string | null): string[] {
+function parseFeatures(features: string | null, locale: ReturnType<typeof parseLocaleQuery>): string[] {
   if (!features) return [];
   try {
     const parsed = JSON.parse(features);
     if (Array.isArray(parsed)) return parsed.map((x) => String(x));
+    if (parsed && typeof parsed === 'object') {
+      const p = parsed as Record<string, unknown>;
+      const en = Array.isArray(p.en) ? p.en.map((x) => String(x)) : [];
+      const vi = Array.isArray(p.vi) ? p.vi.map((x) => String(x)) : [];
+      if (locale === 'vi-VN') return vi.length > 0 ? vi : en;
+      return en.length > 0 ? en : vi;
+    }
   } catch {
     // ignore invalid JSON
   }
@@ -69,7 +76,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       icon: service.icon,
       title: svcTitle,
       description: sanitizeAboutIntroBodyHtml(svcDesc ?? ''),
-      features: parseFeatures(service.features).map((x) => sanitizeAboutIntroBodyHtml(x)),
+      features: parseFeatures(service.features, locale).map((x) => sanitizeAboutIntroBodyHtml(x)),
       order: service.order,
       categorySlug,
       categoryName,

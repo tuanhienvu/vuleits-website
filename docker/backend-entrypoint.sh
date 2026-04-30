@@ -29,8 +29,11 @@ while [ "$i" -le 60 ]; do
   sleep 2
 done
 
-if [ "${SKIP_DB_SEED:-0}" = "1" ]; then
-  echo "[vuleits-website-backend] SKIP_DB_SEED=1, skipping seed."
+echo "[vuleits-website-backend] ensuring admin permissions (including maintenance.*)..."
+npm run db:ensure-admin-permissions
+
+if [ "${SKIP_DB_SEED:-1}" = "1" ]; then
+  echo "[vuleits-website-backend] SKIP_DB_SEED=1 (default), skipping seed."
 else
   # Seed can take a long time on first boot; running it before the HTTP server starts
   # makes Docker healthchecks fail (Compose treats the service as unhealthy).

@@ -29,6 +29,7 @@ export const featureToPermissionPrefix: Record<AdminUiFeatureId, string> = {
   userPassword: 'userPassword',
   permissions: 'permissions',
   auditLogs: 'auditLogs',
+  maintenance: 'maintenance',
 };
 
 export const PERMISSION_ACTIONS = ['create', 'read', 'update', 'delete'] as const;

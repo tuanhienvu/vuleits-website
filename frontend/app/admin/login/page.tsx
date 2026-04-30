@@ -8,6 +8,7 @@ import { useLocale } from '@/components/providers/LocaleProvider';
 import BrandingLogo from '@/components/BrandingLogo';
 import { useCompanyBranding } from '@/hooks/useCompanyBranding';
 import { apiPath } from '@/lib/apiRoutes';
+import { PasswordPreviewInput } from '@/components/ui/PasswordPreviewInput';
 
 // --- Sections: Redirect if already authed | Branding header | Login form ---
 
@@ -92,15 +93,15 @@ export default function AdminLogin() {
             <label htmlFor="password" className="text-white font-medium block mb-2">
               {locale === 'vi-VN' ? 'Mật khẩu' : 'Password'}
             </label>
-            <input
-              type="password"
+            <PasswordPreviewInput
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-white/50"
+              inputClassName="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-white/50"
               autoComplete="current-password"
               disabled={loading}
+              previewAriaLabel={t('admin.passwordPreviewAria')}
             />
           </div>
           <button type="submit" disabled={loading} className="w-full public-cta-button py-3 font-semibold text-center mt-6 disabled:opacity-50">

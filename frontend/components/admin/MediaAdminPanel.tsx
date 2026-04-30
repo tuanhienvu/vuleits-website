@@ -9,6 +9,7 @@ import { useToast } from '@/components/providers/ToastProvider';
 import AdminConfirmDialog from '@/components/admin/AdminConfirmDialog';
 import { getModalOriginFromElement, type ModalOriginPoint } from '@/components/admin/useAnimatedOriginModal';
 import { apiPath } from '@/lib/apiRoutes';
+import { normalizePublicAssetUrlForBrowser } from '@/lib/normalizePublicAssetUrl';
 
 // --- Sections (UI): Toolbar (search, upload) | Media grid | Delete confirm ---
 
@@ -72,13 +73,13 @@ export default function MediaAdminPanel() {
           credentials: 'include',
         });
         if (!res.ok) return;
-        const data = (await res.json()) as Array<{ name?: unknown; isActive?: unknown }>;
+        const data = (await res.json()) as Array<{ slug?: unknown; name?: unknown; isActive?: unknown }>;
         if (cancelled || !Array.isArray(data)) return;
-        const names = data
+        const slugs = data
           .filter((x) => x?.isActive !== false)
-          .map((x) => (typeof x.name === 'string' ? x.name.trim() : ''))
+          .map((x) => (typeof x.slug === 'string' ? x.slug.trim() : ''))
           .filter(Boolean);
-        const next = Array.from(new Set(['library', ...names]));
+        const next = Array.from(new Set(['library', ...slugs]));
         setFolderOptions(next);
         setFolder((prev) => (next.includes(prev) ? prev : next[0]));
       } catch {
@@ -307,7 +308,7 @@ export default function MediaAdminPanel() {
                 <div className="aspect-square bg-black/30 relative">
                   {m.mimeType.startsWith('image/') ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
-                    <img src={m.url} alt="" className="w-full h-full object-cover" />
+                    <img src={normalizePublicAssetUrlForBrowser(m.url)} alt="" className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-white/50 text-xs p-2 text-center">{m.mimeType}</div>
                   )}

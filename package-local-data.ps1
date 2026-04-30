@@ -22,7 +22,10 @@ if (Test-Path $SnapshotFile) {
 }
 
 Write-Host "Exporting MySQL data from container mysql_db ..."
-docker exec mysql_db sh -c "mysqldump -uroot -p`"$env:MYSQL_ROOT_PASSWORD`" --single-transaction --routines --triggers --events vuleits_db" | Out-File -Encoding utf8 $SqlOut
+docker exec mysql_db sh -lc 'mysqldump -uroot -p"$MYSQL_ROOT_PASSWORD" --single-transaction --routines --triggers --events vuleits_db' | Out-File -Encoding utf8 $SqlOut
+if ($LASTEXITCODE -ne 0 -or -not (Test-Path $SqlOut) -or ((Get-Item $SqlOut).Length -eq 0)) {
+  throw "Database dump failed. Ensure Docker daemon is running and mysql_db container is healthy."
+}
 
 Write-Host "Package created at: $PackageDir"
 Write-Host "Contains: db.sql, seed.db.snapshot.json, public/frontend, public/backend"

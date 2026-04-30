@@ -164,7 +164,7 @@ export default function CompanySocialLinks({
                 href={link.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-white/10 text-white hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 transition-colors"
+                className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-white/10 text-white transition-all duration-200 hover:scale-110 hover:bg-white/22 hover:shadow-md hover:shadow-black/20 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/45 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
                 aria-label={t('contact.visitOurSocial', { name })}
               >
                 <SocialGlyph type={link.type} />

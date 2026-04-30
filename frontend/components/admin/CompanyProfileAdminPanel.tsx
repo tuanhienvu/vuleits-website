@@ -13,6 +13,7 @@ import { useEscapeToClose } from '@/components/admin/useEscapeToClose';
 import { useLocale } from '@/components/providers/LocaleProvider';
 import { useToast } from '@/components/providers/ToastProvider';
 import { apiPath } from '@/lib/apiRoutes';
+import { normalizePublicAssetUrlForBrowser } from '@/lib/normalizePublicAssetUrl';
 
 // --- Sections (UI): Sticky header | Identity & map | Logo & social | Media library picker ---
 // --- Sections (logic): Load/save profile | Logo modes | Map preview | Social rows ---
@@ -50,8 +51,8 @@ export default function CompanyProfileAdminPanel() {
 
   const logoPreviewSrc = useMemo(() => {
     const u = form.logoUrl.trim();
-    if (u) return u;
-    if (logoDisplayUrl) return logoDisplayUrl;
+    if (u) return normalizePublicAssetUrlForBrowser(u);
+    if (logoDisplayUrl) return normalizePublicAssetUrlForBrowser(logoDisplayUrl);
     return null;
   }, [form.logoUrl, logoDisplayUrl]);
 
@@ -76,7 +77,7 @@ export default function CompanyProfileAdminPanel() {
       const merged = { ...defaultCompanyProfile(), ...(profile ?? {}) };
       setForm(merged);
       setBaseline(JSON.stringify(merged));
-      setLogoDisplayUrl(data.logoDisplayUrl ?? null);
+      setLogoDisplayUrl(data.logoDisplayUrl ? normalizePublicAssetUrlForBrowser(data.logoDisplayUrl) : null);
       setLogoMode(logoModeFromProfile(merged));
     } catch {
       toast.error('Failed to load company profile');
@@ -112,7 +113,7 @@ export default function CompanyProfileAdminPanel() {
         setBaseline(JSON.stringify(merged));
         setLogoMode(logoModeFromProfile(merged));
       }
-      setLogoDisplayUrl(data.logoDisplayUrl ?? null);
+      setLogoDisplayUrl(data.logoDisplayUrl ? normalizePublicAssetUrlForBrowser(data.logoDisplayUrl) : null);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Save failed');
     } finally {
@@ -186,7 +187,7 @@ export default function CompanyProfileAdminPanel() {
 
   const selectMediaLogo = (row: MediaRow) => {
     setForm((f) => ({ ...f, logoMediaId: row.id, logoUrl: '' }));
-    setLogoDisplayUrl(row.url);
+    setLogoDisplayUrl(normalizePublicAssetUrlForBrowser(row.url));
     setLogoMode('library');
     setMediaPickerOpen(false);
     toast.success('Logo selected from library. Save changes to persist.');
@@ -512,7 +513,11 @@ export default function CompanyProfileAdminPanel() {
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-white">Social links</h3>
                 {canUpdate ? (
-                  <button type="button" className="btn-admin-secondary text-sm py-1 px-2" onClick={addSocial}>
+                  <button
+                    type="button"
+                    className="text-sm py-1 px-2 rounded-lg border bg-emerald-500/20 border-emerald-300/40 text-emerald-200 hover:bg-emerald-500/30"
+                    onClick={addSocial}
+                  >
                     Add link
                   </button>
                 ) : null}
@@ -601,7 +606,7 @@ export default function CompanyProfileAdminPanel() {
                       className="rounded-xl border border-white/15 overflow-hidden bg-white/5 hover:border-cyan-400/50 hover:bg-white/10 transition text-left"
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={row.url} alt="" className="w-full aspect-square object-cover" />
+                      <img src={normalizePublicAssetUrlForBrowser(row.url)} alt="" className="w-full aspect-square object-cover" />
                       <span className="block px-2 py-1.5 text-white/80 text-xs truncate" title={row.filename}>
                         {row.filename}
                       </span>

@@ -2,8 +2,9 @@
 # Monorepo backend (Next.js standalone API). Build from repository root:
 #   docker build -f docker/Dockerfile.backend -t tuanhienvu/vuleits-website-backend:V1.0.0 .
 #
-# Runtime: entrypoint runs `prisma generate`, `prisma db push`, then `npm run seed`
-# before starting the server. Set SKIP_DB_SEED=1 to skip seed on restarts if needed.
+# Runtime: entrypoint runs `prisma generate`, `prisma db push`, then starts server.
+# Seed is skipped by default (SKIP_DB_SEED=1) to avoid changing live data on redeploy.
+# Set SKIP_DB_SEED=0 only when you intentionally want to run seed.
 
 FROM node:20-bookworm-slim AS deps
 RUN apt-get update -y && apt-get install -y --no-install-recommends openssl ca-certificates \

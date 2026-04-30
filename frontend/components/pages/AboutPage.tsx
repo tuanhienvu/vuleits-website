@@ -6,6 +6,7 @@ import { safeArray } from '@/lib/safe-array';
 import { useLocale } from '@/components/providers/LocaleProvider';
 import { defaultAboutIntroPayload, toPublicIntro } from '@/lib/aboutIntroSetting';
 import { apiPath } from '@/lib/apiRoutes';
+import { richTextAsPlain } from '@/lib/richTextAdmin';
 
 type StatRow = { number: string; label: string };
 type TeamRow = { name: string; role: string; emoji: string; bio: string };
@@ -24,7 +25,8 @@ function normalizeTeam(raw: unknown): TeamRow[] {
       name: String(m.name ?? ''),
       role: String(m.role ?? ''),
       emoji: String(m.emoji ?? ''),
-      bio: String(m.bio ?? ''),
+      // Team card back side is plain text; strip HTML tags from TinyMCE content.
+      bio: richTextAsPlain(String(m.bio ?? '')).replace(/\s+/g, ' ').trim(),
     };
   });
 }

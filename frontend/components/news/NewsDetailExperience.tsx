@@ -7,6 +7,7 @@ import DetailBackButton from '@/components/navigation/DetailBackButton';
 import { useLocale } from '@/components/providers/LocaleProvider';
 import { apiPath } from '@/lib/apiRoutes';
 import type { NewsDetailPayload } from '@/lib/newsDetailPayload';
+import { richTextAsPlain } from '@/lib/richTextAdmin';
 
 const SITE_URL = 'https://vuleits.com';
 
@@ -128,7 +129,7 @@ export default function NewsDetailExperience({ slug, initial }: { slug: string; 
                   className="glass flex h-full min-h-[140px] flex-col rounded-2xl p-4 transition-all hover:shadow-xl sm:min-h-[160px] sm:p-5"
                 >
                   <p className="line-clamp-2 font-semibold text-fg">{item.title}</p>
-                  <p className="line-clamp-3 text-sm text-fg-muted mt-2">{item.description}</p>
+                  <p className="line-clamp-3 text-sm text-fg-muted mt-2">{richTextAsPlain(item.description || '')}</p>
                   <p className="mt-auto pt-3 text-xs text-fg-subtle">
                     {new Date(item.publishedAt).toLocaleDateString()}
                   </p>

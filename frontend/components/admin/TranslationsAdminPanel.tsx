@@ -420,7 +420,7 @@ export default function TranslationsAdminPanel() {
                 <>
                   <button
                     type="button"
-                    className={`btn-admin-secondary text-sm py-2 px-3 ${addFormOpen ? 'ring-1 ring-cyan-400/50' : ''}`}
+                    className={`text-sm py-2 px-3 rounded-lg border bg-emerald-500/20 border-emerald-300/40 text-emerald-200 hover:bg-emerald-500/30 ${addFormOpen ? 'ring-1 ring-cyan-400/50' : ''}`}
                     onClick={() => setAddFormOpen((o) => !o)}
                   >
                     {t('admin.uiMessagesAddNew')}

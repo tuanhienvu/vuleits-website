@@ -32,20 +32,36 @@ type ServiceRow = {
   categoryName: string | null;
 };
 
+type LocalizedFeatures = {
+  en: string[];
+  vi: string[];
+};
+
 const PAGE_SIZES = [10, 20, 50];
 
-function parseFeatures(v: string | null): string[] {
-  if (!v) return [];
+function parseFeatures(v: string | null): LocalizedFeatures {
+  const empty: LocalizedFeatures = { en: [], vi: [] };
+  if (!v) return empty;
   try {
     const parsed = JSON.parse(v);
-    if (Array.isArray(parsed)) return parsed.map((x) => String(x));
+    if (Array.isArray(parsed)) {
+      const list = parsed.map((x) => String(x).trim()).filter(Boolean);
+      return { en: list, vi: list };
+    }
+    if (parsed && typeof parsed === 'object') {
+      const p = parsed as Record<string, unknown>;
+      const en = Array.isArray(p.en) ? p.en.map((x) => String(x).trim()).filter(Boolean) : [];
+      const vi = Array.isArray(p.vi) ? p.vi.map((x) => String(x).trim()).filter(Boolean) : [];
+      return { en, vi: vi.length > 0 ? vi : en };
+    }
   } catch {
     // ignore
   }
-  return v
+  const lines = v
     .split(/\r?\n/)
     .map((x) => x.trim())
     .filter(Boolean);
+  return { en: lines, vi: lines };
 }
 
 export default function ServicesAdminPanel() {
@@ -71,6 +87,7 @@ export default function ServicesAdminPanel() {
     description: '',
     descriptionVi: '',
     featuresText: '',
+    featuresTextVi: '',
     order: 0,
     isActive: true,
     categorySlug: '',
@@ -149,7 +166,8 @@ export default function ServicesAdminPanel() {
       if (!qq) return true;
       const descPlain = richTextAsPlain(r.description || '').toLowerCase();
       const descViPlain = richTextAsPlain(r.descriptionVi || '').toLowerCase();
-      const hay = `${r.title} ${r.titleVi ?? ''} ${descPlain} ${descViPlain} ${parseFeatures(r.features).join(' ')}`.toLowerCase();
+      const features = parseFeatures(r.features);
+      const hay = `${r.title} ${r.titleVi ?? ''} ${descPlain} ${descViPlain} ${features.en.join(' ')} ${features.vi.join(' ')}`.toLowerCase();
       return hay.includes(qq);
     });
   }, [rows, q, status]);
@@ -207,6 +225,7 @@ export default function ServicesAdminPanel() {
       description: '',
       descriptionVi: '',
       featuresText: '',
+      featuresTextVi: '',
       order: rows.length,
       isActive: true,
       categorySlug: categoryOptions[0]?.slug ?? '',
@@ -222,7 +241,8 @@ export default function ServicesAdminPanel() {
       titleVi: r.titleVi ?? '',
       description: r.description,
       descriptionVi: r.descriptionVi ?? '',
-      featuresText: parseFeatures(r.features).join('\n'),
+      featuresText: parseFeatures(r.features).en.join('\n'),
+      featuresTextVi: parseFeatures(r.features).vi.join('\n'),
       order: r.order,
       isActive: r.isActive,
       categorySlug: r.categorySlug ?? '',
@@ -239,10 +259,16 @@ export default function ServicesAdminPanel() {
         titleVi: form.titleVi.trim(),
         description: form.description.trim(),
         descriptionVi: form.descriptionVi.trim(),
-        features: form.featuresText
-          .split(/\r?\n/)
-          .map((x) => x.trim())
-          .filter(Boolean),
+        features: {
+          en: form.featuresText
+            .split(/\r?\n/)
+            .map((x) => x.trim())
+            .filter(Boolean),
+          vi: form.featuresTextVi
+            .split(/\r?\n/)
+            .map((x) => x.trim())
+            .filter(Boolean),
+        },
         order: Number(form.order),
         isActive: form.isActive,
         categorySlug: form.categorySlug || null,
@@ -333,7 +359,11 @@ export default function ServicesAdminPanel() {
           </h2>
           <div className="flex shrink-0 items-center gap-2">
             {can('services', 'create') ? (
-              <button type="button" className="btn-admin-primary whitespace-nowrap" onClick={(e) => openCreate(e.currentTarget)}>
+              <button
+                type="button"
+                className="whitespace-nowrap rounded-lg px-3 py-2 text-sm border bg-emerald-500/20 border-emerald-300/40 text-emerald-200 hover:bg-emerald-500/30"
+                onClick={(e) => openCreate(e.currentTarget)}
+              >
                 {isVi ? '+ Thêm dịch vụ' : '+ Add Service'}
               </button>
             ) : null}
@@ -634,11 +664,20 @@ export default function ServicesAdminPanel() {
                 </div>
               </section>
               <label className="block">
-                <span className="text-white/80 text-sm">{isVi ? 'Tính năng (mỗi dòng một mục)' : 'Features (one line per item)'}</span>
+                <span className="text-white/80 text-sm">{isVi ? 'Tính năng (EN - mỗi dòng một mục)' : 'Features (English - one line per item)'}</span>
                 <textarea
                   rows={6}
                   value={form.featuresText}
                   onChange={(e) => setForm((p) => ({ ...p, featuresText: e.target.value }))}
+                  className="mt-1 w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2.5 text-white"
+                />
+              </label>
+              <label className="block">
+                <span className="text-white/80 text-sm">{isVi ? 'Tính năng (VI - mỗi dòng một mục)' : 'Features (Vietnamese - one line per item)'}</span>
+                <textarea
+                  rows={6}
+                  value={form.featuresTextVi}
+                  onChange={(e) => setForm((p) => ({ ...p, featuresTextVi: e.target.value }))}
                   className="mt-1 w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2.5 text-white"
                 />
               </label>

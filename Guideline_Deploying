@@ -72,6 +72,9 @@ From project folder:
 - `docker network create <network_name> || true` (if needed)
 - `docker compose pull`
 - `docker compose up -d`
+- Seed is skipped by default on container start (`SKIP_DB_SEED=1`) to protect live data.
+- Only run seed manually for first-time setup (or controlled data bootstrap):
+  - `docker exec -it vuleits-website-backend npm run seed`
 - `docker compose ps`
 
 Health checks:
@@ -139,6 +142,10 @@ Likely DB auth mismatch or stale DB volume.
 - If safe to reset data:
   - `docker compose down -v`
   - `docker compose up -d`
+- For normal release updates, do **NOT** use `down -v` because it removes DB volumes.
+- Safe update path:
+  - `docker compose pull`
+  - `docker compose up -d`
 
 ### B) `network <name> declared as external, but could not be found`
 - `docker network create <name>`
@@ -176,6 +183,11 @@ For each new release:
    - health/log checks
    - external URL smoke test
 
+Watchtower note:
+- Watchtower follows the tag your running container uses.
+- If you want automatic "newest" behavior, run containers with `IMAGE_TAG=latest` and push updated `latest` tags each release.
+- If you run `IMAGE_TAG=V1.0.2`, Watchtower only tracks that fixed tag digest.
+
 ---
 
 ## 11) Optional: Full Docker Cleanup (Use Carefully)
@@ -209,4 +221,94 @@ Use when you want production to start with your current local data.
 
 4. Restart app containers:
    - `docker compose -f docker-compose.yaml up -d`
+
+---
+
+## 13) System Maintenance Feature (Admin)
+
+New admin section:
+- Sidebar group: `System maintenance` / `Bảo trì Hệ thống`
+- Page: `/admin/system-maintenance`
+
+### 13.1 Required permission
+
+User must have:
+- `maintenance.read` (to see page/sidebar)
+- `maintenance.create` (create backup)
+- `maintenance.update` (save config / restore)
+
+If missing in DB, re-seed once:
+- `docker exec -it vuleits-website-backend npm run seed`
+
+### 13.2 What backup does
+
+When admin clicks **Create encrypted backup**:
+1. Export DB data to JSON payload
+2. Compress (`gzip`)
+3. Encrypt (`AES-256-GCM`)
+4. Save as `.enc` file in the server backup folder (under uploads / `BACKUP_STORAGE_DIR` if set)
+
+Admins can **download** backup files from the list on the same page for off-server storage.
+
+### 13.3 Schedule backup
+
+The page stores:
+- **Named cron presets** in a table (each row: name, description, 6-field cron). Use **Save schedule** to add a row.
+- Exactly **one** row is selected as active (the schedule the app uses for timing). If no presets exist, the **interval (hours)** value is used instead of cron.
+- enabled/disabled flag and passphrase (for scheduled and manual backup rules as before)
+
+Cron format: `second minute hour day-of-month month day-of-week` (Quartz-style).
+
+Examples (server local time / TZ as configured on the host running Node):
+
+- Every hour at minute 0: `0 0 * * * *`
+- Daily at 4:30 AM: `0 30 4 * * *`
+- Noon every Monday: `0 0 12 * * 1` (Monday = 1, Sunday = 0)
+- 8:00 and 20:00 daily: `0 0 8,20 * * *`
+
+Your external job should still call the endpoint often enough (e.g. every minute) so the app can detect when a cron slot has passed.
+
+Scheduled execution endpoint:
+- `POST /api/admin/system-maintenance/schedule/run-due`
+- Requires header:
+  - `Authorization: Bearer <SYSTEM_MAINTENANCE_SCHEDULER_TOKEN>`
+
+Set env on server:
+- `SYSTEM_MAINTENANCE_SCHEDULER_TOKEN=<strong-random-token>`
+
+Example cron (every 15 minutes):
+- `*/15 * * * * curl -sS -X POST -H "Authorization: Bearer <TOKEN>" https://your-domain.com/api/admin/system-maintenance/schedule/run-due >/dev/null 2>&1`
+
+### 13.4 Encryption passphrase (stored)
+
+The **stored passphrase** is the encryption secret saved on the server when you click **Save backup settings** (with a new passphrase) or is kept when the field is left blank. It is kept in the database as part of the system-maintenance config (`siteSettings`, key `admin.systemMaintenance.config`, JSON field `passphrase`). It is **not** the same as your admin login password.
+
+Behavior:
+
+- **First-time setup:** Enter a strong passphrase and save. Until a passphrase is stored, **Create encrypted backup** will fail unless you type one in the box for that run only.
+- **Leaving the passphrase field blank on Save:** The previous stored passphrase is **kept** (not cleared).
+- **Manual backup:** Uses the text in the passphrase box if you typed something; otherwise it uses the **stored** passphrase.
+- **Scheduled backup** (`schedule/run-due`): Uses **only** the stored passphrase. If none is saved, the scheduler skips with `disabled-or-missing-passphrase` and does not create a file.
+
+Treat the stored passphrase like any backup encryption key: store a copy safely; losing it means you cannot decrypt backups.
+
+### 13.5 Restore from backup
+
+Restore sources:
+
+- **File on this server:** pick a name from the backup list (same as before).
+- **Local file:** choose an encrypted `.enc` file from your computer; the browser sends it to `POST /api/admin/system-maintenance/restore` as `multipart/form-data` (`file`, `passphrase`).
+
+**Upload backup to server:** use **Upload** under Backup files to store a `.enc` from another machine into the server backup folder (validated `VSM1` header). Then restore can use **File on this server**.
+
+Restore action:
+- Choose source, enter passphrase, confirm
+
+Behavior:
+- Decrypt + unzip + validate payload
+- Replace DB records in FK-safe order
+
+Warning:
+- Restore overwrites current DB content.
+- Run backup first before restore.
 

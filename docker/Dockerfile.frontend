@@ -2,7 +2,8 @@
 # Monorepo frontend (Next.js). Build from repository root:
 #   docker build -f docker/Dockerfile.frontend -t tuanhienvu/vuleits-website-frontend:V1.0.0 .
 #
-# Build arg BACKEND_INTERNAL_URL is baked into next.config rewrites (default http://vuleits.com:5001).
+# Build arg BACKEND_INTERNAL_URL is baked into next.config rewrites.
+# Default should target the internal Docker service so frontend->backend traffic stays inside the Docker network.
 # Override for split deploy: docker build --build-arg BACKEND_INTERNAL_URL=https://api.example.com ...
 
 FROM node:20-bookworm-slim AS deps
@@ -23,7 +24,7 @@ WORKDIR /app
 COPY frontend ./frontend
 ENV DATABASE_URL="mysql://dummy:dummy@127.0.0.1:3306/dummy"
 ENV NODE_ENV=production
-ARG BACKEND_INTERNAL_URL=http://vuleits.com:5001
+ARG BACKEND_INTERNAL_URL=http://backend:5001
 ENV BACKEND_INTERNAL_URL=${BACKEND_INTERNAL_URL}
 RUN npm run build --workspace @vuleits/frontend
 

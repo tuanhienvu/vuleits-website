@@ -33,6 +33,7 @@ const FEATURE_LABELS: Record<AdminUiFeatureId, string> = {
   userPassword: 'User passwords',
   permissions: 'Permissions',
   auditLogs: 'Audit logs',
+  maintenance: 'System maintenance',
 };
 
 type UserOpt = { id: number; email: string; roleId: number; isActive: boolean; isProtected: boolean };

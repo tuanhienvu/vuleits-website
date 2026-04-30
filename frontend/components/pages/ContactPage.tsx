@@ -32,6 +32,7 @@ function displayCompanyFullName(locale: Locale, info: ContactInfo): string {
 export default function ContactPage() {
   const { t, locale } = useLocale();
   const toast = useToast();
+  const [isMobileMapMode, setIsMobileMapMode] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -97,6 +98,15 @@ export default function ContactPage() {
     return () => {
       cancelled = true;
     };
+  }, []);
+
+  useEffect(() => {
+    const updateMobileMapMode = () => {
+      setIsMobileMapMode(window.innerWidth < 768);
+    };
+    updateMobileMapMode();
+    window.addEventListener('resize', updateMobileMapMode);
+    return () => window.removeEventListener('resize', updateMobileMapMode);
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -306,15 +316,32 @@ export default function ContactPage() {
         <div className="glass p-8 rounded-3xl">
           <h2 className="text-3xl font-bold text-fg mb-6">{t('contact.findUs')}</h2>
           <div className="rounded-2xl overflow-hidden border border-white/20 bg-black/20 aspect-16/10 min-h-64 md:min-h-96">
-            {info?.mapEmbedSrc ? (
+            {info?.mapEmbedSrc && !isMobileMapMode ? (
               <iframe
                 title={t('contact.findUs')}
                 src={info.mapEmbedSrc}
-                className="w-full h-full min-h-64 md:min-h-96"
+                className="block w-full max-w-full h-full min-h-64 md:min-h-96"
+                style={{ inlineSize: '100%', maxInlineSize: '100%', border: 0 }}
                 loading="lazy"
                 allowFullScreen
                 referrerPolicy="no-referrer-when-downgrade"
               />
+            ) : info?.mapEmbedSrc && isMobileMapMode ? (
+              <div className="h-full min-h-64 md:min-h-96 flex flex-col items-center justify-center p-6 text-center">
+                <div className="text-5xl mb-3">🗺️</div>
+                <p className="text-fg-muted max-w-md mb-4">{t('contact.findUs')}</p>
+                <a
+                  href={info.mapEmbedSrc}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="public-cta-button inline-block"
+                >
+                  {locale === 'vi-VN' ? 'Mở Google Maps' : 'Open Google Maps'}
+                </a>
+                {addressLine ? (
+                  <p className="text-fg-subtle text-sm mt-4 whitespace-pre-line">{addressLine}</p>
+                ) : null}
+              </div>
             ) : (
               <div className="h-full min-h-64 md:min-h-96 flex flex-col items-center justify-center p-6 text-center">
                 <div className="text-5xl mb-3">🗺️</div>

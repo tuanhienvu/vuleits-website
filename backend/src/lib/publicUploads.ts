@@ -1,3 +1,4 @@
+import { existsSync } from 'fs';
 import { mkdir, unlink, writeFile } from 'fs/promises';
 import path from 'path';
 import { randomBytes } from 'crypto';
@@ -61,6 +62,18 @@ export type SavedPublicUpload = {
   verifiedMime: string;
 };
 
+function resolveUploadsRoot(): string {
+  const override = process.env.UPLOADS_ROOT?.trim();
+  if (override) return override;
+
+  const cwd = process.cwd();
+  const standaloneServer = path.join(cwd, '.next', 'standalone', 'backend', 'server.js');
+  if (existsSync(standaloneServer)) {
+    return path.join(cwd, '.next', 'standalone', 'backend', 'public', 'uploads');
+  }
+  return path.join(cwd, 'public', 'uploads');
+}
+
 /**
  * Writes a file under `public/uploads/{folder}/` (mkdir -p). Returns public URL and absolute path.
  */
@@ -99,7 +112,7 @@ export async function savePublicUpload(params: {
   }
 
   const filename = `${Date.now()}-${randomBytes(5).toString('hex')}.${ext}`;
-  const root = path.join(process.cwd(), 'public', 'uploads');
+  const root = resolveUploadsRoot();
   const dir = path.join(root, ...folder.split('/'));
   await mkdir(dir, { recursive: true });
   const fsPath = path.join(dir, filename);

@@ -18,6 +18,7 @@ import AdminTinyMceEditor from '@/components/admin/AdminTinyMceEditor';
 import { AdminFilterSearchIconButton, adminFilterPanelClass } from '@/components/admin/AdminFilterBarMobile';
 import { richTextAsPlain } from '@/lib/richTextAdmin';
 import { apiPath } from '@/lib/apiRoutes';
+import { normalizePublicAssetUrlForBrowser } from '@/lib/normalizePublicAssetUrl';
 
 // --- Sections (UI): Toolbar & table | Edit modal | Image library picker | Delete confirm ---
 // --- Sections (logic): List/meta state | Form & image modes | Save/delete | Media picker ---
@@ -231,7 +232,7 @@ export default function ProductsAdminPanel() {
   };
 
   const pickProductImageFromLibrary = (row: MediaRow) => {
-    appendProductImageUrl(row.url);
+    appendProductImageUrl(normalizePublicAssetUrlForBrowser(row.url));
     setImagePickerOpen(false);
     toast.success(isVi ? 'Đã thêm ảnh' : 'Image added');
   };
@@ -246,7 +247,10 @@ export default function ProductsAdminPanel() {
     toast.success(isVi ? 'Đã thêm ảnh' : 'Image added');
   };
 
-  const productImageUrls = useMemo(() => linesToUrls(form.imageUrlsText), [form.imageUrlsText]);
+  const productImageUrls = useMemo(
+    () => linesToUrls(form.imageUrlsText).map((u) => normalizePublicAssetUrlForBrowser(u)),
+    [form.imageUrlsText],
+  );
 
   const loadMeta = useCallback(async () => {
     try {
@@ -359,7 +363,7 @@ export default function ProductsAdminPanel() {
       shortDescriptionVi: p.shortDescriptionVi ?? '',
       fullDescription: p.fullDescription,
       fullDescriptionVi: p.fullDescriptionVi ?? '',
-      imageUrlsText: (p.imageUrls || []).join('\n'),
+      imageUrlsText: (p.imageUrls || []).map((u) => normalizePublicAssetUrlForBrowser(u)).join('\n'),
       videoUrlsText: (p.videoUrls || []).join('\n'),
       demoLink: p.demoLink ?? '',
       landingPageLink: p.landingPageLink ?? '',
@@ -501,7 +505,11 @@ export default function ProductsAdminPanel() {
         </h2>
         <div className="flex shrink-0 items-center gap-2">
           {can('products', 'create') ? (
-            <button type="button" className="btn-admin-primary whitespace-nowrap" onClick={(e) => openCreate(e.currentTarget)}>
+            <button
+              type="button"
+              className="whitespace-nowrap rounded-lg px-3 py-2 text-sm border bg-emerald-500/20 border-emerald-300/40 text-emerald-200 hover:bg-emerald-500/30"
+              onClick={(e) => openCreate(e.currentTarget)}
+            >
               {isVi ? 'Thêm sản phẩm' : 'Add product'}
             </button>
           ) : null}
@@ -774,25 +782,21 @@ export default function ProductsAdminPanel() {
                 <h4 className="text-white text-sm font-semibold">{t('admin.legalSectionContent')}</h4>
                 <div className="block min-w-0">
                   <span className="text-white/70 text-sm">{t('admin.aboutUsBodyEn')}</span>
-                  <div className="mt-1 w-full min-w-0 rounded-lg border border-white/20 overflow-hidden bg-[#1e1e1e] [&_.tox-tinymce]:max-w-none">
-                    <AdminTinyMceEditor
-                      id="product-short-description-en"
-                      value={form.shortDescription}
-                      onChange={(html) => setForm((f) => ({ ...f, shortDescription: html }))}
-                      disabled={!can('products', editingId == null ? 'create' : 'update')}
-                    />
-                  </div>
+                  <textarea
+                    className="mt-1 w-full min-h-28 px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                    value={form.shortDescription}
+                    onChange={(e) => setForm((f) => ({ ...f, shortDescription: e.target.value }))}
+                    disabled={!can('products', editingId == null ? 'create' : 'update')}
+                  />
                 </div>
                 <div className="block min-w-0">
                   <span className="text-white/70 text-sm">{t('admin.aboutUsBodyVi')}</span>
-                  <div className="mt-1 w-full min-w-0 rounded-lg border border-white/20 overflow-hidden bg-[#1e1e1e] [&_.tox-tinymce]:max-w-none">
-                    <AdminTinyMceEditor
-                      id="product-short-description-vi"
-                      value={form.shortDescriptionVi}
-                      onChange={(html) => setForm((f) => ({ ...f, shortDescriptionVi: html }))}
-                      disabled={!can('products', editingId == null ? 'create' : 'update')}
-                    />
-                  </div>
+                  <textarea
+                    className="mt-1 w-full min-h-28 px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                    value={form.shortDescriptionVi}
+                    onChange={(e) => setForm((f) => ({ ...f, shortDescriptionVi: e.target.value }))}
+                    disabled={!can('products', editingId == null ? 'create' : 'update')}
+                  />
                 </div>
                 <div className="block min-w-0">
                   <span className="text-white/70 text-sm">{t('admin.productsFullDescEn')}</span>
@@ -882,46 +886,38 @@ export default function ProductsAdminPanel() {
                     </option>
                   </select>
 
-                  {imageAddMode === 'upload' ? (
+                  {imageAddMode !== 'url' ? (
                     <div className="space-y-1">
-                      <button
-                        type="button"
-                        onClick={() => productImageFileRef.current?.click()}
-                        disabled={!canMediaCreate || !can('products', editingId == null ? 'create' : 'update') || imageUploading}
-                        className="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm hover:bg-white/15 disabled:opacity-50"
-                      >
-                        {imageUploading ? (isVi ? 'Đang tải…' : 'Uploading…') : isVi ? 'Chọn tệp…' : 'Choose file…'}
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => productImageFileRef.current?.click()}
+                          disabled={!canMediaCreate || !can('products', editingId == null ? 'create' : 'update') || imageUploading}
+                          className="flex-1 px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm hover:bg-white/15 disabled:opacity-50"
+                        >
+                          {imageUploading ? (isVi ? 'Đang tải…' : 'Uploading…') : isVi ? 'Chọn tệp…' : 'Choose file…'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void openProductImageLibrary()}
+                          disabled={!canMediaRead || !can('products', editingId == null ? 'create' : 'update')}
+                          className="flex-1 px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm hover:bg-white/15 disabled:opacity-50"
+                        >
+                          {isVi ? 'Duyệt thư viện…' : 'Browse library…'}
+                        </button>
+                      </div>
                       <p className="text-white/45 text-xs">
                         {!canMediaCreate
                           ? isVi
                             ? 'Cần quyền Media → Tạo.'
                             : 'Requires Media → Create permission.'
-                          : isVi
-                            ? 'JPEG, PNG, WebP hoặc GIF.'
-                            : 'JPEG, PNG, WebP, or GIF.'}
-                      </p>
-                    </div>
-                  ) : null}
-
-                  {imageAddMode === 'library' ? (
-                    <div className="space-y-1">
-                      <button
-                        type="button"
-                        onClick={() => void openProductImageLibrary()}
-                        disabled={!canMediaRead || !can('products', editingId == null ? 'create' : 'update')}
-                        className="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm hover:bg-white/15 disabled:opacity-50"
-                      >
-                        {isVi ? 'Duyệt thư viện…' : 'Browse library…'}
-                      </button>
-                      <p className="text-white/45 text-xs">
-                        {!canMediaRead
-                          ? isVi
-                            ? 'Cần quyền Media → Xem.'
-                            : 'Requires Media → View permission.'
-                          : isVi
-                            ? 'Chọn ảnh đã tải lên trước đó.'
-                            : 'Pick an image already in your library.'}
+                          : !canMediaRead
+                            ? isVi
+                              ? 'Cần quyền Media → Xem.'
+                              : 'Requires Media → View permission.'
+                            : isVi
+                              ? 'JPEG, PNG, WebP hoặc GIF. Hoặc chọn từ thư viện.'
+                              : 'JPEG, PNG, WebP, or GIF. Or pick from your media library.'}
                       </p>
                     </div>
                   ) : null}
@@ -1105,7 +1101,7 @@ export default function ProductsAdminPanel() {
                       className="rounded-xl border border-white/15 overflow-hidden bg-white/5 hover:border-cyan-400/50 hover:bg-white/10 transition text-left"
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={row.url} alt="" className="w-full aspect-square object-cover" />
+                      <img src={normalizePublicAssetUrlForBrowser(row.url)} alt="" className="w-full aspect-square object-cover" />
                       <span className="block px-2 py-1.5 text-white/80 text-xs truncate" title={row.filename}>
                         {row.filename}
                       </span>

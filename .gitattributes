@@ -1,0 +1,2 @@
+# Shell scripts used by Docker must be LF on Linux servers
+docker/*.sh text eol=lf

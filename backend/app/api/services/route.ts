@@ -15,11 +15,18 @@ type ServiceCard = {
   categoryName: string | null;
 };
 
-function parseFeatures(features: string | null): string[] {
+function parseFeatures(features: string | null, locale: ReturnType<typeof parseLocaleQuery>): string[] {
   if (!features) return [];
   try {
     const parsed = JSON.parse(features);
     if (Array.isArray(parsed)) return parsed.map((x) => String(x));
+    if (parsed && typeof parsed === 'object') {
+      const p = parsed as Record<string, unknown>;
+      const en = Array.isArray(p.en) ? p.en.map((x) => String(x)) : [];
+      const vi = Array.isArray(p.vi) ? p.vi.map((x) => String(x)) : [];
+      if (locale === 'vi-VN') return vi.length > 0 ? vi : en;
+      return en.length > 0 ? en : vi;
+    }
   } catch {
     // ignore
   }
@@ -48,7 +55,7 @@ function toCard(
     icon: s.icon,
     title,
     description: sanitizeAboutIntroBodyHtml(rawDesc ?? ''),
-    features: parseFeatures(s.features).map((x) => sanitizeAboutIntroBodyHtml(x)),
+    features: parseFeatures(s.features, locale).map((x) => sanitizeAboutIntroBodyHtml(x)),
     order: s.order,
     categorySlug,
     categoryName,

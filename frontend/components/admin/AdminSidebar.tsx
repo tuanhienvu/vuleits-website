@@ -18,6 +18,7 @@ const GROUP = {
   PRODUCTS: 2,
   AUTHORITY: 3,
   SETTINGS: 4,
+  SYSTEM_MAINTENANCE: 5,
 } as const;
 
 /** Nav row ids (unique; integers per request). */
@@ -36,6 +37,7 @@ const NAV = {
   PAGE_SETTINGS_SEO: 204,
   PAGE_SETTINGS_LOGS: 205,
   PAGE_SETTINGS_CATEGORIES: 206,
+  PAGE_SYSTEM_MAINTENANCE: 300,
 } as const;
 
 type MenuTemplateItem =
@@ -182,6 +184,19 @@ const ADMIN_MENU_TEMPLATE: { groupId: number; labelKey: string; items: MenuTempl
       },
     ],
   },
+  {
+    groupId: GROUP.SYSTEM_MAINTENANCE,
+    labelKey: 'admin.systemMaintenanceGroup',
+    items: [
+      {
+        kind: 'page',
+        id: NAV.PAGE_SYSTEM_MAINTENANCE,
+        labelKey: 'admin.systemMaintenance',
+        icon: '🛠️',
+        path: '/admin/system-maintenance',
+      },
+    ],
+  },
 ];
 
 type SidebarNavItem =
@@ -242,6 +257,8 @@ function itemAllowed(
         allowTab('media') ||
         allowTab('banners')
       );
+    case NAV.PAGE_SYSTEM_MAINTENANCE:
+      return allowTab('maintenance');
     default:
       return false;
   }

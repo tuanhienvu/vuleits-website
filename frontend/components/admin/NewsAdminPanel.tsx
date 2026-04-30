@@ -16,6 +16,7 @@ import { useToast } from '@/components/providers/ToastProvider';
 import { slugify } from '@/lib/news/slugify';
 import { AdminFilterSearchIconButton, adminFilterPanelClass } from '@/components/admin/AdminFilterBarMobile';
 import { apiPath } from '@/lib/apiRoutes';
+import { normalizePublicAssetUrlForBrowser } from '@/lib/normalizePublicAssetUrl';
 
 // --- Sections (UI): Header & filters | Article list & pagination | Edit/create modal | Thumbnail picker | Delete confirm ---
 // --- Sections (logic): State & loaders | Handlers | Submit & media helpers | Thumbnail preview ---
@@ -302,7 +303,7 @@ export default function NewsAdminPanel() {
         seoDescription: row.seoDescription ?? '',
         seoKeywords: row.seoKeywords ?? '',
         imageId: row.imageId ?? null,
-        imageUrl: row.image?.url ?? null,
+        imageUrl: row.image?.url ? normalizePublicAssetUrlForBrowser(row.image.url) : null,
         imageFilename: row.image?.filename ?? null,
       });
     },
@@ -382,7 +383,12 @@ export default function NewsAdminPanel() {
 
   const pickThumb = useCallback(
     (m: MediaLibraryRow) => {
-      setForm((prev) => ({ ...prev, imageId: m.id, imageUrl: m.url, imageFilename: m.filename }));
+      setForm((prev) => ({
+        ...prev,
+        imageId: m.id,
+        imageUrl: normalizePublicAssetUrlForBrowser(m.url),
+        imageFilename: m.filename,
+      }));
       setThumbPickerOpen(false);
     },
     [],
@@ -461,7 +467,10 @@ export default function NewsAdminPanel() {
           </h2>
           <div className="flex shrink-0 items-center gap-2">
             {can('news', 'create') ? (
-              <button className="btn-admin-primary whitespace-nowrap" onClick={openCreate}>
+              <button
+                className="whitespace-nowrap rounded-lg px-3 py-2 text-sm border bg-emerald-500/20 border-emerald-300/40 text-emerald-200 hover:bg-emerald-500/30"
+                onClick={openCreate}
+              >
                 {isVi ? '+ Thêm tin tức' : '+ Add News'}
               </button>
             ) : null}

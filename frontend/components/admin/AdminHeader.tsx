@@ -8,6 +8,7 @@ import { useToast } from '@/components/providers/ToastProvider';
 import LocaleSwitcher from '@/components/LocaleSwitcher';
 import { useAdminPermissions } from '@/components/admin/AdminPermissionContext';
 import { apiPath } from '@/lib/apiRoutes';
+import { PasswordPreviewInput } from '@/components/ui/PasswordPreviewInput';
 
 interface AdminHeaderProps {
   onMenuClick: () => void;
@@ -292,32 +293,35 @@ export default function AdminHeader({ onMenuClick, mobileMenuOpen }: AdminHeader
             <div className="px-4 sm:px-6 py-4 sm:py-5 space-y-3 overflow-y-auto max-h-[calc(92vh-124px)] pb-24 sm:pb-6">
               <label className="block">
                 <span className="text-white/70 text-sm">{t('admin.currentPassword')}</span>
-                <input
-                  type="password"
+                <PasswordPreviewInput
                   autoComplete="current-password"
                   value={currentPw}
                   onChange={(e) => setCurrentPw(e.target.value)}
-                  className="mt-1 w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
+                  className="mt-1"
+                  inputClassName="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
+                  previewAriaLabel={t('admin.passwordPreviewAria')}
                 />
               </label>
               <label className="block">
                 <span className="text-white/70 text-sm">{t('admin.newPassword')}</span>
-                <input
-                  type="password"
+                <PasswordPreviewInput
                   autoComplete="new-password"
                   value={newPw}
                   onChange={(e) => setNewPw(e.target.value)}
-                  className="mt-1 w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
+                  className="mt-1"
+                  inputClassName="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
+                  previewAriaLabel={t('admin.passwordPreviewAria')}
                 />
               </label>
               <label className="block">
                 <span className="text-white/70 text-sm">{t('admin.confirmPassword')}</span>
-                <input
-                  type="password"
+                <PasswordPreviewInput
                   autoComplete="new-password"
                   value={confirmPw}
                   onChange={(e) => setConfirmPw(e.target.value)}
-                  className="mt-1 w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
+                  className="mt-1"
+                  inputClassName="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
+                  previewAriaLabel={t('admin.passwordPreviewAria')}
                 />
               </label>
             </div>

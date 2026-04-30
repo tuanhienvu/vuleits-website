@@ -218,7 +218,11 @@ export default function AboutStatsAdminPanel() {
         </h2>
         <div className="flex shrink-0 items-center gap-2">
           {can('aboutStats', 'create') ? (
-            <button type="button" className="btn-admin-primary whitespace-nowrap" onClick={(e) => openCreate(e.currentTarget)}>
+            <button
+              type="button"
+              className="whitespace-nowrap rounded-lg px-3 py-2 text-sm border bg-emerald-500/20 border-emerald-300/40 text-emerald-200 hover:bg-emerald-500/30"
+              onClick={(e) => openCreate(e.currentTarget)}
+            >
               {isVi ? 'Thêm chỉ số' : 'Add stat'}
             </button>
           ) : null}
