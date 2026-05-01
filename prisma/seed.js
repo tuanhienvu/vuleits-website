@@ -1,14 +1,20 @@
 // Load environment variables from `backend/.env` (see `backend/.env.example`).
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', 'backend', '.env') });
-const dbSnapshot = require('./seed.db.snapshot.json');
+let dbSnapshot = null;
+try {
+  // Optional: content snapshot may be absent in some environments.
+  dbSnapshot = require('./seed.db.snapshot.json');
+} catch {
+  dbSnapshot = null;
+}
 
 if (!process.env.DATABASE_URL) {
   const { DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD } = process.env;
   if (DB_HOST && DB_PORT && DB_NAME && DB_USER && DB_PASSWORD) {
     const user = encodeURIComponent(DB_USER);
     const password = encodeURIComponent(DB_PASSWORD);
-    process.env.DATABASE_URL = `mysql://${user}:${password}@${DB_HOST}:${DB_PORT}/${DB_NAME}`;
+    process.env.DATABASE_URL = `postgresql://${user}:${password}@${DB_HOST}:${DB_PORT}/${DB_NAME}?schema=public`;
   }
 }
 
@@ -36,6 +42,7 @@ async function main() {
     'userPassword',
     'permissions',
     'auditLogs',
+    'maintenance',
   ];
 
   // Map sidebar feature ids -> permission name prefixes in DB
@@ -55,6 +62,7 @@ async function main() {
     userPassword: 'userPassword',
     permissions: 'permissions',
     auditLogs: 'auditLogs',
+    maintenance: 'maintenance',
   };
 
   const actions = ['create', 'read', 'update', 'delete'];
@@ -272,12 +280,12 @@ async function main() {
   }
 
   // Seed About/Services using raw SQL (works even if Prisma Client wasn't regenerated yet)
-  const aboutStatCountRows = await prisma.$queryRaw`SELECT COUNT(*) as c FROM AboutStat`;
+  const aboutStatCountRows = await prisma.$queryRaw`SELECT COUNT(*) as c FROM "AboutStat"`;
   const aboutStatCount = Number(aboutStatCountRows?.[0]?.c || 0);
   if (aboutStatCount === 0) {
     console.log('Seeding about page stats...');
     await prisma.$executeRaw`
-      INSERT INTO AboutStat (number, label, \`order\`, isActive, createdAt, updatedAt) VALUES
+      INSERT INTO "AboutStat" (number, label, "order", "isActive", "createdAt", "updatedAt") VALUES
       ('150+', 'Projects Completed', 0, true, NOW(), NOW()),
       ('50+', 'Happy Clients', 1, true, NOW(), NOW()),
       ('3', 'Years Experience', 2, true, NOW(), NOW()),
@@ -285,12 +293,12 @@ async function main() {
     `;
   }
 
-  const aboutTeamCountRows = await prisma.$queryRaw`SELECT COUNT(*) as c FROM AboutTeamMember`;
+  const aboutTeamCountRows = await prisma.$queryRaw`SELECT COUNT(*) as c FROM "AboutTeamMember"`;
   const aboutTeamCount = Number(aboutTeamCountRows?.[0]?.c || 0);
   if (aboutTeamCount === 0) {
     console.log('Seeding about page team...');
     await prisma.$executeRaw`
-      INSERT INTO AboutTeamMember (emoji, name, role, bio, \`order\`, isActive, createdAt, updatedAt) VALUES
+      INSERT INTO "AboutTeamMember" (emoji, name, role, bio, "order", "isActive", "createdAt", "updatedAt") VALUES
       ('👨‍💼', 'John Anderson', 'CEO & Founder', 'Visionary leader with 15+ years in digital innovation, driving our mission to create exceptional user experiences.', 0, true, NOW(), NOW()),
       ('👩‍🎨', 'Sarah Chen', 'Creative Director', 'Award-winning designer specializing in modern UI/UX, bringing artistic vision to every project.', 1, true, NOW(), NOW()),
       ('👨‍💻', 'Michael Torres', 'Lead Developer', 'Full-stack expert passionate about clean code and innovative web technologies.', 2, true, NOW(), NOW()),
@@ -300,12 +308,12 @@ async function main() {
     `;
   }
 
-  const servicesCountRows = await prisma.$queryRaw`SELECT COUNT(*) as c FROM ServiceItem`;
+  const servicesCountRows = await prisma.$queryRaw`SELECT COUNT(*) as c FROM "ServiceItem"`;
   const servicesCount = Number(servicesCountRows?.[0]?.c || 0);
   if (servicesCount === 0) {
     console.log('Seeding services page items...');
     await prisma.$executeRaw`
-      INSERT INTO ServiceItem (icon, title, description, features, \`order\`, isActive, createdAt, updatedAt) VALUES
+      INSERT INTO "ServiceItem" (icon, title, description, features, "order", "isActive", "createdAt", "updatedAt") VALUES
       ('🎨', 'UI/UX Design', 'Create stunning user interfaces with modern design principles, focusing on usability and aesthetic appeal.', ${JSON.stringify([
         'User Research & Analysis',
         'Wireframing & Prototyping',
@@ -405,16 +413,16 @@ async function main() {
   }
 
   // Seed News (sample data for testing)
-  const newsCountRows = await prisma.$queryRaw`SELECT COUNT(*) as c FROM News`;
+  const newsCountRows = await prisma.$queryRaw`SELECT COUNT(*) as c FROM "News"`;
   const newsCount = Number(newsCountRows?.[0]?.c || 0);
   console.log(`Ensuring sample news articles... (existing: ${newsCount})`);
 
-  const authorIdRows = await prisma.$queryRaw`SELECT id FROM \`User\` ORDER BY id ASC LIMIT 1`;
+  const authorIdRows = await prisma.$queryRaw`SELECT id FROM "User" ORDER BY id ASC LIMIT 1`;
   const authorId = Number(authorIdRows?.[0]?.id || 1);
 
   const now = new Date();
-  // MySQL DATETIME(3) expects: YYYY-MM-DD HH:MM:SS.sss (no trailing Z)
-  const toMysqlDateTime = (d) => d.toISOString().replace('T', ' ').replace('Z', '');
+  // PostgreSQL accepts JS Date objects directly via Prisma parameter binding.
+  const toDbDateTime = (d) => d;
   const daysAgo = (n) => new Date(now.getTime() - n * 86400000);
 
   const articles = [
@@ -436,7 +444,7 @@ async function main() {
           <h3>TypeScript snippet</h3>
           <pre><code class="language-ts">type Article = { title: string; slug: string };</code></pre>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(2)),
+        publishedAt: toDbDateTime(daysAgo(2)),
       },
       {
         title: 'Politics Brief: Policy focus for the quarter',
@@ -456,7 +464,7 @@ async function main() {
           <h3>Code example</h3>
           <pre><code class="language-javascript">console.log('Hello from news content');</code></pre>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(5)),
+        publishedAt: toDbDateTime(daysAgo(5)),
       },
       {
         title: 'Economy Watch: Market signals to track',
@@ -472,7 +480,7 @@ async function main() {
           <h3>CSS snippet</h3>
           <pre><code class="language-css">.badge { padding: 4px 8px; border-radius: 999px; }</code></pre>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(8)),
+        publishedAt: toDbDateTime(daysAgo(8)),
       },
       {
         title: 'Entertainment: Behind the scenes of our redesign',
@@ -492,7 +500,7 @@ async function main() {
           <h3>HTML block</h3>
           <p><code>&lt;div&gt;New layout component&lt;/div&gt;</code></p>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(1)),
+        publishedAt: toDbDateTime(daysAgo(1)),
       },
       {
         title: 'Health Update: Tips for better content clarity',
@@ -510,7 +518,7 @@ async function main() {
             <li>Optimize images for the web</li>
           </ul>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(10)),
+        publishedAt: toDbDateTime(daysAgo(10)),
       },
       // ==============================
       // Technology (add more samples)
@@ -533,7 +541,7 @@ async function main() {
           <h3>JavaScript snippet</h3>
           <pre><code class="language-javascript">const delay = (ms) => new Promise(r => setTimeout(r, ms));</code></pre>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(6)),
+        publishedAt: toDbDateTime(daysAgo(6)),
       },
       {
         title: 'Technology Security: Hardening rich content rendering',
@@ -553,7 +561,7 @@ async function main() {
           <h3>TypeScript example</h3>
           <pre><code class="language-ts">type Sanitized = { html: string };</code></pre>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(12)),
+        publishedAt: toDbDateTime(daysAgo(12)),
       },
       {
         title: 'Technology Benchmark: Measuring real page speed',
@@ -573,7 +581,7 @@ async function main() {
           <h3>CSS snippet</h3>
           <pre><code class="language-css">img { content-visibility: auto; }</code></pre>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(18)),
+        publishedAt: toDbDateTime(daysAgo(18)),
       },
 
       // ==============================
@@ -597,7 +605,7 @@ async function main() {
           <h3>JavaScript sample</h3>
           <pre><code class="language-javascript">function formatDate(d){ return d.toISOString().slice(0,10); }</code></pre>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(7)),
+        publishedAt: toDbDateTime(daysAgo(7)),
       },
       {
         title: 'Politics Brief: Community engagement initiatives',
@@ -615,7 +623,7 @@ async function main() {
             <li>Volunteer-led sessions</li>
           </ol>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(14)),
+        publishedAt: toDbDateTime(daysAgo(14)),
       },
       {
         title: 'Politics Desk: Budget allocation overview',
@@ -633,7 +641,7 @@ async function main() {
             <li>Community programs</li>
           </ul>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(25)),
+        publishedAt: toDbDateTime(daysAgo(25)),
       },
 
       // ==============================
@@ -657,7 +665,7 @@ async function main() {
           <h3>TypeScript snippet</h3>
           <pre><code class="language-ts">type Signal = 'revenue'|'retention';</code></pre>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(9)),
+        publishedAt: toDbDateTime(daysAgo(9)),
       },
       {
         title: 'Economy Watch: Financial health checks',
@@ -675,7 +683,7 @@ async function main() {
             <li>Risk assessment</li>
           </ol>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(16)),
+        publishedAt: toDbDateTime(daysAgo(16)),
       },
       {
         title: 'Economy Operations: Measuring efficiency',
@@ -693,7 +701,7 @@ async function main() {
             <li>Continuous improvement</li>
           </ul>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(30)),
+        publishedAt: toDbDateTime(daysAgo(30)),
       },
 
       // ==============================
@@ -717,7 +725,7 @@ async function main() {
           <h3>HTML example</h3>
           <pre><code class="language-html">&lt;h2&gt;Structure&lt;/h2&gt;</code></pre>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(4)),
+        publishedAt: toDbDateTime(daysAgo(4)),
       },
       {
         title: 'Entertainment Update: Media and layout polish',
@@ -735,7 +743,7 @@ async function main() {
             <li>Improved responsive spacing</li>
           </ul>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(11)),
+        publishedAt: toDbDateTime(daysAgo(11)),
       },
       {
         title: 'Entertainment Lab: Interaction micro-animations',
@@ -755,7 +763,7 @@ async function main() {
           <h3>JavaScript example</h3>
           <pre><code class="language-javascript">requestAnimationFrame(() => console.log('anim'));</code></pre>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(22)),
+        publishedAt: toDbDateTime(daysAgo(22)),
       },
 
       // ==============================
@@ -777,7 +785,7 @@ async function main() {
             <li>Optimize images and alt text</li>
           </ul>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(3)),
+        publishedAt: toDbDateTime(daysAgo(3)),
       },
       {
         title: 'Health Update: Practical SEO content habits',
@@ -797,7 +805,7 @@ async function main() {
           <h3>CSS snippet</h3>
           <pre><code class="language-css">.lead{ line-height: 1.6; }</code></pre>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(13)),
+        publishedAt: toDbDateTime(daysAgo(13)),
       },
       {
         title: 'Health Watch: Optimizing images for the web',
@@ -815,7 +823,7 @@ async function main() {
             <li>Lazy-load non-critical images</li>
           </ul>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(21)),
+        publishedAt: toDbDateTime(daysAgo(21)),
       },
       // ==============================
       // Extra samples for slider testing
@@ -838,7 +846,7 @@ async function main() {
           <h3>TypeScript</h3>
           <pre><code class="language-ts">type PipelineStep = { name: string; ok: boolean };</code></pre>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(7)),
+        publishedAt: toDbDateTime(daysAgo(7)),
       },
       {
         title: 'Technology Brief: Code snippet formatting rules',
@@ -858,7 +866,7 @@ async function main() {
           <h3>CSS</h3>
           <pre><code class="language-css">pre { white-space: pre-wrap; }</code></pre>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(14)),
+        publishedAt: toDbDateTime(daysAgo(14)),
       },
       {
         title: 'Politics Feature: Community transparency forum',
@@ -876,7 +884,7 @@ async function main() {
             <li>Next steps</li>
           </ol>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(9)),
+        publishedAt: toDbDateTime(daysAgo(9)),
       },
       {
         title: 'Politics Brief: Operational accountability report',
@@ -894,7 +902,7 @@ async function main() {
             <li>Time to resolve</li>
           </ul>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(18)),
+        publishedAt: toDbDateTime(daysAgo(18)),
       },
       {
         title: 'Economy Feature: Efficiency without burnout',
@@ -912,7 +920,7 @@ async function main() {
             <li>Protect focus time</li>
           </ul>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(6)),
+        publishedAt: toDbDateTime(daysAgo(6)),
       },
       {
         title: 'Economy Brief: Investment in tooling',
@@ -930,7 +938,7 @@ async function main() {
             <li>Observability</li>
           </ul>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(24)),
+        publishedAt: toDbDateTime(daysAgo(24)),
       },
       {
         title: 'Entertainment Feature: Article layout improvements',
@@ -948,7 +956,7 @@ async function main() {
             <li>Cleaner spacing between sections</li>
           </ul>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(8)),
+        publishedAt: toDbDateTime(daysAgo(8)),
       },
       {
         title: 'Entertainment Brief: Micro-interactions guide',
@@ -966,7 +974,7 @@ async function main() {
             <li>Ensure accessibility</li>
           </ol>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(15)),
+        publishedAt: toDbDateTime(daysAgo(15)),
       },
       {
         title: 'Health Feature: Structured content for SEO',
@@ -984,7 +992,7 @@ async function main() {
             <li>Add concise lists</li>
           </ul>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(5)),
+        publishedAt: toDbDateTime(daysAgo(5)),
       },
       {
         title: 'Health Brief: Performance checklist for images',
@@ -1004,7 +1012,7 @@ async function main() {
           <h3>Code</h3>
           <pre><code class="language-javascript">const img = document.querySelector('img');</code></pre>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(16)),
+        publishedAt: toDbDateTime(daysAgo(16)),
       },
     ];
 
@@ -1012,12 +1020,12 @@ async function main() {
       // If slug exists already, skip (so re-running seed is safe)
       // NOTE: MySQL doesn't support IF NOT EXISTS for unique constraints in one statement.
       // We'll do a COUNT check per article.
-      const existsRows = await prisma.$queryRaw`SELECT COUNT(*) as c FROM News WHERE slug = ${a.slug}`;
+      const existsRows = await prisma.$queryRaw`SELECT COUNT(*) as c FROM "News" WHERE slug = ${a.slug}`;
       const exists = Number(existsRows?.[0]?.c || 0) > 0;
       if (exists) continue;
 
       await prisma.$executeRaw`
-        INSERT INTO News (title, slug, description, content, tags, status, category, imageId, startDate, publishedAt, authorId, seoTitle, seoDescription, seoKeywords, createdAt, updatedAt)
+        INSERT INTO "News" (title, slug, description, content, tags, status, category, "imageId", "startDate", "publishedAt", "authorId", "seoTitle", "seoDescription", "seoKeywords", "createdAt", "updatedAt")
         VALUES (
           ${a.title}, ${a.slug}, ${a.description}, ${a.content},
           ${JSON.stringify(a.tags)}, 'Active', ${a.category}, NULL,
@@ -1224,6 +1232,15 @@ async function main() {
   // Contact inbox samples for admin testing (safe to re-seed: only rows with this email suffix)
   const inboxSeedEmailSuffix = '@seed-inbox.vuleits.local';
   try {
+    // Keep PostgreSQL sequence aligned with current max id to avoid duplicate-id collisions
+    // when previous imports inserted explicit ids.
+    await prisma.$executeRawUnsafe(`
+      SELECT setval(
+        pg_get_serial_sequence('"Contact"', 'id'),
+        COALESCE((SELECT MAX("id") FROM "Contact"), 0) + 1,
+        false
+      )
+    `);
     await prisma.contact.deleteMany({
       where: { email: { endsWith: inboxSeedEmailSuffix } },
     });
@@ -1284,12 +1301,16 @@ async function main() {
   }
 
   // ------------------------------------------------------------
-  // Snapshot seeding from current DB export (content tables only)
-  // Excludes Users, Permissions, UserPermission by design.
+  // Snapshot seeding from prisma/seed.db.snapshot.json (export via npm run db:export-snapshot)
+  // Content tables only — Users/Roles/Permissions stay from scripted seed above so IDs match FKs in snapshot.
+  // FK-safe insert order: categories & tech → media → … → products → junction tables → contacts → settings.
+  // SEED_RESET_CONTENT=1: delete content tables then re-import snapshot (full replace; keep users/RBAC).
   // ------------------------------------------------------------
   try {
     const snapshot = dbSnapshot && typeof dbSnapshot === 'object' ? dbSnapshot : null;
     if (snapshot) {
+      const resetContent = process.env.SEED_RESET_CONTENT === '1' || process.env.SEED_RESET_CONTENT === 'true';
+
       const withViFallback = (row) => {
         if (!row || typeof row !== 'object') return row;
         const out = { ...row };
@@ -1310,90 +1331,114 @@ async function main() {
         console.log(`Seeded from snapshot: ${label}`);
       };
 
-      await seedIfEmpty(
-        () => prisma.aboutSection.count(),
-        () => prisma.aboutSection.createMany({ data: (snapshot.aboutSections || []).map(withViFallback), skipDuplicates: true }),
-        'aboutSections',
+      const createOpts = { skipDuplicates: true };
+
+      const applyBulk = async (label, fn) => {
+        if (resetContent) {
+          await fn();
+          console.log(`Snapshot (reset): ${label}`);
+        } else {
+          await seedIfEmpty(
+            async () => {
+              const map = {
+                productCategories: () => prisma.productCategory.count(),
+                technologies: () => prisma.technology.count(),
+                media: () => prisma.media.count(),
+                aboutSections: () => prisma.aboutSection.count(),
+                aboutStats: () => prisma.aboutStat.count(),
+                aboutTeamMembers: () => prisma.aboutTeamMember.count(),
+                bannerSliders: () => prisma.bannerSlider.count(),
+                bannerItems: () => prisma.bannerItem.count(),
+                homeFeatures: () => prisma.homeFeature.count(),
+                news: () => prisma.news.count(),
+                privacyPolicies: () => prisma.privacyPolicy.count(),
+                termsOfServices: () => prisma.termsOfService.count(),
+                products: () => prisma.product.count(),
+                productTechnologies: () => prisma.productTechnology.count(),
+                productAnalytics: () => prisma.productAnalytics.count(),
+                serviceItems: () => prisma.serviceItem.count(),
+                contacts: () => prisma.contact.count(),
+              };
+              const c = map[label];
+              return c ? c() : 0;
+            },
+            fn,
+            label,
+          );
+        }
+      };
+
+      if (resetContent) {
+        console.warn('SEED_RESET_CONTENT: clearing content tables (users/RBAC preserved)...');
+        await prisma.productAnalytics.deleteMany();
+        await prisma.productTechnology.deleteMany();
+        await prisma.product.deleteMany();
+        await prisma.news.deleteMany();
+        await prisma.bannerItem.deleteMany();
+        await prisma.bannerSlider.deleteMany();
+        await prisma.aboutSection.deleteMany();
+        await prisma.homeFeature.deleteMany();
+        await prisma.contact.deleteMany();
+        await prisma.aboutStat.deleteMany();
+        await prisma.aboutTeamMember.deleteMany();
+        await prisma.media.deleteMany();
+        await prisma.productCategory.deleteMany();
+        await prisma.technology.deleteMany();
+        await prisma.privacyPolicy.deleteMany();
+        await prisma.termsOfService.deleteMany();
+        await prisma.serviceItem.deleteMany();
+        await prisma.siteSetting.deleteMany();
+        await prisma.uiMessage.deleteMany();
+      }
+
+      await applyBulk('productCategories', async () =>
+        prisma.productCategory.createMany({ data: snapshot.productCategories || [], ...createOpts }),
       );
-      await seedIfEmpty(
-        () => prisma.aboutStat.count(),
-        () => prisma.aboutStat.createMany({ data: (snapshot.aboutStats || []).map(withViFallback), skipDuplicates: true }),
-        'aboutStats',
+      await applyBulk('technologies', async () =>
+        prisma.technology.createMany({ data: snapshot.technologies || [], ...createOpts }),
       );
-      await seedIfEmpty(
-        () => prisma.aboutTeamMember.count(),
-        () => prisma.aboutTeamMember.createMany({ data: (snapshot.aboutTeamMembers || []).map(withViFallback), skipDuplicates: true }),
-        'aboutTeamMembers',
+      await applyBulk('media', async () => prisma.media.createMany({ data: snapshot.media || [], ...createOpts }));
+      await applyBulk('aboutStats', async () =>
+        prisma.aboutStat.createMany({ data: (snapshot.aboutStats || []).map(withViFallback), ...createOpts }),
       );
-      await seedIfEmpty(
-        () => prisma.bannerSlider.count(),
-        () => prisma.bannerSlider.createMany({ data: snapshot.bannerSliders || [], skipDuplicates: true }),
-        'bannerSliders',
+      await applyBulk('aboutTeamMembers', async () =>
+        prisma.aboutTeamMember.createMany({ data: (snapshot.aboutTeamMembers || []).map(withViFallback), ...createOpts }),
       );
-      await seedIfEmpty(
-        () => prisma.media.count(),
-        () => prisma.media.createMany({ data: snapshot.media || [], skipDuplicates: true }),
-        'media',
+      await applyBulk('aboutSections', async () =>
+        prisma.aboutSection.createMany({ data: (snapshot.aboutSections || []).map(withViFallback), ...createOpts }),
       );
-      await seedIfEmpty(
-        () => prisma.bannerItem.count(),
-        () => prisma.bannerItem.createMany({ data: snapshot.bannerItems || [], skipDuplicates: true }),
-        'bannerItems',
+      await applyBulk('bannerSliders', async () =>
+        prisma.bannerSlider.createMany({ data: snapshot.bannerSliders || [], ...createOpts }),
       );
-      await seedIfEmpty(
-        () => prisma.contact.count(),
-        () => prisma.contact.createMany({ data: snapshot.contacts || [], skipDuplicates: true }),
-        'contacts',
+      await applyBulk('bannerItems', async () =>
+        prisma.bannerItem.createMany({ data: snapshot.bannerItems || [], ...createOpts }),
       );
-      await seedIfEmpty(
-        () => prisma.homeFeature.count(),
-        () => prisma.homeFeature.createMany({ data: (snapshot.homeFeatures || []).map(withViFallback), skipDuplicates: true }),
-        'homeFeatures',
+      await applyBulk('homeFeatures', async () =>
+        prisma.homeFeature.createMany({ data: (snapshot.homeFeatures || []).map(withViFallback), ...createOpts }),
       );
-      await seedIfEmpty(
-        () => prisma.news.count(),
-        () => prisma.news.createMany({ data: (snapshot.news || []).map(withViFallback), skipDuplicates: true }),
-        'news',
+      await applyBulk('news', async () =>
+        prisma.news.createMany({ data: (snapshot.news || []).map(withViFallback), ...createOpts }),
       );
-      await seedIfEmpty(
-        () => prisma.privacyPolicy.count(),
-        () => prisma.privacyPolicy.createMany({ data: (snapshot.privacyPolicies || []).map(withViFallback), skipDuplicates: true }),
-        'privacyPolicies',
+      await applyBulk('privacyPolicies', async () =>
+        prisma.privacyPolicy.createMany({ data: (snapshot.privacyPolicies || []).map(withViFallback), ...createOpts }),
       );
-      await seedIfEmpty(
-        () => prisma.termsOfService.count(),
-        () => prisma.termsOfService.createMany({ data: (snapshot.termsOfServices || []).map(withViFallback), skipDuplicates: true }),
-        'termsOfServices',
+      await applyBulk('termsOfServices', async () =>
+        prisma.termsOfService.createMany({ data: (snapshot.termsOfServices || []).map(withViFallback), ...createOpts }),
       );
-      await seedIfEmpty(
-        () => prisma.productCategory.count(),
-        () => prisma.productCategory.createMany({ data: snapshot.productCategories || [], skipDuplicates: true }),
-        'productCategories',
+      await applyBulk('products', async () =>
+        prisma.product.createMany({ data: (snapshot.products || []).map(withViFallback), ...createOpts }),
       );
-      await seedIfEmpty(
-        () => prisma.technology.count(),
-        () => prisma.technology.createMany({ data: snapshot.technologies || [], skipDuplicates: true }),
-        'technologies',
+      await applyBulk('productTechnologies', async () =>
+        prisma.productTechnology.createMany({ data: snapshot.productTechnologies || [], ...createOpts }),
       );
-      await seedIfEmpty(
-        () => prisma.product.count(),
-        () => prisma.product.createMany({ data: (snapshot.products || []).map(withViFallback), skipDuplicates: true }),
-        'products',
+      await applyBulk('productAnalytics', async () =>
+        prisma.productAnalytics.createMany({ data: snapshot.productAnalytics || [], ...createOpts }),
       );
-      await seedIfEmpty(
-        () => prisma.productTechnology.count(),
-        () => prisma.productTechnology.createMany({ data: snapshot.productTechnologies || [], skipDuplicates: true }),
-        'productTechnologies',
+      await applyBulk('serviceItems', async () =>
+        prisma.serviceItem.createMany({ data: (snapshot.serviceItems || []).map(withViFallback), ...createOpts }),
       );
-      await seedIfEmpty(
-        () => prisma.productAnalytics.count(),
-        () => prisma.productAnalytics.createMany({ data: snapshot.productAnalytics || [], skipDuplicates: true }),
-        'productAnalytics',
-      );
-      await seedIfEmpty(
-        () => prisma.serviceItem.count(),
-        () => prisma.serviceItem.createMany({ data: (snapshot.serviceItems || []).map(withViFallback), skipDuplicates: true }),
-        'serviceItems',
+      await applyBulk('contacts', async () =>
+        prisma.contact.createMany({ data: snapshot.contacts || [], ...createOpts }),
       );
 
       for (const s of snapshot.siteSettings || []) {
@@ -1429,10 +1474,123 @@ async function main() {
           create: { messageKey: m.messageKey, locale: m.locale, value: typeof m.value === 'string' ? m.value : '' },
         });
       }
-      console.log('Applied snapshot content seed (excluding users/permissions/userPermissions).');
+      console.log(
+        resetContent
+          ? 'Applied snapshot content (full replace; users/RBAC unchanged).'
+          : 'Applied snapshot content seed (excluding users/permissions/userPermissions).',
+      );
     }
   } catch (e) {
     console.warn('Snapshot content seed skipped:', e?.message || e);
+  }
+
+  // Hospitality inventory seed (idempotent)
+  try {
+    const rooms = [
+      {
+        name: 'Botanical Forest Villa',
+        slug: 'botanical-forest-villa',
+        type: 'VILLA',
+        shortDesc: 'Private wellness villa with botanical courtyard and warm wood interiors.',
+        details:
+          'A calming villa designed for long-stay wellness retreats, including an open-air lounge, private plunge pool, and optional spa sessions.',
+        nightPriceUsd: 320,
+        maxGuests: 4,
+        totalUnits: 3,
+        amenities: ['Private Pool', 'Garden View', 'Breakfast Included', 'Spa Access', 'In-villa Yoga'],
+        coverImageUrl: 'https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=1400&q=80',
+        galleryImageUrls: [
+          'https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=1400&q=80',
+          'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1400&q=80',
+          'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1400&q=80',
+          'https://images.unsplash.com/photo-1617104551722-3b2d51366456?auto=format&fit=crop&w=1400&q=80',
+          'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&w=1400&q=80',
+        ],
+      },
+      {
+        name: 'Urban Wellness Hotel Suite',
+        slug: 'urban-wellness-hotel-suite',
+        type: 'HOTEL',
+        shortDesc: 'A serene suite for restorative stays and mindful workcation.',
+        details:
+          'Includes a meditation nook, ergonomic workspace, and in-room aromatherapy setup with botanical tea service.',
+        nightPriceUsd: 340,
+        maxGuests: 2,
+        totalUnits: 10,
+        amenities: ['Sauna', 'Yoga Mat', 'Air Purifier', 'Healthy Mini Bar', 'City View'],
+        coverImageUrl: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1400&q=80',
+        galleryImageUrls: [
+          'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1400&q=80',
+          'https://images.unsplash.com/photo-1566669437685-56c1d0f1f35f?auto=format&fit=crop&w=1400&q=80',
+          'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=1400&q=80',
+          'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=1400&q=80',
+          'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1400&q=80',
+        ],
+      },
+      {
+        name: 'Ocean Wellness Resort',
+        slug: 'ocean-wellness-resort',
+        type: 'RESORT',
+        shortDesc: 'Premium ocean-facing retreat for family and couple getaways.',
+        details:
+          'Panoramic terrace, premium bedding, concierge service, and curated wellness activities with sunrise breathing classes.',
+        nightPriceUsd: 420,
+        maxGuests: 5,
+        totalUnits: 5,
+        amenities: ['Ocean View', 'Concierge', 'Sunrise Deck', 'Airport Pickup', 'Saltwater Pool'],
+        coverImageUrl: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1400&q=80',
+        galleryImageUrls: [
+          'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1400&q=80',
+          'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1400&q=80',
+          'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=1400&q=80',
+          'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1400&q=80',
+          'https://images.unsplash.com/photo-1455587734955-081b22074882?auto=format&fit=crop&w=1400&q=80',
+        ],
+      },
+      {
+        name: 'Green Garden Homestay',
+        slug: 'green-garden-homestay',
+        type: 'HOMESTAY',
+        shortDesc: 'Community-style homestay immersed in local culture and wellness routines.',
+        details:
+          'Slow-living homestay with herbal garden, home-cooked healthy meals, and guided mindfulness activities.',
+        nightPriceUsd: 185,
+        maxGuests: 3,
+        totalUnits: 6,
+        amenities: ['Garden Patio', 'Local Breakfast', 'Community Kitchen', 'Bike Rental', 'Mindful Walk Tours'],
+        coverImageUrl: 'https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1400&q=80',
+        galleryImageUrls: [
+          'https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1400&q=80',
+          'https://images.unsplash.com/photo-1496417263034-38ec4f0b665a?auto=format&fit=crop&w=1400&q=80',
+          'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1400&q=80',
+          'https://images.unsplash.com/photo-1430285561322-7808604715df?auto=format&fit=crop&w=1400&q=80',
+          'https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1400&q=80',
+        ],
+      },
+    ];
+
+    for (const room of rooms) {
+      await prisma.hospitalityRoom.upsert({
+        where: { slug: room.slug },
+        create: room,
+        update: {
+          name: room.name,
+          type: room.type,
+          shortDesc: room.shortDesc,
+          details: room.details,
+          nightPriceUsd: room.nightPriceUsd,
+          maxGuests: room.maxGuests,
+          totalUnits: room.totalUnits,
+          amenities: room.amenities,
+          coverImageUrl: room.coverImageUrl,
+          galleryImageUrls: room.galleryImageUrls,
+          isActive: true,
+        },
+      });
+    }
+    console.log('Seeded hospitality rooms (4 types with galleries).');
+  } catch (e) {
+    console.warn('Hospitality room seed skipped:', e?.message || e);
   }
 
   console.log('Seeding completed.');
