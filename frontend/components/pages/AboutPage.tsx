@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { safeArray } from '@/lib/safe-array';
 import { useLocale } from '@/components/providers/LocaleProvider';
 import { defaultAboutIntroPayload, toPublicIntro } from '@/lib/aboutIntroSetting';
@@ -9,7 +10,15 @@ import { apiPath } from '@/lib/apiRoutes';
 import { richTextAsPlain } from '@/lib/richTextAdmin';
 
 type StatRow = { number: string; label: string };
-type TeamRow = { name: string; role: string; emoji: string; bio: string };
+type TeamRow = {
+  id?: number;
+  slug: string | null;
+  hasCv: boolean;
+  name: string;
+  role: string;
+  emoji: string;
+  bio: string;
+};
 
 function normalizeStats(raw: unknown): StatRow[] {
   return safeArray<unknown>(raw).map((item) => {
@@ -21,7 +30,11 @@ function normalizeStats(raw: unknown): StatRow[] {
 function normalizeTeam(raw: unknown): TeamRow[] {
   return safeArray<unknown>(raw).map((item) => {
     const m = item as Record<string, unknown>;
+    const slugRaw = m.slug != null ? String(m.slug).trim() : '';
     return {
+      id: typeof m.id === 'number' ? m.id : undefined,
+      slug: slugRaw || null,
+      hasCv: Boolean(m.hasCv),
       name: String(m.name ?? ''),
       role: String(m.role ?? ''),
       emoji: String(m.emoji ?? ''),
@@ -69,13 +82,13 @@ export default function AboutPage() {
     [t],
   );
 
-  const fallbackTeam = [
-    { name: 'John Anderson', role: 'CEO & Founder', emoji: '👨‍💼', bio: 'Visionary leader with 15+ years in digital innovation, driving our mission to create exceptional user experiences.' },
-    { name: 'Sarah Chen', role: 'Creative Director', emoji: '👩‍🎨', bio: 'Award-winning designer specializing in modern UI/UX, bringing artistic vision to every project.' },
-    { name: 'Michael Torres', role: 'Lead Developer', emoji: '👨‍💻', bio: 'Full-stack expert passionate about clean code and innovative web technologies.' },
-    { name: 'Emma Wilson', role: 'Senior Developer', emoji: '👩‍💻', bio: 'Frontend specialist with expertise in React and modern JavaScript frameworks.' },
-    { name: 'David Kim', role: 'UX Designer', emoji: '👨‍🎨', bio: 'User experience expert focused on creating intuitive and accessible digital products.' },
-    { name: 'Lisa Martinez', role: 'Project Manager', emoji: '👩‍💼', bio: 'Certified PMP with a track record of delivering complex projects on time and budget.' },
+  const fallbackTeam: TeamRow[] = [
+    { slug: null, hasCv: false, name: 'John Anderson', role: 'CEO & Founder', emoji: '👨‍💼', bio: 'Visionary leader with 15+ years in digital innovation, driving our mission to create exceptional user experiences.' },
+    { slug: null, hasCv: false, name: 'Sarah Chen', role: 'Creative Director', emoji: '👩‍🎨', bio: 'Award-winning designer specializing in modern UI/UX, bringing artistic vision to every project.' },
+    { slug: null, hasCv: false, name: 'Michael Torres', role: 'Lead Developer', emoji: '👨‍💻', bio: 'Full-stack expert passionate about clean code and innovative web technologies.' },
+    { slug: null, hasCv: false, name: 'Emma Wilson', role: 'Senior Developer', emoji: '👩‍💻', bio: 'Frontend specialist with expertise in React and modern JavaScript frameworks.' },
+    { slug: null, hasCv: false, name: 'David Kim', role: 'UX Designer', emoji: '👨‍🎨', bio: 'User experience expert focused on creating intuitive and accessible digital products.' },
+    { slug: null, hasCv: false, name: 'Lisa Martinez', role: 'Project Manager', emoji: '👩‍💼', bio: 'Certified PMP with a track record of delivering complex projects on time and budget.' },
   ];
 
   const [stats, setStats] = useState<StatRow[]>(fallbackStats);
@@ -212,7 +225,20 @@ export default function AboutPage() {
                   <p className="text-fg-muted text-sm mb-4">{member.bio}</p>
                   <div className="flex gap-3 justify-center text-xl">
                     <span aria-hidden>📧</span>
-                    <span aria-hidden>💼</span>
+                    {member.hasCv && member.slug ? (
+                      <Link
+                        href={`/team/${encodeURIComponent(member.slug)}/cv`}
+                        aria-hidden
+                        className="hover:opacity-80"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        💼
+                      </Link>
+                    ) : (
+                      <span aria-hidden aria-disabled title={t('about.cvNotAvailable')} className="opacity-50 cursor-not-allowed">
+                        💼
+                      </span>
+                    )}
                     <span aria-hidden>🎨</span>
                   </div>
                 </article>
