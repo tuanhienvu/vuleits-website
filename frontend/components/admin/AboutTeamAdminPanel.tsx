@@ -18,11 +18,13 @@ import AdminEmojiPickerField from '@/components/admin/AdminEmojiPickerField';
 import { AdminFilterSearchIconButton, adminFilterPanelClass } from '@/components/admin/AdminFilterBarMobile';
 import { richTextAsPlain } from '@/lib/richTextAdmin';
 import { apiPath } from '@/lib/apiRoutes';
+import AboutTeamCvEditor from '@/components/admin/AboutTeamCvEditor';
 
 // --- Sections (UI): Header & table | Edit modal | Delete confirm ---
 
 type Row = {
   id: number;
+  slug: string;
   emoji: string;
   name: string;
   nameVi?: string;
@@ -63,6 +65,7 @@ export default function AboutTeamAdminPanel() {
   const [deleteTarget, setDeleteTarget] = useState<Row | null>(null);
   const [deleteDialogOrigin, setDeleteDialogOrigin] = useState<ModalOriginPoint | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState<'basic' | 'cv'>('basic');
   const [form, setForm] = useState({
     emoji: '',
     name: '',
@@ -165,12 +168,14 @@ export default function AboutTeamAdminPanel() {
   const openCreate = (triggerEl?: HTMLElement | null) => {
     modal.openFromElement(triggerEl);
     setEditingId(null);
+    setActiveTab('basic');
     setForm({ emoji: '👤', name: '', nameVi: '', role: '', roleVi: '', bio: '', bioVi: '', order: rows.length, isActive: true });
   };
 
   const openEdit = (r: Row, triggerEl?: HTMLElement | null) => {
     modal.openFromElement(triggerEl);
     setEditingId(r.id);
+    setActiveTab('basic');
     setForm({
       emoji: r.emoji,
       name: r.name,
@@ -468,7 +473,9 @@ export default function AboutTeamAdminPanel() {
                   {editingId == null ? (isVi ? 'Thành viên mới' : 'New member') : isVi ? 'Sửa thành viên' : 'Edit member'}
                 </h3>
                 <p className="text-white/60 text-sm mt-1">
-                  {isVi ? 'Tên, vai trò, emoji và tiểu sử dạng văn bản thuần.' : 'Name, role, emoji, and plain-text bio.'}
+                  {activeTab === 'cv'
+                    ? (isVi ? 'Quản lý hồ sơ CV công khai của thành viên.' : 'Manage the member’s public CV.')
+                    : (isVi ? 'Tên, vai trò, emoji và tiểu sử dạng văn bản thuần.' : 'Name, role, emoji, and plain-text bio.')}
                 </p>
               </div>
               <button
@@ -481,7 +488,45 @@ export default function AboutTeamAdminPanel() {
               </button>
             </div>
 
+            {editingId != null ? (
+              <div className="flex gap-1 border-b border-white/10 bg-white/[0.03] px-4 pt-3 sm:px-6" role="tablist">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={activeTab === 'basic'}
+                  className={`rounded-t-lg border-x border-t px-4 py-2 text-sm ${
+                    activeTab === 'basic'
+                      ? 'border-white/20 bg-white/10 text-white'
+                      : 'border-transparent text-white/60 hover:text-white'
+                  }`}
+                  onClick={() => setActiveTab('basic')}
+                >
+                  {isVi ? 'Cơ bản' : 'Basic'}
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={activeTab === 'cv'}
+                  className={`rounded-t-lg border-x border-t px-4 py-2 text-sm ${
+                    activeTab === 'cv'
+                      ? 'border-white/20 bg-white/10 text-white'
+                      : 'border-transparent text-white/60 hover:text-white'
+                  }`}
+                  onClick={() => setActiveTab('cv')}
+                >
+                  {isVi ? 'Thông tin CV' : 'CV Information'}
+                </button>
+              </div>
+            ) : null}
+
             <div className="overflow-y-auto max-h-[calc(96vh-156px)] sm:max-h-[calc(90vh-148px)] px-4 sm:px-6 py-4 sm:py-5 pb-28 sm:pb-6">
+              {activeTab === 'cv' && editingId != null ? (
+                <AboutTeamCvEditor
+                  memberId={editingId}
+                  slug={rows.find((row) => row.id === editingId)?.slug ?? ''}
+                  isVi={isVi}
+                />
+              ) : (
               <div className="space-y-4">
                 <div className="rounded-xl border border-white/10 p-3 space-y-3 bg-white/[0.03] sm:col-span-2">
                   <h4 className="text-white text-sm font-semibold">{t('admin.legalSectionTitles')}</h4>
@@ -625,9 +670,11 @@ export default function AboutTeamAdminPanel() {
                   Active
                 </label>
               </div>
+              )}
             </div>
 
-            <div className="sticky bottom-0 left-0 right-0 flex justify-end gap-2 px-4 sm:px-6 py-3 sm:py-4 border-t border-white/10 bg-[#14141c]/95 backdrop-blur">
+            {activeTab === 'basic' ? (
+              <div className="sticky bottom-0 left-0 right-0 flex justify-end gap-2 px-4 sm:px-6 py-3 sm:py-4 border-t border-white/10 bg-[#14141c]/95 backdrop-blur">
               <button type="button" className="btn-admin-secondary" onClick={() => void modal.closeAnimated()} disabled={saving}>
                 {isVi ? 'Hủy' : 'Cancel'}
               </button>
@@ -635,6 +682,7 @@ export default function AboutTeamAdminPanel() {
                 {saving ? (isVi ? 'Đang lưu…' : 'Saving…') : isVi ? 'Lưu' : 'Save'}
               </button>
             </div>
+            ) : null}
           </div>
         </div>
       ) : null}
