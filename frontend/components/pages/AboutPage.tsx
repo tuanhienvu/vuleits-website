@@ -228,14 +228,19 @@ export default function AboutPage() {
                     {member.hasCv && member.slug ? (
                       <Link
                         href={`/team/${encodeURIComponent(member.slug)}/cv`}
-                        aria-hidden
+                        aria-label={`${t('about.viewCv')}: ${member.name}`}
                         className="hover:opacity-80"
                         onClick={(e) => e.stopPropagation()}
                       >
                         💼
                       </Link>
                     ) : (
-                      <span aria-hidden aria-disabled title={t('about.cvNotAvailable')} className="opacity-50 cursor-not-allowed">
+                      <span
+                        aria-disabled
+                        aria-label={t('about.cvNotAvailable')}
+                        title={t('about.cvNotAvailable')}
+                        className="opacity-50 cursor-not-allowed"
+                      >
                         💼
                       </span>
                     )}

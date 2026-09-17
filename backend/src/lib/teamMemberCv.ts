@@ -322,6 +322,17 @@ function isParseFail<T>(v: T | ParseFail): v is ParseFail {
   return typeof v === 'object' && v !== null && 'ok' in v && (v as ParseFail).ok === false;
 }
 
+function rejectEndBeforeStart(
+  startDate: Date,
+  endDate: Date | null,
+  endField: string,
+): ParseFail | null {
+  if (endDate !== null && endDate.getTime() < startDate.getTime()) {
+    return { ok: false, error: `${endField} must not be before startDate` };
+  }
+  return null;
+}
+
 export async function ensureUniqueMemberSlug(
   prisma: PrismaClient,
   name: string,
@@ -393,6 +404,10 @@ function parseExperiences(raw: unknown): CvUpsertExperience[] | ParseFail {
       const end = parseOptionalDate(o.endDate, `experiences[${i}].endDate`);
       if (isParseFail(end)) return end;
       endDate = end;
+      if (endDate !== null) {
+        const range = rejectEndBeforeStart(startDate, endDate, `experiences[${i}].endDate`);
+        if (range) return range;
+      }
     }
     out.push({
       company,
@@ -429,6 +444,10 @@ function parseEducations(raw: unknown): CvUpsertEducation[] | ParseFail {
     if (isParseFail(startDate)) return startDate;
     const endDate = parseOptionalDate(o.endDate, `educations[${i}].endDate`);
     if (isParseFail(endDate)) return endDate;
+    if (startDate !== null && endDate !== null) {
+      const range = rejectEndBeforeStart(startDate, endDate, `educations[${i}].endDate`);
+      if (range) return range;
+    }
     const gpaRaw = typeof o.gpa === 'string' ? o.gpa.trim() : '';
     out.push({
       school,
