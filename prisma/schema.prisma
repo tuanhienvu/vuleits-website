@@ -4,7 +4,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -82,8 +82,8 @@ model Product {
   slug             String    @unique @db.VarChar(200)
   shortDescription String    @map("short_description") @db.VarChar(500)
   shortDescriptionVi String? @map("short_description_vi") @db.VarChar(500)
-  fullDescription  String    @map("full_description") @db.LongText
-  fullDescriptionVi String? @map("full_description_vi") @db.LongText
+  fullDescription  String    @map("full_description") @db.Text
+  fullDescriptionVi String? @map("full_description_vi") @db.Text
   imageUrls        Json      @default("[]")
   videoUrls        Json      @default("[]")
   demoLink         String?   @map("demo_link") @db.VarChar(2000)
@@ -133,8 +133,8 @@ model News {
   slug            String  @unique
   description     String  @db.VarChar(300)
   descriptionVi   String? @map("description_vi") @db.VarChar(300)
-  content         String  @db.LongText
-  contentVi       String? @map("content_vi") @db.LongText
+  content         String  @db.Text
+  contentVi       String? @map("content_vi") @db.Text
   tags            String? // JSON array
   status          String  @default("Active")
 
@@ -206,7 +206,7 @@ model Contact {
   email           String
   subject         String? @db.VarChar(500)
   phone           String?
-  message         String  @db.LongText
+  message         String  @db.Text
   status          String  @default("New") // New, Read, Replied, Archived
   submittedById    Int?
   createdAt       DateTime @default(now())
@@ -221,7 +221,7 @@ model Contact {
 model SiteSetting {
   id              Int     @id @default(autoincrement())
   key             String  @unique
-  value           String  @db.LongText
+  value           String  @db.Text
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
@@ -231,7 +231,7 @@ model UiMessage {
   id          Int      @id @default(autoincrement())
   locale      String   @db.VarChar(20)
   messageKey  String   @map("message_key") @db.VarChar(190)
-  value       String   @db.LongText
+  value       String   @db.Text
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
@@ -339,8 +339,8 @@ model HomeFeature {
   icon        String   @db.VarChar(50)
   title       String   @db.VarChar(150)
   titleVi     String?  @map("title_vi") @db.VarChar(150)
-  description String   @db.LongText
-  descriptionVi String? @map("description_vi") @db.LongText
+  description String   @db.Text
+  descriptionVi String? @map("description_vi") @db.Text
   order       Int      @default(0)
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
@@ -370,14 +370,137 @@ model AboutTeamMember {
   nameVi    String?  @map("name_vi") @db.VarChar(150)
   role      String   @db.VarChar(150)
   roleVi    String?  @map("role_vi") @db.VarChar(150)
-  bio       String   @db.LongText
-  bioVi     String?  @map("bio_vi") @db.LongText
+  bio       String   @db.Text
+  bioVi     String?  @map("bio_vi") @db.Text
+  slug      String?  @unique @db.VarChar(160)
   order     Int      @default(0)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  cv        AboutTeamMemberCV?
 
   @@index([isActive, order])
+}
+
+model AboutTeamMemberCV {
+  id               Int       @id @default(autoincrement())
+  teamMemberId     Int       @unique @map("team_member_id")
+  title            String    @db.VarChar(150)
+  titleVi          String?   @map("title_vi") @db.VarChar(150)
+  profileSummary   String    @map("profile_summary") @db.Text
+  profileSummaryVi String?   @map("profile_summary_vi") @db.Text
+  email            String?   @db.VarChar(190)
+  phone            String?   @db.VarChar(60)
+  location         String?   @db.VarChar(190)
+  locationVi       String?   @map("location_vi") @db.VarChar(190)
+  avatarUrl        String?   @map("avatar_url") @db.VarChar(2000)
+  cvPdfUrl         String?   @map("cv_pdf_url") @db.VarChar(2000)
+  isPublished      Boolean   @default(true) @map("is_published")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  teamMember       AboutTeamMember @relation(fields: [teamMemberId], references: [id], onDelete: Cascade)
+  skills           AboutTeamMemberCvSkill[]
+  experiences      AboutTeamMemberCvExperience[]
+  educations       AboutTeamMemberCvEducation[]
+  certifications   AboutTeamMemberCvCertification[]
+  languages        AboutTeamMemberCvLanguage[]
+  socialLinks      AboutTeamMemberCvSocialLink[]
+
+  @@map("about_team_member_cvs")
+}
+
+model AboutTeamMemberCvSkill {
+  id            Int     @id @default(autoincrement())
+  cvId          Int     @map("cv_id")
+  name          String  @db.VarChar(150)
+  nameVi        String? @map("name_vi") @db.VarChar(150)
+  description   String  @db.Text
+  descriptionVi String? @map("description_vi") @db.Text
+  displayOrder  Int     @default(0) @map("display_order")
+  cv            AboutTeamMemberCV @relation(fields: [cvId], references: [id], onDelete: Cascade)
+
+  @@index([cvId, displayOrder])
+  @@map("about_team_member_cv_skills")
+}
+
+model AboutTeamMemberCvExperience {
+  id            Int       @id @default(autoincrement())
+  cvId          Int       @map("cv_id")
+  company       String    @db.VarChar(190)
+  companyVi     String?   @map("company_vi") @db.VarChar(190)
+  position      String    @db.VarChar(190)
+  positionVi    String?   @map("position_vi") @db.VarChar(190)
+  description   String    @db.Text
+  descriptionVi String?   @map("description_vi") @db.Text
+  startDate     DateTime  @map("start_date")
+  endDate       DateTime? @map("end_date")
+  isCurrent     Boolean   @default(false) @map("is_current")
+  displayOrder  Int       @default(0) @map("display_order")
+  cv            AboutTeamMemberCV @relation(fields: [cvId], references: [id], onDelete: Cascade)
+
+  @@index([cvId, displayOrder])
+  @@map("about_team_member_cv_experiences")
+}
+
+model AboutTeamMemberCvEducation {
+  id             Int       @id @default(autoincrement())
+  cvId           Int       @map("cv_id")
+  school         String    @db.VarChar(190)
+  schoolVi       String?   @map("school_vi") @db.VarChar(190)
+  degree         String    @db.VarChar(190)
+  degreeVi       String?   @map("degree_vi") @db.VarChar(190)
+  fieldOfStudy   String    @map("field_of_study") @db.VarChar(190)
+  fieldOfStudyVi String?   @map("field_of_study_vi") @db.VarChar(190)
+  gpa            String?   @db.VarChar(32)
+  startDate      DateTime? @map("start_date")
+  endDate        DateTime? @map("end_date")
+  displayOrder   Int       @default(0) @map("display_order")
+  cv             AboutTeamMemberCV @relation(fields: [cvId], references: [id], onDelete: Cascade)
+
+  @@index([cvId, displayOrder])
+  @@map("about_team_member_cv_educations")
+}
+
+model AboutTeamMemberCvCertification {
+  id             Int       @id @default(autoincrement())
+  cvId           Int       @map("cv_id")
+  name           String    @db.VarChar(190)
+  nameVi         String?   @map("name_vi") @db.VarChar(190)
+  issuer         String?   @db.VarChar(190)
+  issuerVi       String?   @map("issuer_vi") @db.VarChar(190)
+  issuedAt       DateTime? @map("issued_at")
+  credentialUrl  String?   @map("credential_url") @db.VarChar(2000)
+  displayOrder   Int       @default(0) @map("display_order")
+  cv             AboutTeamMemberCV @relation(fields: [cvId], references: [id], onDelete: Cascade)
+
+  @@index([cvId, displayOrder])
+  @@map("about_team_member_cv_certifications")
+}
+
+model AboutTeamMemberCvLanguage {
+  id           Int     @id @default(autoincrement())
+  cvId         Int     @map("cv_id")
+  name         String  @db.VarChar(120)
+  nameVi       String? @map("name_vi") @db.VarChar(120)
+  proficiency  String? @db.VarChar(80)
+  displayOrder Int     @default(0) @map("display_order")
+  cv           AboutTeamMemberCV @relation(fields: [cvId], references: [id], onDelete: Cascade)
+
+  @@index([cvId, displayOrder])
+  @@map("about_team_member_cv_languages")
+}
+
+model AboutTeamMemberCvSocialLink {
+  id           Int     @id @default(autoincrement())
+  cvId         Int     @map("cv_id")
+  label        String  @db.VarChar(120)
+  labelVi      String? @map("label_vi") @db.VarChar(120)
+  url          String  @db.VarChar(2000)
+  displayOrder Int     @default(0) @map("display_order")
+  cv           AboutTeamMemberCV @relation(fields: [cvId], references: [id], onDelete: Cascade)
+
+  @@index([cvId, displayOrder])
+  @@map("about_team_member_cv_social_links")
 }
 
 // -------------------- Services Page Models --------------------
@@ -386,14 +509,36 @@ model ServiceItem {
   icon      String   @db.VarChar(50)
   title     String   @db.VarChar(150)
   titleVi   String?  @map("title_vi") @db.VarChar(150)
-  description String @db.LongText
-  descriptionVi String? @map("description_vi") @db.LongText
-  features  String?  @db.LongText // JSON array of strings
+  description String @db.Text
+  descriptionVi String? @map("description_vi") @db.Text
+  features  String?  @db.Text // JSON array of strings
   order     Int      @default(0)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([isActive, order])
+}
+
+// -------------------- Backup / maintenance --------------------
+/// Retention for automated backup cleanup; `id` matches calendar schedule id in SiteSetting JSON.
+model BackupSchedule {
+  id            String   @id @db.VarChar(80)
+  retentionDays Int      @default(30)
+  updatedAt     DateTime @updatedAt
+
+  @@map("backup_schedules")
+}
+
+model BackupLog {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  trigger   String   @db.VarChar(32)
+  success   Boolean
+  message   String   @db.VarChar(2000)
+  meta      Json?
+
+  @@index([createdAt])
+  @@map("backup_logs")
 }
 
