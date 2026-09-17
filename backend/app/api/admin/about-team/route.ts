@@ -1,6 +1,31 @@
 import { NextResponse } from 'next/server';
+import type { AboutTeamMember, AboutTeamMemberCV } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { authorize } from '@/lib/adminAuth';
+import { ensureUniqueMemberSlug } from '@/lib/teamMemberCv';
+
+const memberCvSelect = { select: { id: true, isPublished: true } } as const;
+
+type MemberWithCv = AboutTeamMember & {
+  cv: Pick<AboutTeamMemberCV, 'id' | 'isPublished'> | null;
+};
+
+function serializeAdminMember(r: MemberWithCv) {
+  return {
+    id: r.id,
+    emoji: r.emoji,
+    name: r.name,
+    nameVi: r.nameVi ?? '',
+    role: r.role,
+    roleVi: r.roleVi ?? '',
+    bio: r.bio,
+    bioVi: r.bioVi ?? '',
+    order: r.order,
+    isActive: r.isActive,
+    slug: r.slug ?? '',
+    hasCv: Boolean(r.cv),
+  };
+}
 
 export async function GET(req: Request) {
   const auth = await authorize(req, 'aboutTeam.read');
@@ -8,22 +33,10 @@ export async function GET(req: Request) {
 
   const rows = await prisma.aboutTeamMember.findMany({
     orderBy: [{ order: 'asc' }, { id: 'asc' }],
+    include: { cv: memberCvSelect },
   });
 
-  return NextResponse.json(
-    rows.map((r) => ({
-      id: r.id,
-      emoji: r.emoji,
-      name: r.name,
-      nameVi: r.nameVi ?? '',
-      role: r.role,
-      roleVi: r.roleVi ?? '',
-      bio: r.bio,
-      bioVi: r.bioVi ?? '',
-      order: r.order,
-      isActive: r.isActive,
-    })),
-  );
+  return NextResponse.json(rows.map(serializeAdminMember));
 }
 
 export async function POST(req: Request) {
@@ -44,6 +57,11 @@ export async function POST(req: Request) {
   if (!emoji || !name || !role || !bio) return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
   if (!Number.isFinite(order)) return NextResponse.json({ error: 'Invalid order' }, { status: 400 });
 
+  const slugRaw = typeof body.slug === 'string' ? body.slug.trim() : '';
+  const slug = slugRaw
+    ? await ensureUniqueMemberSlug(prisma, slugRaw)
+    : await ensureUniqueMemberSlug(prisma, name);
+
   const created = await prisma.aboutTeamMember.create({
     data: {
       emoji,
@@ -55,22 +73,13 @@ export async function POST(req: Request) {
       bioVi: bioVi || null,
       order,
       isActive,
+      slug,
     },
+    include: { cv: memberCvSelect },
   });
 
   return NextResponse.json({
     ok: true,
-    member: {
-      id: created.id,
-      emoji: created.emoji,
-      name: created.name,
-      nameVi: created.nameVi ?? '',
-      role: created.role,
-      roleVi: created.roleVi ?? '',
-      bio: created.bio,
-      bioVi: created.bioVi ?? '',
-      order: created.order,
-      isActive: created.isActive,
-    },
+    member: serializeAdminMember(created),
   });
 }

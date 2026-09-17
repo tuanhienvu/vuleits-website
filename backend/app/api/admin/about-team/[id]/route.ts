@@ -1,6 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
+import type { AboutTeamMember, AboutTeamMemberCV } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { authorize } from '@/lib/adminAuth';
+import { ensureUniqueMemberSlug } from '@/lib/teamMemberCv';
+
+const memberCvSelect = { select: { id: true, isPublished: true } } as const;
+
+type MemberWithCv = AboutTeamMember & {
+  cv: Pick<AboutTeamMemberCV, 'id' | 'isPublished'> | null;
+};
+
+function serializeAdminMember(r: MemberWithCv) {
+  return {
+    id: r.id,
+    emoji: r.emoji,
+    name: r.name,
+    nameVi: r.nameVi ?? '',
+    role: r.role,
+    roleVi: r.roleVi ?? '',
+    bio: r.bio,
+    bioVi: r.bioVi ?? '',
+    order: r.order,
+    isActive: r.isActive,
+    slug: r.slug ?? '',
+    hasCv: Boolean(r.cv),
+  };
+}
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = await authorize(req, 'aboutTeam.read');
@@ -10,21 +35,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const id = Number(idParam);
   if (!Number.isFinite(id)) return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
 
-  const member = await prisma.aboutTeamMember.findUnique({ where: { id } });
+  const member = await prisma.aboutTeamMember.findUnique({
+    where: { id },
+    include: { cv: memberCvSelect },
+  });
   if (!member) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-  return NextResponse.json({
-    id: member.id,
-    emoji: member.emoji,
-    name: member.name,
-    nameVi: member.nameVi ?? '',
-    role: member.role,
-    roleVi: member.roleVi ?? '',
-    bio: member.bio,
-    bioVi: member.bioVi ?? '',
-    order: member.order,
-    isActive: member.isActive,
-  });
+  return NextResponse.json(serializeAdminMember(member));
 }
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -55,6 +72,14 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   if (!nextBio) return NextResponse.json({ error: 'Bio is required' }, { status: 400 });
   if (!Number.isFinite(nextOrder)) return NextResponse.json({ error: 'Invalid order' }, { status: 400 });
 
+  let nextSlug = current.slug;
+  if (body.slug !== undefined) {
+    const slugRaw = String(body.slug ?? '').trim();
+    nextSlug = slugRaw
+      ? await ensureUniqueMemberSlug(prisma, slugRaw, id)
+      : await ensureUniqueMemberSlug(prisma, nextName, id);
+  }
+
   const updated = await prisma.aboutTeamMember.update({
     where: { id },
     data: {
@@ -67,23 +92,14 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       bioVi: nextBioVi || null,
       order: nextOrder,
       isActive: nextIsActive,
+      slug: nextSlug,
     },
+    include: { cv: memberCvSelect },
   });
 
   return NextResponse.json({
     ok: true,
-    member: {
-      id: updated.id,
-      emoji: updated.emoji,
-      name: updated.name,
-      nameVi: updated.nameVi ?? '',
-      role: updated.role,
-      roleVi: updated.roleVi ?? '',
-      bio: updated.bio,
-      bioVi: updated.bioVi ?? '',
-      order: updated.order,
-      isActive: updated.isActive,
-    },
+    member: serializeAdminMember(updated),
   });
 }
 

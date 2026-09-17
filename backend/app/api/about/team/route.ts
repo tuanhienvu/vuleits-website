@@ -9,6 +9,7 @@ export async function GET(req: Request) {
   const rows = await prisma.aboutTeamMember.findMany({
     where: { isActive: true },
     orderBy: [{ order: 'asc' }, { id: 'asc' }],
+    include: { cv: { select: { id: true, isPublished: true } } },
   });
 
   return NextResponse.json(
@@ -18,6 +19,8 @@ export async function GET(req: Request) {
       name: pickLocalized(r.name, r.nameVi, locale),
       role: pickLocalized(r.role, r.roleVi, locale),
       bio: pickLocalized(r.bio, r.bioVi, locale),
+      slug: r.slug ?? '',
+      hasCv: Boolean(r.cv && r.cv.isPublished),
     })),
   );
 }
