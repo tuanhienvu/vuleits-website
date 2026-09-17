@@ -1,14 +1,20 @@
 // Load environment variables from `backend/.env` (see `backend/.env.example`).
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', 'backend', '.env') });
-const dbSnapshot = require('./seed.db.snapshot.json');
+let dbSnapshot = null;
+try {
+  // Optional: content snapshot may be absent in some environments.
+  dbSnapshot = require('./seed.db.snapshot.json');
+} catch {
+  dbSnapshot = null;
+}
 
 if (!process.env.DATABASE_URL) {
   const { DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD } = process.env;
   if (DB_HOST && DB_PORT && DB_NAME && DB_USER && DB_PASSWORD) {
     const user = encodeURIComponent(DB_USER);
     const password = encodeURIComponent(DB_PASSWORD);
-    process.env.DATABASE_URL = `mysql://${user}:${password}@${DB_HOST}:${DB_PORT}/${DB_NAME}`;
+    process.env.DATABASE_URL = `postgresql://${user}:${password}@${DB_HOST}:${DB_PORT}/${DB_NAME}`;
   }
 }
 
@@ -16,6 +22,45 @@ const { PrismaClient } = require('@prisma/client');
 
 // Prisma 6 works with traditional approach
 const prisma = new PrismaClient();
+
+function slugifyName(name) {
+  return (
+    String(name ?? '')
+      .normalize('NFKD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 120) || 'member'
+  );
+}
+
+async function ensureUniqueMemberSlug(client, name, excludeId) {
+  const base = slugifyName(name);
+  let candidate = base;
+  let suffix = 2;
+  for (;;) {
+    const existing = await client.aboutTeamMember.findFirst({
+      where: {
+        slug: candidate,
+        ...(excludeId != null ? { id: { not: excludeId } } : {}),
+      },
+      select: { id: true },
+    });
+    if (!existing) return candidate.slice(0, 160);
+    const suffixStr = `-${suffix}`;
+    candidate = `${base.slice(0, Math.max(1, 160 - suffixStr.length))}${suffixStr}`;
+    suffix += 1;
+  }
+}
+
+function cvYearStart(year) {
+  return new Date(Date.UTC(year, 0, 1));
+}
+
+function cvYearEnd(year) {
+  return new Date(Date.UTC(year, 11, 31));
+}
 
 async function main() {
   console.log('Seeding authorization data...');
@@ -36,6 +81,7 @@ async function main() {
     'userPassword',
     'permissions',
     'auditLogs',
+    'maintenance',
   ];
 
   // Map sidebar feature ids -> permission name prefixes in DB
@@ -55,6 +101,7 @@ async function main() {
     userPassword: 'userPassword',
     permissions: 'permissions',
     auditLogs: 'auditLogs',
+    maintenance: 'maintenance',
   };
 
   const actions = ['create', 'read', 'update', 'delete'];
@@ -182,13 +229,13 @@ async function main() {
         roleId,
         isProtected: u.isProtected,
         password: hash,
-        isActive: true,
+        "isActive": true,
       },
       create: {
         email: u.email,
         password: hash,
         roleId,
-        isActive: true,
+        "isActive": true,
         isProtected: u.isProtected,
       },
     });
@@ -221,7 +268,7 @@ async function main() {
       data: [
         {
           order: 0,
-          isActive: true,
+          "isActive": true,
           icon: '✨',
           title: 'Modern Design',
           description:
@@ -229,7 +276,7 @@ async function main() {
         },
         {
           order: 1,
-          isActive: true,
+          "isActive": true,
           icon: '⚡',
           title: 'Fast Performance',
           description:
@@ -237,7 +284,7 @@ async function main() {
         },
         {
           order: 2,
-          isActive: true,
+          "isActive": true,
           icon: '📱',
           title: 'Responsive',
           description:
@@ -245,7 +292,7 @@ async function main() {
         },
         {
           order: 3,
-          isActive: true,
+          "isActive": true,
           icon: '🎨',
           title: 'Interactive UI',
           description:
@@ -253,7 +300,7 @@ async function main() {
         },
         {
           order: 4,
-          isActive: true,
+          "isActive": true,
           icon: '🔒',
           title: 'Secure & Safe',
           description:
@@ -261,7 +308,7 @@ async function main() {
         },
         {
           order: 5,
-          isActive: true,
+          "isActive": true,
           icon: '🚀',
           title: 'Easy Integration',
           description:
@@ -272,12 +319,12 @@ async function main() {
   }
 
   // Seed About/Services using raw SQL (works even if Prisma Client wasn't regenerated yet)
-  const aboutStatCountRows = await prisma.$queryRaw`SELECT COUNT(*) as c FROM AboutStat`;
+  const aboutStatCountRows = await prisma.$queryRaw`SELECT COUNT(*) as c FROM "AboutStat"`;
   const aboutStatCount = Number(aboutStatCountRows?.[0]?.c || 0);
   if (aboutStatCount === 0) {
     console.log('Seeding about page stats...');
     await prisma.$executeRaw`
-      INSERT INTO AboutStat (number, label, \`order\`, isActive, createdAt, updatedAt) VALUES
+      INSERT INTO "AboutStat" (number, label, "order", "isActive", "createdAt", "updatedAt") VALUES
       ('150+', 'Projects Completed', 0, true, NOW(), NOW()),
       ('50+', 'Happy Clients', 1, true, NOW(), NOW()),
       ('3', 'Years Experience', 2, true, NOW(), NOW()),
@@ -285,12 +332,12 @@ async function main() {
     `;
   }
 
-  const aboutTeamCountRows = await prisma.$queryRaw`SELECT COUNT(*) as c FROM AboutTeamMember`;
+  const aboutTeamCountRows = await prisma.$queryRaw`SELECT COUNT(*) as c FROM "AboutTeamMember"`;
   const aboutTeamCount = Number(aboutTeamCountRows?.[0]?.c || 0);
   if (aboutTeamCount === 0) {
     console.log('Seeding about page team...');
     await prisma.$executeRaw`
-      INSERT INTO AboutTeamMember (emoji, name, role, bio, \`order\`, isActive, createdAt, updatedAt) VALUES
+      INSERT INTO "AboutTeamMember" (emoji, name, role, bio, "order", "isActive", "createdAt", "updatedAt") VALUES
       ('👨‍💼', 'John Anderson', 'CEO & Founder', 'Visionary leader with 15+ years in digital innovation, driving our mission to create exceptional user experiences.', 0, true, NOW(), NOW()),
       ('👩‍🎨', 'Sarah Chen', 'Creative Director', 'Award-winning designer specializing in modern UI/UX, bringing artistic vision to every project.', 1, true, NOW(), NOW()),
       ('👨‍💻', 'Michael Torres', 'Lead Developer', 'Full-stack expert passionate about clean code and innovative web technologies.', 2, true, NOW(), NOW()),
@@ -300,12 +347,193 @@ async function main() {
     `;
   }
 
-  const servicesCountRows = await prisma.$queryRaw`SELECT COUNT(*) as c FROM ServiceItem`;
+  const membersNeedingSlug = await prisma.aboutTeamMember.findMany({
+    where: { slug: null },
+    orderBy: { id: 'asc' },
+    select: { id: true, name: true },
+  });
+  if (membersNeedingSlug.length > 0) {
+    console.log(`Backfilling slugs for ${membersNeedingSlug.length} team member(s)...`);
+    for (const member of membersNeedingSlug) {
+      const slug = await ensureUniqueMemberSlug(prisma, member.name, member.id);
+      await prisma.aboutTeamMember.update({ where: { id: member.id }, data: { slug } });
+    }
+  }
+
+  const existingCvCount = await prisma.aboutTeamMemberCV.count();
+  if (existingCvCount === 0) {
+    const sampleNamePatterns = ['tuan hien vu', 'tuanhienvu'];
+    let cvMember =
+      (await prisma.aboutTeamMember.findFirst({
+        where: {
+          isActive: true,
+          OR: sampleNamePatterns.map((part) => ({
+            name: { contains: part, mode: 'insensitive' },
+          })),
+        },
+        orderBy: { order: 'asc' },
+      })) ||
+      (await prisma.aboutTeamMember.findFirst({
+        where: { isActive: true },
+        orderBy: { order: 'asc' },
+      }));
+
+    if (cvMember) {
+      if (!cvMember.slug) {
+        const slug = await ensureUniqueMemberSlug(prisma, cvMember.name, cvMember.id);
+        cvMember = await prisma.aboutTeamMember.update({
+          where: { id: cvMember.id },
+          data: { slug },
+        });
+      }
+
+      console.log(`Seeding sample CV for team member "${cvMember.name}" (id ${cvMember.id})...`);
+      await prisma.aboutTeamMemberCV.create({
+        data: {
+          teamMemberId: cvMember.id,
+          title: 'Project Manager',
+          titleVi: 'Quản lý dự án',
+          profileSummary:
+            'Thanks to being enthusiasm, openness, optimism, thoughtfulness and resourcefulness I can integrate with all people and jobs. Keep learn more things to gain more and more experience.',
+          profileSummaryVi:
+            'Nhờ sự nhiệt huyết, cởi mở, lạc quan, chu đáo và sáng tạo, tôi có thể hòa nhập với mọi con người và công việc. Luôn học hỏi để tích lũy thêm kinh nghiệm.',
+          email: 'tuanhienvu@gmail.com',
+          phone: '(+84) 0982 068 806',
+          location: 'Lam Dong, Vietnam',
+          locationVi: 'Lâm Đồng, Việt Nam',
+          isPublished: true,
+          skills: {
+            create: [
+              {
+                name: 'Project Management',
+                nameVi: 'Quản lý dự án',
+                description:
+                  'Plan, coordinate, and oversee projects from initiation to completion, ensuring timelines, budgets, and objectives are successfully achieved. Drive team collaboration, manage risks, and monitor progress to deliver high-quality results efficiently.',
+                descriptionVi:
+                  'Lập kế hoạch, phối hợp và giám sát dự án từ khởi động đến hoàn thành, đảm bảo tiến độ, ngân sách và mục tiêu. Thúc đẩy phối hợp nhóm, quản lý rủi ro và theo dõi tiến độ để bàn giao chất lượng.',
+                displayOrder: 0,
+              },
+              {
+                name: 'Quality Management',
+                nameVi: 'Quản lý chất lượng',
+                description:
+                  'Manage quality assurance and operational performance through international standards compliance (ESG, Net-Zero, GlobalGAP, BRCGS, HALAL, KOSHER.), process optimization, and risk management.',
+                descriptionVi:
+                  'Quản lý đảm bảo chất lượng và hiệu suất vận hành theo các tiêu chuẩn quốc tế (ESG, Net-Zero, GlobalGAP, BRCGS, HALAL, KOSHER), tối ưu quy trình và quản lý rủi ro.',
+                displayOrder: 1,
+              },
+              {
+                name: 'Software Development',
+                nameVi: 'Phát triển phần mềm',
+                description:
+                  'Design and develop efficient web applications, database solutions, and enterprise systems. Utilize modern web technologies to enhance productivity, automation, and operational efficiency.',
+                descriptionVi:
+                  'Thiết kế và phát triển ứng dụng web, cơ sở dữ liệu và hệ thống doanh nghiệp hiệu quả; ứng dụng công nghệ web hiện đại để nâng cao năng suất và tự động hóa.',
+                displayOrder: 2,
+              },
+            ],
+          },
+          experiences: {
+            create: [
+              {
+                company: 'Pan-Hulic Jsc.',
+                companyVi: 'Công ty CP Pan-Hulic',
+                position: 'QA Manager',
+                positionVi: 'Quản lý QA',
+                description:
+                  'Led Quality Assurance and Food Safety Management Systems across ISO 22000:2018, Global G.A.P., BRCGS, HALAL, KOSHER, and SMETA standards. Drove ESG and Net-Zero initiatives, optimized production processes, and ensured compliance with international certification requirements.',
+                descriptionVi:
+                  'Điều hành hệ thống QA và an toàn thực phẩm theo ISO 22000:2018, Global G.A.P., BRCGS, HALAL, KOSHER và SMETA; thúc đẩy ESG, Net-Zero và tuân thủ chứng nhận quốc tế.',
+                startDate: cvYearStart(2023),
+                endDate: null,
+                isCurrent: true,
+                displayOrder: 0,
+              },
+              {
+                company: 'Eco Technology Jsc.',
+                companyVi: 'Công ty CP Eco Technology',
+                position: 'Project Manager',
+                positionVi: 'Quản lý dự án',
+                description:
+                  'Working closely with team members to ensure that all project requirements, deadlines, and schedules are on track. Responsibilities include submitting project deliverables, preparing status reports, and establishing effective project communication plans as well as the proper execution of said plans.',
+                descriptionVi:
+                  'Phối hợp chặt chẽ với nhóm để đảm bảo yêu cầu, deadline và lịch trình dự án; bàn giao sản phẩm, báo cáo tiến độ và triển khai kế hoạch truyền thông dự án.',
+                startDate: cvYearStart(2019),
+                endDate: cvYearEnd(2023),
+                isCurrent: false,
+                displayOrder: 1,
+              },
+              {
+                company: 'Vietnam Social Sercurity',
+                companyVi: 'Bảo hiểm xã hội Việt Nam',
+                position: 'Data entry and analysis',
+                positionVi: 'Nhập liệu và phân tích dữ liệu',
+                description:
+                  'Managed data entry, analysis, duplication control, and synchronization activities while providing software and IT support. Administered network systems and Windows Server 2008 environments, supported administrative operations, and contributed to rapid-response initiatives for technical issue resolution.',
+                descriptionVi:
+                  'Quản lý nhập liệu, phân tích, kiểm soát trùng lặp và đồng bộ; hỗ trợ phần mềm, IT, mạng và Windows Server 2008; xử lý nhanh sự cố kỹ thuật.',
+                startDate: cvYearStart(2012),
+                endDate: cvYearEnd(2019),
+                isCurrent: false,
+                displayOrder: 2,
+              },
+              {
+                company: 'Agrivina ltd.',
+                companyVi: 'Công ty Agrivina',
+                position: 'Packing Supervisor',
+                positionVi: 'Giám sát đóng gói',
+                description:
+                  'Oversaw export packaging operations, workforce management, production planning, inventory control, and quality compliance. Drove process improvement initiatives that reduced costs, improved product quality, enhanced operational efficiency, and decreased customer complaints.',
+                descriptionVi:
+                  'Giám sát đóng gói xuất khẩu, nhân sự, kế hoạch sản xuất, tồn kho và chất lượng; cải tiến quy trình giảm chi phí và khiếu nại khách hàng.',
+                startDate: cvYearStart(2007),
+                endDate: cvYearEnd(2012),
+                isCurrent: false,
+                displayOrder: 3,
+              },
+              {
+                company: 'Quang Thai Distributor',
+                companyVi: 'Nhà phân phối Quang Thái',
+                position: 'Data Entry',
+                positionVi: 'Nhập liệu',
+                description:
+                  'Receive purchase order; Sale data & warehouse data entry; Distributor accounting; Sale reporting',
+                descriptionVi:
+                  'Tiếp nhận đơn hàng; nhập liệu bán hàng và kho; kế toán nhà phân phối; báo cáo doanh số.',
+                startDate: cvYearStart(2005),
+                endDate: cvYearEnd(2006),
+                isCurrent: false,
+                displayOrder: 4,
+              },
+            ],
+          },
+          educations: {
+            create: [
+              {
+                school: 'Dalat University - Lamdong, Vietnam',
+                schoolVi: 'Đại học Đà Lạt - Lâm Đồng, Việt Nam',
+                degree: 'Bachelor',
+                degreeVi: 'Cử nhân',
+                fieldOfStudy: 'Agriculture & Forest Economy',
+                fieldOfStudyVi: 'Kinh tế Nông lâm',
+                gpa: '6.74',
+                displayOrder: 0,
+              },
+            ],
+          },
+        },
+      });
+    } else {
+      console.warn('Sample CV seed skipped: no active team members found.');
+    }
+  }
+
+  const servicesCountRows = await prisma.$queryRaw`SELECT COUNT(*) as c FROM "ServiceItem"`;
   const servicesCount = Number(servicesCountRows?.[0]?.c || 0);
   if (servicesCount === 0) {
     console.log('Seeding services page items...');
     await prisma.$executeRaw`
-      INSERT INTO ServiceItem (icon, title, description, features, \`order\`, isActive, createdAt, updatedAt) VALUES
+      INSERT INTO "ServiceItem" (icon, title, description, features, "order", "isActive", "createdAt", "updatedAt") VALUES
       ('🎨', 'UI/UX Design', 'Create stunning user interfaces with modern design principles, focusing on usability and aesthetic appeal.', ${JSON.stringify([
         'User Research & Analysis',
         'Wireframing & Prototyping',
@@ -349,36 +577,36 @@ async function main() {
   // services, news, medias, banners with EN + VI labels.
   const genericCategoryDefaults = {
     services: [
-      { id: 1, name: 'Consulting', nameVi: 'Tư vấn', slug: 'consulting', sortOrder: 0, isActive: true },
-      { id: 2, name: 'Development', nameVi: 'Phát triển', slug: 'development', sortOrder: 1, isActive: true },
-      { id: 3, name: 'Design', nameVi: 'Thiết kế', slug: 'design', sortOrder: 2, isActive: true },
-      { id: 4, name: 'Operations', nameVi: 'Vận hành', slug: 'operations', sortOrder: 3, isActive: true },
-      { id: 5, name: 'Security', nameVi: 'Bảo mật', slug: 'security', sortOrder: 4, isActive: true },
-      { id: 6, name: 'Training', nameVi: 'Đào tạo', slug: 'training', sortOrder: 5, isActive: true },
+      { id: 1, name: 'Consulting', nameVi: 'Tư vấn', slug: 'consulting', sortOrder: 0, "isActive": true },
+      { id: 2, name: 'Development', nameVi: 'Phát triển', slug: 'development', sortOrder: 1, "isActive": true },
+      { id: 3, name: 'Design', nameVi: 'Thiết kế', slug: 'design', sortOrder: 2, "isActive": true },
+      { id: 4, name: 'Operations', nameVi: 'Vận hành', slug: 'operations', sortOrder: 3, "isActive": true },
+      { id: 5, name: 'Security', nameVi: 'Bảo mật', slug: 'security', sortOrder: 4, "isActive": true },
+      { id: 6, name: 'Training', nameVi: 'Đào tạo', slug: 'training', sortOrder: 5, "isActive": true },
     ],
     news: [
-      { id: 1, name: 'Technology', nameVi: 'Công nghệ', slug: 'technology', sortOrder: 0, isActive: true },
-      { id: 2, name: 'Business', nameVi: 'Kinh doanh', slug: 'business', sortOrder: 1, isActive: true },
-      { id: 3, name: 'Product Updates', nameVi: 'Cập nhật sản phẩm', slug: 'product-updates', sortOrder: 2, isActive: true },
-      { id: 4, name: 'Case Studies', nameVi: 'Dự án tiêu biểu', slug: 'case-studies', sortOrder: 3, isActive: true },
-      { id: 5, name: 'Events', nameVi: 'Sự kiện', slug: 'events', sortOrder: 4, isActive: true },
-      { id: 6, name: 'Insights', nameVi: 'Góc nhìn', slug: 'insights', sortOrder: 5, isActive: true },
+      { id: 1, name: 'Technology', nameVi: 'Công nghệ', slug: 'technology', sortOrder: 0, "isActive": true },
+      { id: 2, name: 'Business', nameVi: 'Kinh doanh', slug: 'business', sortOrder: 1, "isActive": true },
+      { id: 3, name: 'Product Updates', nameVi: 'Cập nhật sản phẩm', slug: 'product-updates', sortOrder: 2, "isActive": true },
+      { id: 4, name: 'Case Studies', nameVi: 'Dự án tiêu biểu', slug: 'case-studies', sortOrder: 3, "isActive": true },
+      { id: 5, name: 'Events', nameVi: 'Sự kiện', slug: 'events', sortOrder: 4, "isActive": true },
+      { id: 6, name: 'Insights', nameVi: 'Góc nhìn', slug: 'insights', sortOrder: 5, "isActive": true },
     ],
     medias: [
-      { id: 1, name: 'Images', nameVi: 'Hình ảnh', slug: 'images', sortOrder: 0, isActive: true },
-      { id: 2, name: 'Videos', nameVi: 'Video', slug: 'videos', sortOrder: 1, isActive: true },
-      { id: 3, name: 'Documents', nameVi: 'Tài liệu', slug: 'documents', sortOrder: 2, isActive: true },
-      { id: 4, name: 'Logos', nameVi: 'Logo', slug: 'logos', sortOrder: 3, isActive: true },
-      { id: 5, name: 'Banners', nameVi: 'Banner', slug: 'banners', sortOrder: 4, isActive: true },
-      { id: 6, name: 'Downloads', nameVi: 'Tải về', slug: 'downloads', sortOrder: 5, isActive: true },
+      { id: 1, name: 'Images', nameVi: 'Hình ảnh', slug: 'images', sortOrder: 0, "isActive": true },
+      { id: 2, name: 'Videos', nameVi: 'Video', slug: 'videos', sortOrder: 1, "isActive": true },
+      { id: 3, name: 'Documents', nameVi: 'Tài liệu', slug: 'documents', sortOrder: 2, "isActive": true },
+      { id: 4, name: 'Logos', nameVi: 'Logo', slug: 'logos', sortOrder: 3, "isActive": true },
+      { id: 5, name: 'Banners', nameVi: 'Banner', slug: 'banners', sortOrder: 4, "isActive": true },
+      { id: 6, name: 'Downloads', nameVi: 'Tải về', slug: 'downloads', sortOrder: 5, "isActive": true },
     ],
     banners: [
-      { id: 1, name: 'Homepage Hero', nameVi: 'Hero trang chủ', slug: 'homepage-hero', sortOrder: 0, isActive: true },
-      { id: 2, name: 'Homepage Promo', nameVi: 'Khuyến mãi trang chủ', slug: 'homepage-promo', sortOrder: 1, isActive: true },
-      { id: 3, name: 'Product Campaign', nameVi: 'Chiến dịch sản phẩm', slug: 'product-campaign', sortOrder: 2, isActive: true },
-      { id: 4, name: 'Service Campaign', nameVi: 'Chiến dịch dịch vụ', slug: 'service-campaign', sortOrder: 3, isActive: true },
-      { id: 5, name: 'News Spotlight', nameVi: 'Điểm nhấn tin tức', slug: 'news-spotlight', sortOrder: 4, isActive: true },
-      { id: 6, name: 'Seasonal', nameVi: 'Theo mùa', slug: 'seasonal', sortOrder: 5, isActive: true },
+      { id: 1, name: 'Homepage Hero', nameVi: 'Hero trang chủ', slug: 'homepage-hero', sortOrder: 0, "isActive": true },
+      { id: 2, name: 'Homepage Promo', nameVi: 'Khuyến mãi trang chủ', slug: 'homepage-promo', sortOrder: 1, "isActive": true },
+      { id: 3, name: 'Product Campaign', nameVi: 'Chiến dịch sản phẩm', slug: 'product-campaign', sortOrder: 2, "isActive": true },
+      { id: 4, name: 'Service Campaign', nameVi: 'Chiến dịch dịch vụ', slug: 'service-campaign', sortOrder: 3, "isActive": true },
+      { id: 5, name: 'News Spotlight', nameVi: 'Điểm nhấn tin tức', slug: 'news-spotlight', sortOrder: 4, "isActive": true },
+      { id: 6, name: 'Seasonal', nameVi: 'Theo mùa', slug: 'seasonal', sortOrder: 5, "isActive": true },
     ],
   };
 
@@ -405,16 +633,16 @@ async function main() {
   }
 
   // Seed News (sample data for testing)
-  const newsCountRows = await prisma.$queryRaw`SELECT COUNT(*) as c FROM News`;
+  const newsCountRows = await prisma.$queryRaw`SELECT COUNT(*) as c FROM "News"`;
   const newsCount = Number(newsCountRows?.[0]?.c || 0);
   console.log(`Ensuring sample news articles... (existing: ${newsCount})`);
 
-  const authorIdRows = await prisma.$queryRaw`SELECT id FROM \`User\` ORDER BY id ASC LIMIT 1`;
+  const authorIdRows = await prisma.$queryRaw`SELECT id FROM "User" ORDER BY id ASC LIMIT 1`;
   const authorId = Number(authorIdRows?.[0]?.id || 1);
 
   const now = new Date();
-  // MySQL DATETIME(3) expects: YYYY-MM-DD HH:MM:SS.sss (no trailing Z)
-  const toMysqlDateTime = (d) => d.toISOString().replace('T', ' ').replace('Z', '');
+  // PostgreSQL timestamp: YYYY-MM-DD HH:MM:SS.sss
+  const toSqlDateTime = (d) => d.toISOString().replace('T', ' ').replace('Z', '');
   const daysAgo = (n) => new Date(now.getTime() - n * 86400000);
 
   const articles = [
@@ -436,7 +664,7 @@ async function main() {
           <h3>TypeScript snippet</h3>
           <pre><code class="language-ts">type Article = { title: string; slug: string };</code></pre>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(2)),
+        publishedAt: toSqlDateTime(daysAgo(2)),
       },
       {
         title: 'Politics Brief: Policy focus for the quarter',
@@ -454,9 +682,9 @@ async function main() {
             <li>Execution and accountability</li>
           </ol>
           <h3>Code example</h3>
-          <pre><code class="language-javascript">console.log('Hello from news content');</code></pre>
+          <pre><code class="language-javascript">console.log('Hello FROM "News" content');</code></pre>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(5)),
+        publishedAt: toSqlDateTime(daysAgo(5)),
       },
       {
         title: 'Economy Watch: Market signals to track',
@@ -472,7 +700,7 @@ async function main() {
           <h3>CSS snippet</h3>
           <pre><code class="language-css">.badge { padding: 4px 8px; border-radius: 999px; }</code></pre>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(8)),
+        publishedAt: toSqlDateTime(daysAgo(8)),
       },
       {
         title: 'Entertainment: Behind the scenes of our redesign',
@@ -492,7 +720,7 @@ async function main() {
           <h3>HTML block</h3>
           <p><code>&lt;div&gt;New layout component&lt;/div&gt;</code></p>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(1)),
+        publishedAt: toSqlDateTime(daysAgo(1)),
       },
       {
         title: 'Health Update: Tips for better content clarity',
@@ -510,7 +738,7 @@ async function main() {
             <li>Optimize images for the web</li>
           </ul>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(10)),
+        publishedAt: toSqlDateTime(daysAgo(10)),
       },
       // ==============================
       // Technology (add more samples)
@@ -533,7 +761,7 @@ async function main() {
           <h3>JavaScript snippet</h3>
           <pre><code class="language-javascript">const delay = (ms) => new Promise(r => setTimeout(r, ms));</code></pre>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(6)),
+        publishedAt: toSqlDateTime(daysAgo(6)),
       },
       {
         title: 'Technology Security: Hardening rich content rendering',
@@ -553,7 +781,7 @@ async function main() {
           <h3>TypeScript example</h3>
           <pre><code class="language-ts">type Sanitized = { html: string };</code></pre>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(12)),
+        publishedAt: toSqlDateTime(daysAgo(12)),
       },
       {
         title: 'Technology Benchmark: Measuring real page speed',
@@ -573,7 +801,7 @@ async function main() {
           <h3>CSS snippet</h3>
           <pre><code class="language-css">img { content-visibility: auto; }</code></pre>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(18)),
+        publishedAt: toSqlDateTime(daysAgo(18)),
       },
 
       // ==============================
@@ -597,7 +825,7 @@ async function main() {
           <h3>JavaScript sample</h3>
           <pre><code class="language-javascript">function formatDate(d){ return d.toISOString().slice(0,10); }</code></pre>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(7)),
+        publishedAt: toSqlDateTime(daysAgo(7)),
       },
       {
         title: 'Politics Brief: Community engagement initiatives',
@@ -615,7 +843,7 @@ async function main() {
             <li>Volunteer-led sessions</li>
           </ol>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(14)),
+        publishedAt: toSqlDateTime(daysAgo(14)),
       },
       {
         title: 'Politics Desk: Budget allocation overview',
@@ -633,7 +861,7 @@ async function main() {
             <li>Community programs</li>
           </ul>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(25)),
+        publishedAt: toSqlDateTime(daysAgo(25)),
       },
 
       // ==============================
@@ -657,7 +885,7 @@ async function main() {
           <h3>TypeScript snippet</h3>
           <pre><code class="language-ts">type Signal = 'revenue'|'retention';</code></pre>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(9)),
+        publishedAt: toSqlDateTime(daysAgo(9)),
       },
       {
         title: 'Economy Watch: Financial health checks',
@@ -675,7 +903,7 @@ async function main() {
             <li>Risk assessment</li>
           </ol>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(16)),
+        publishedAt: toSqlDateTime(daysAgo(16)),
       },
       {
         title: 'Economy Operations: Measuring efficiency',
@@ -693,7 +921,7 @@ async function main() {
             <li>Continuous improvement</li>
           </ul>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(30)),
+        publishedAt: toSqlDateTime(daysAgo(30)),
       },
 
       // ==============================
@@ -717,7 +945,7 @@ async function main() {
           <h3>HTML example</h3>
           <pre><code class="language-html">&lt;h2&gt;Structure&lt;/h2&gt;</code></pre>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(4)),
+        publishedAt: toSqlDateTime(daysAgo(4)),
       },
       {
         title: 'Entertainment Update: Media and layout polish',
@@ -735,7 +963,7 @@ async function main() {
             <li>Improved responsive spacing</li>
           </ul>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(11)),
+        publishedAt: toSqlDateTime(daysAgo(11)),
       },
       {
         title: 'Entertainment Lab: Interaction micro-animations',
@@ -755,7 +983,7 @@ async function main() {
           <h3>JavaScript example</h3>
           <pre><code class="language-javascript">requestAnimationFrame(() => console.log('anim'));</code></pre>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(22)),
+        publishedAt: toSqlDateTime(daysAgo(22)),
       },
 
       // ==============================
@@ -777,7 +1005,7 @@ async function main() {
             <li>Optimize images and alt text</li>
           </ul>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(3)),
+        publishedAt: toSqlDateTime(daysAgo(3)),
       },
       {
         title: 'Health Update: Practical SEO content habits',
@@ -797,7 +1025,7 @@ async function main() {
           <h3>CSS snippet</h3>
           <pre><code class="language-css">.lead{ line-height: 1.6; }</code></pre>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(13)),
+        publishedAt: toSqlDateTime(daysAgo(13)),
       },
       {
         title: 'Health Watch: Optimizing images for the web',
@@ -815,7 +1043,7 @@ async function main() {
             <li>Lazy-load non-critical images</li>
           </ul>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(21)),
+        publishedAt: toSqlDateTime(daysAgo(21)),
       },
       // ==============================
       // Extra samples for slider testing
@@ -838,7 +1066,7 @@ async function main() {
           <h3>TypeScript</h3>
           <pre><code class="language-ts">type PipelineStep = { name: string; ok: boolean };</code></pre>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(7)),
+        publishedAt: toSqlDateTime(daysAgo(7)),
       },
       {
         title: 'Technology Brief: Code snippet formatting rules',
@@ -858,7 +1086,7 @@ async function main() {
           <h3>CSS</h3>
           <pre><code class="language-css">pre { white-space: pre-wrap; }</code></pre>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(14)),
+        publishedAt: toSqlDateTime(daysAgo(14)),
       },
       {
         title: 'Politics Feature: Community transparency forum',
@@ -876,7 +1104,7 @@ async function main() {
             <li>Next steps</li>
           </ol>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(9)),
+        publishedAt: toSqlDateTime(daysAgo(9)),
       },
       {
         title: 'Politics Brief: Operational accountability report',
@@ -894,7 +1122,7 @@ async function main() {
             <li>Time to resolve</li>
           </ul>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(18)),
+        publishedAt: toSqlDateTime(daysAgo(18)),
       },
       {
         title: 'Economy Feature: Efficiency without burnout',
@@ -912,7 +1140,7 @@ async function main() {
             <li>Protect focus time</li>
           </ul>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(6)),
+        publishedAt: toSqlDateTime(daysAgo(6)),
       },
       {
         title: 'Economy Brief: Investment in tooling',
@@ -930,7 +1158,7 @@ async function main() {
             <li>Observability</li>
           </ul>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(24)),
+        publishedAt: toSqlDateTime(daysAgo(24)),
       },
       {
         title: 'Entertainment Feature: Article layout improvements',
@@ -948,7 +1176,7 @@ async function main() {
             <li>Cleaner spacing between sections</li>
           </ul>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(8)),
+        publishedAt: toSqlDateTime(daysAgo(8)),
       },
       {
         title: 'Entertainment Brief: Micro-interactions guide',
@@ -966,7 +1194,7 @@ async function main() {
             <li>Ensure accessibility</li>
           </ol>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(15)),
+        publishedAt: toSqlDateTime(daysAgo(15)),
       },
       {
         title: 'Health Feature: Structured content for SEO',
@@ -984,7 +1212,7 @@ async function main() {
             <li>Add concise lists</li>
           </ul>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(5)),
+        publishedAt: toSqlDateTime(daysAgo(5)),
       },
       {
         title: 'Health Brief: Performance checklist for images',
@@ -1004,28 +1232,31 @@ async function main() {
           <h3>Code</h3>
           <pre><code class="language-javascript">const img = document.querySelector('img');</code></pre>
         `,
-        publishedAt: toMysqlDateTime(daysAgo(16)),
+        publishedAt: toSqlDateTime(daysAgo(16)),
       },
     ];
 
     for (const a of articles) {
       // If slug exists already, skip (so re-running seed is safe)
-      // NOTE: MySQL doesn't support IF NOT EXISTS for unique constraints in one statement.
-      // We'll do a COUNT check per article.
-      const existsRows = await prisma.$queryRaw`SELECT COUNT(*) as c FROM News WHERE slug = ${a.slug}`;
-      const exists = Number(existsRows?.[0]?.c || 0) > 0;
+      const exists = await prisma.news.findUnique({ where: { slug: a.slug }, select: { id: true } });
       if (exists) continue;
 
-      await prisma.$executeRaw`
-        INSERT INTO News (title, slug, description, content, tags, status, category, imageId, startDate, publishedAt, authorId, seoTitle, seoDescription, seoKeywords, createdAt, updatedAt)
-        VALUES (
-          ${a.title}, ${a.slug}, ${a.description}, ${a.content},
-          ${JSON.stringify(a.tags)}, 'Active', ${a.category}, NULL,
-          NULL, ${a.publishedAt}, ${authorId},
-          ${a.title}, ${a.description}, ${a.tags.join(', ')},
-          NOW(), NOW()
-        )
-      `;
+      await prisma.news.create({
+        data: {
+          title: a.title,
+          slug: a.slug,
+          description: a.description,
+          content: a.content,
+          tags: JSON.stringify(a.tags),
+          status: 'Active',
+          category: a.category,
+          publishedAt: new Date(a.publishedAt),
+          authorId,
+          seoTitle: a.title,
+          seoDescription: a.description,
+          seoKeywords: a.tags.join(', '),
+        },
+      });
     }
 
   // --- Products catalog (categories, technologies, sample products, analytics-ready) ---
@@ -1238,7 +1469,7 @@ async function main() {
           message:
             '[Partnership inquiry] Hi, we run a mid-size retail chain and are evaluating vendors for a new e-commerce platform. Could someone share a short overview of implementation timelines and ballpark pricing?',
           status: 'New',
-          createdAt: hoursAgo(2),
+          "createdAt": hoursAgo(2),
         },
         {
           name: 'Minh Anh',
@@ -1247,7 +1478,7 @@ async function main() {
           message:
             'Chào team, tôi muốn hỏi về dịch vụ tư vấn chuyển đổi số cho doanh nghiệp nhỏ. Có thể gọi lại trong giờ hành chính không ạ?',
           status: 'New',
-          createdAt: hoursAgo(26),
+          "createdAt": hoursAgo(26),
         },
         {
           name: 'Jordan Lee',
@@ -1256,7 +1487,7 @@ async function main() {
           message:
             '[Demo access request] Please grant demo access to our engineering team (4 seats). We are particularly interested in the API gateway product from your catalog.',
           status: 'Read',
-          createdAt: hoursAgo(72),
+          "createdAt": hoursAgo(72),
         },
         {
           name: 'Samira Patel',
@@ -1265,7 +1496,7 @@ async function main() {
           message:
             '[Support: export reports] We need CSV exports for monthly usage summaries. Is this available on the current plan or only on enterprise?',
           status: 'Replied',
-          createdAt: hoursAgo(168),
+          "createdAt": hoursAgo(168),
         },
         {
           name: 'Chris Weber',
@@ -1274,7 +1505,7 @@ async function main() {
           message:
             '[Newsletter] Please add chris@company.example to your newsletter. Thanks!',
           status: 'Archived',
-          createdAt: hoursAgo(720),
+          "createdAt": hoursAgo(720),
         },
       ],
     });
@@ -1284,12 +1515,16 @@ async function main() {
   }
 
   // ------------------------------------------------------------
-  // Snapshot seeding from current DB export (content tables only)
-  // Excludes Users, Permissions, UserPermission by design.
+  // Snapshot seeding from prisma/seed.db.snapshot.json (export via npm run db:export-snapshot)
+  // Content tables only — Users/Roles/Permissions stay from scripted seed above so IDs match FKs in snapshot.
+  // FK-safe insert order: categories & tech → media → … → products → junction tables → contacts → settings.
+  // SEED_RESET_CONTENT=1: delete content tables then re-import snapshot (full replace; keep users/RBAC).
   // ------------------------------------------------------------
   try {
     const snapshot = dbSnapshot && typeof dbSnapshot === 'object' ? dbSnapshot : null;
     if (snapshot) {
+      const resetContent = process.env.SEED_RESET_CONTENT === '1' || process.env.SEED_RESET_CONTENT === 'true';
+
       const withViFallback = (row) => {
         if (!row || typeof row !== 'object') return row;
         const out = { ...row };
@@ -1310,90 +1545,114 @@ async function main() {
         console.log(`Seeded from snapshot: ${label}`);
       };
 
-      await seedIfEmpty(
-        () => prisma.aboutSection.count(),
-        () => prisma.aboutSection.createMany({ data: (snapshot.aboutSections || []).map(withViFallback), skipDuplicates: true }),
-        'aboutSections',
+      const createOpts = { skipDuplicates: true };
+
+      const applyBulk = async (label, fn) => {
+        if (resetContent) {
+          await fn();
+          console.log(`Snapshot (reset): ${label}`);
+        } else {
+          await seedIfEmpty(
+            async () => {
+              const map = {
+                productCategories: () => prisma.productCategory.count(),
+                technologies: () => prisma.technology.count(),
+                media: () => prisma.media.count(),
+                aboutSections: () => prisma.aboutSection.count(),
+                aboutStats: () => prisma.aboutStat.count(),
+                aboutTeamMembers: () => prisma.aboutTeamMember.count(),
+                bannerSliders: () => prisma.bannerSlider.count(),
+                bannerItems: () => prisma.bannerItem.count(),
+                homeFeatures: () => prisma.homeFeature.count(),
+                news: () => prisma.news.count(),
+                privacyPolicies: () => prisma.privacyPolicy.count(),
+                termsOfServices: () => prisma.termsOfService.count(),
+                products: () => prisma.product.count(),
+                productTechnologies: () => prisma.productTechnology.count(),
+                productAnalytics: () => prisma.productAnalytics.count(),
+                serviceItems: () => prisma.serviceItem.count(),
+                contacts: () => prisma.contact.count(),
+              };
+              const c = map[label];
+              return c ? c() : 0;
+            },
+            fn,
+            label,
+          );
+        }
+      };
+
+      if (resetContent) {
+        console.warn('SEED_RESET_CONTENT: clearing content tables (users/RBAC preserved)...');
+        await prisma.productAnalytics.deleteMany();
+        await prisma.productTechnology.deleteMany();
+        await prisma.product.deleteMany();
+        await prisma.news.deleteMany();
+        await prisma.bannerItem.deleteMany();
+        await prisma.bannerSlider.deleteMany();
+        await prisma.aboutSection.deleteMany();
+        await prisma.homeFeature.deleteMany();
+        await prisma.contact.deleteMany();
+        await prisma.aboutStat.deleteMany();
+        await prisma.aboutTeamMember.deleteMany();
+        await prisma.media.deleteMany();
+        await prisma.productCategory.deleteMany();
+        await prisma.technology.deleteMany();
+        await prisma.privacyPolicy.deleteMany();
+        await prisma.termsOfService.deleteMany();
+        await prisma.serviceItem.deleteMany();
+        await prisma.siteSetting.deleteMany();
+        await prisma.uiMessage.deleteMany();
+      }
+
+      await applyBulk('productCategories', async () =>
+        prisma.productCategory.createMany({ data: snapshot.productCategories || [], ...createOpts }),
       );
-      await seedIfEmpty(
-        () => prisma.aboutStat.count(),
-        () => prisma.aboutStat.createMany({ data: (snapshot.aboutStats || []).map(withViFallback), skipDuplicates: true }),
-        'aboutStats',
+      await applyBulk('technologies', async () =>
+        prisma.technology.createMany({ data: snapshot.technologies || [], ...createOpts }),
       );
-      await seedIfEmpty(
-        () => prisma.aboutTeamMember.count(),
-        () => prisma.aboutTeamMember.createMany({ data: (snapshot.aboutTeamMembers || []).map(withViFallback), skipDuplicates: true }),
-        'aboutTeamMembers',
+      await applyBulk('media', async () => prisma.media.createMany({ data: snapshot.media || [], ...createOpts }));
+      await applyBulk('aboutStats', async () =>
+        prisma.aboutStat.createMany({ data: (snapshot.aboutStats || []).map(withViFallback), ...createOpts }),
       );
-      await seedIfEmpty(
-        () => prisma.bannerSlider.count(),
-        () => prisma.bannerSlider.createMany({ data: snapshot.bannerSliders || [], skipDuplicates: true }),
-        'bannerSliders',
+      await applyBulk('aboutTeamMembers', async () =>
+        prisma.aboutTeamMember.createMany({ data: (snapshot.aboutTeamMembers || []).map(withViFallback), ...createOpts }),
       );
-      await seedIfEmpty(
-        () => prisma.media.count(),
-        () => prisma.media.createMany({ data: snapshot.media || [], skipDuplicates: true }),
-        'media',
+      await applyBulk('aboutSections', async () =>
+        prisma.aboutSection.createMany({ data: (snapshot.aboutSections || []).map(withViFallback), ...createOpts }),
       );
-      await seedIfEmpty(
-        () => prisma.bannerItem.count(),
-        () => prisma.bannerItem.createMany({ data: snapshot.bannerItems || [], skipDuplicates: true }),
-        'bannerItems',
+      await applyBulk('bannerSliders', async () =>
+        prisma.bannerSlider.createMany({ data: snapshot.bannerSliders || [], ...createOpts }),
       );
-      await seedIfEmpty(
-        () => prisma.contact.count(),
-        () => prisma.contact.createMany({ data: snapshot.contacts || [], skipDuplicates: true }),
-        'contacts',
+      await applyBulk('bannerItems', async () =>
+        prisma.bannerItem.createMany({ data: snapshot.bannerItems || [], ...createOpts }),
       );
-      await seedIfEmpty(
-        () => prisma.homeFeature.count(),
-        () => prisma.homeFeature.createMany({ data: (snapshot.homeFeatures || []).map(withViFallback), skipDuplicates: true }),
-        'homeFeatures',
+      await applyBulk('homeFeatures', async () =>
+        prisma.homeFeature.createMany({ data: (snapshot.homeFeatures || []).map(withViFallback), ...createOpts }),
       );
-      await seedIfEmpty(
-        () => prisma.news.count(),
-        () => prisma.news.createMany({ data: (snapshot.news || []).map(withViFallback), skipDuplicates: true }),
-        'news',
+      await applyBulk('news', async () =>
+        prisma.news.createMany({ data: (snapshot.news || []).map(withViFallback), ...createOpts }),
       );
-      await seedIfEmpty(
-        () => prisma.privacyPolicy.count(),
-        () => prisma.privacyPolicy.createMany({ data: (snapshot.privacyPolicies || []).map(withViFallback), skipDuplicates: true }),
-        'privacyPolicies',
+      await applyBulk('privacyPolicies', async () =>
+        prisma.privacyPolicy.createMany({ data: (snapshot.privacyPolicies || []).map(withViFallback), ...createOpts }),
       );
-      await seedIfEmpty(
-        () => prisma.termsOfService.count(),
-        () => prisma.termsOfService.createMany({ data: (snapshot.termsOfServices || []).map(withViFallback), skipDuplicates: true }),
-        'termsOfServices',
+      await applyBulk('termsOfServices', async () =>
+        prisma.termsOfService.createMany({ data: (snapshot.termsOfServices || []).map(withViFallback), ...createOpts }),
       );
-      await seedIfEmpty(
-        () => prisma.productCategory.count(),
-        () => prisma.productCategory.createMany({ data: snapshot.productCategories || [], skipDuplicates: true }),
-        'productCategories',
+      await applyBulk('products', async () =>
+        prisma.product.createMany({ data: (snapshot.products || []).map(withViFallback), ...createOpts }),
       );
-      await seedIfEmpty(
-        () => prisma.technology.count(),
-        () => prisma.technology.createMany({ data: snapshot.technologies || [], skipDuplicates: true }),
-        'technologies',
+      await applyBulk('productTechnologies', async () =>
+        prisma.productTechnology.createMany({ data: snapshot.productTechnologies || [], ...createOpts }),
       );
-      await seedIfEmpty(
-        () => prisma.product.count(),
-        () => prisma.product.createMany({ data: (snapshot.products || []).map(withViFallback), skipDuplicates: true }),
-        'products',
+      await applyBulk('productAnalytics', async () =>
+        prisma.productAnalytics.createMany({ data: snapshot.productAnalytics || [], ...createOpts }),
       );
-      await seedIfEmpty(
-        () => prisma.productTechnology.count(),
-        () => prisma.productTechnology.createMany({ data: snapshot.productTechnologies || [], skipDuplicates: true }),
-        'productTechnologies',
+      await applyBulk('serviceItems', async () =>
+        prisma.serviceItem.createMany({ data: (snapshot.serviceItems || []).map(withViFallback), ...createOpts }),
       );
-      await seedIfEmpty(
-        () => prisma.productAnalytics.count(),
-        () => prisma.productAnalytics.createMany({ data: snapshot.productAnalytics || [], skipDuplicates: true }),
-        'productAnalytics',
-      );
-      await seedIfEmpty(
-        () => prisma.serviceItem.count(),
-        () => prisma.serviceItem.createMany({ data: (snapshot.serviceItems || []).map(withViFallback), skipDuplicates: true }),
-        'serviceItems',
+      await applyBulk('contacts', async () =>
+        prisma.contact.createMany({ data: snapshot.contacts || [], ...createOpts }),
       );
 
       for (const s of snapshot.siteSettings || []) {
@@ -1429,7 +1688,11 @@ async function main() {
           create: { messageKey: m.messageKey, locale: m.locale, value: typeof m.value === 'string' ? m.value : '' },
         });
       }
-      console.log('Applied snapshot content seed (excluding users/permissions/userPermissions).');
+      console.log(
+        resetContent
+          ? 'Applied snapshot content (full replace; users/RBAC unchanged).'
+          : 'Applied snapshot content seed (excluding users/permissions/userPermissions).',
+      );
     }
   } catch (e) {
     console.warn('Snapshot content seed skipped:', e?.message || e);
