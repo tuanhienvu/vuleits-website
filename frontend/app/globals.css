@@ -1006,3 +1006,11 @@ html.light .admin-sidebar-scroll::-webkit-scrollbar-thumb:hover {
   color: var(--text-subtle);
 }
 
+/* Plyr (admin media preview) — theme to match dark admin UI; see MediaVideoPlayer.tsx */
+.media-preview-plyr .plyr {
+  --plyr-color-main: rgb(52 211 153);
+  --plyr-video-background: #000;
+  --plyr-menu-background: rgba(24 24 27 / 0.95);
+  border-radius: 0.5rem;
+}
+

@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
+import DetailBackButton from '@/components/navigation/DetailBackButton';
 import { apiPath } from '@/lib/apiRoutes';
 import { normalizePublicAssetUrlForBrowser } from '@/lib/normalizePublicAssetUrl';
 import { useLocale, type Locale } from '@/components/providers/LocaleProvider';
@@ -135,6 +136,9 @@ export default function TeamMemberCvView({ initial, initialLocale }: Props) {
   return (
     <>
       <article className="cv-document container mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:py-16">
+        <div className="print:hidden">
+          <DetailBackButton fallbackHref="/about" label={t('cv.backToTeam')} />
+        </div>
         <div className="glass cv-paper overflow-hidden p-6 sm:p-10 lg:p-14">
           <header className="grid gap-8 pb-9 md:grid-cols-[1fr_auto] md:items-start">
             <div className="flex min-w-0 items-center gap-5">

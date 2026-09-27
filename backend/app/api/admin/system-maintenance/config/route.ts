@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { authorize } from '@/lib/adminAuth';
 import {
+  clampRetentionDays,
   validateCalendarScheduleConfig,
   loadBackupConfig,
   saveBackupConfig,
@@ -66,6 +67,10 @@ export async function PUT(req: Request) {
                 ? s.passphrase
                 : current.schedules.find((x) => x.id === s.id)?.passphrase || '',
             enabled: Boolean(s.enabled),
+            retentionDays:
+              typeof s.retentionDays === 'number'
+                ? clampRetentionDays(s.retentionDays)
+                : clampRetentionDays(current.schedules.find((x) => x.id === s.id)?.retentionDays ?? 30),
           }))
         : current.schedules,
     passphrase:

@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server';
 import { authorize } from '@/lib/adminAuth';
-import { createEncryptedBackup, listBackups, loadBackupConfig, saveBackupConfig } from '@/lib/systemMaintenance';
+import {
+  appendBackupLog,
+  createEncryptedBackup,
+  listBackups,
+  loadBackupConfig,
+  saveBackupConfig,
+} from '@/lib/systemMaintenance';
 
 export async function GET(req: Request) {
   const auth = await authorize(req, 'maintenance.read');
@@ -20,8 +26,20 @@ export async function POST(req: Request) {
   if (!passphrase) {
     return NextResponse.json({ error: 'Missing encryption passphrase.' }, { status: 400 });
   }
-  const backup = await createEncryptedBackup(passphrase, body.reason || 'manual');
-  cfg.lastRunAt = new Date().toISOString();
-  await saveBackupConfig(cfg);
-  return NextResponse.json({ ok: true, backup });
+  try {
+    const backup = await createEncryptedBackup(passphrase, body.reason || 'manual');
+    cfg.lastRunAt = new Date().toISOString();
+    await saveBackupConfig(cfg);
+    await appendBackupLog({
+      trigger: 'manual',
+      success: true,
+      message: `Manual backup created: ${backup.fileName}`,
+      meta: { fileName: backup.fileName, sizeBytes: backup.sizeBytes },
+    });
+    return NextResponse.json({ ok: true, backup });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    await appendBackupLog({ trigger: 'manual', success: false, message: msg });
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
 }

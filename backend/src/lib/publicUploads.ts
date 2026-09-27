@@ -1,10 +1,10 @@
-import { existsSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { mkdir, unlink, writeFile } from 'fs/promises';
 import path from 'path';
 import { randomBytes } from 'crypto';
 import { fileTypeFromBuffer } from 'file-type';
 
-/** Web path prefix (served from `public/uploads`). */
+/** URL prefix for uploaded files (served by `app/uploads/[[...segments]]/route.ts`). */
 export const UPLOADS_PUBLIC_BASE = '/uploads';
 
 /** Default cap for generic uploads (images, PDF, short video). */
@@ -23,7 +23,7 @@ const MIME_TO_EXT: Record<string, string> = {
 const SEGMENT = /^[a-z0-9][a-z0-9_-]{0,62}$/i;
 
 /**
- * Normalizes a relative subpath under `public/uploads` (e.g. `company`, `library`, `news/2025`).
+ * Normalizes a relative subpath under the uploads root (e.g. `company`, `library`, `news/2025`).
  * Rejects `..`, empty segments, and invalid characters. Creates no directories by itself.
  */
 export function normalizeUploadSubfolder(input: string | null | undefined, fallback = 'general'): string {
@@ -62,20 +62,33 @@ export type SavedPublicUpload = {
   verifiedMime: string;
 };
 
-function resolveUploadsRoot(): string {
+/**
+ * Absolute directory where uploaded media files are stored.
+ * - Set `UPLOADS_ROOT` in production (Docker default: `/app/uploads`).
+ * - Monorepo local dev (`cwd` = `backend/`): defaults to repo-root `uploads/`.
+ * - Single-package layout: defaults to `{cwd}/uploads`.
+ */
+export function resolveUploadsRoot(): string {
   const override = process.env.UPLOADS_ROOT?.trim();
   if (override) return override;
 
   const cwd = process.cwd();
-  const standaloneServer = path.join(cwd, '.next', 'standalone', 'backend', 'server.js');
-  if (existsSync(standaloneServer)) {
-    return path.join(cwd, '.next', 'standalone', 'backend', 'public', 'uploads');
+  const parentPkg = path.join(cwd, '..', 'package.json');
+  if (existsSync(parentPkg)) {
+    try {
+      const raw = readFileSync(parentPkg, 'utf8');
+      if (raw.includes('workspaces')) {
+        return path.join(cwd, '..', 'uploads');
+      }
+    } catch {
+      // ignore invalid package.json
+    }
   }
-  return path.join(cwd, 'public', 'uploads');
+  return path.join(cwd, 'uploads');
 }
 
 /**
- * Writes a file under `public/uploads/{folder}/` (mkdir -p). Returns public URL and absolute path.
+ * Writes a file under `{uploadsRoot}/{folder}/` (mkdir -p). Returns public URL and absolute path.
  */
 export async function savePublicUpload(params: {
   subfolder: string;

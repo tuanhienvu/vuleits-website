@@ -8,6 +8,7 @@ const meSelect = {
   displayName: true,
   roleId: true,
   role: { select: { name: true } },
+  aboutTeamMember: { select: { id: true, slug: true, name: true } },
 } as const;
 
 /** Current session user for admin UI. */

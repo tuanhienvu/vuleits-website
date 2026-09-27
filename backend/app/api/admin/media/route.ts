@@ -22,7 +22,7 @@ export async function GET(req: Request) {
   return NextResponse.json(list);
 }
 
-/** Upload a file into `public/uploads/{folder}/` and create a Media row (requires media.create). */
+/** Upload a file into `{UPLOADS_ROOT}/{folder}/` and create a Media row (requires media.create). */
 export async function POST(req: Request) {
   const auth = await authorize(req, 'media.create');
   if (auth.error) return auth.error;

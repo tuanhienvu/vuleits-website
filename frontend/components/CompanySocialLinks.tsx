@@ -25,6 +25,27 @@ function isPlatformId(v: string): v is SocialPlatformId {
   return v in PLATFORM_NAMES;
 }
 
+/** Match a free-form CV label or URL to a known platform icon. */
+export function inferSocialPlatform(label: string, url: string): SocialPlatformId {
+  let host = '';
+  try {
+    host = new URL(url).hostname.replace(/^www\./, '').toLowerCase();
+  } catch {
+    host = '';
+  }
+  const labelHay = label.toLowerCase();
+  if (host.includes('linkedin') || labelHay.includes('linkedin')) return 'linkedin';
+  if (host.includes('github') || labelHay.includes('github')) return 'github';
+  if (host.includes('facebook') || host === 'fb.com' || host.endsWith('.fb.com') || labelHay.includes('facebook')) return 'facebook';
+  if (host.includes('instagram') || labelHay.includes('instagram')) return 'instagram';
+  if (host.includes('youtube') || host === 'youtu.be' || host.endsWith('.youtu.be') || labelHay.includes('youtube')) return 'youtube';
+  if (host.includes('tiktok') || labelHay.includes('tiktok')) return 'tiktok';
+  if (host === 'x.com' || host.endsWith('.x.com') || host.includes('twitter') || labelHay.includes('twitter') || labelHay === 'x') return 'twitter';
+  if (host === 't.me' || host.endsWith('.t.me') || host.includes('telegram') || labelHay.includes('telegram')) return 'telegram';
+  if (host) return 'website';
+  return 'other';
+}
+
 function sanitizeExternalUrl(raw: string): string | null {
   const s = raw.trim();
   if (!s) return null;
@@ -37,8 +58,9 @@ function sanitizeExternalUrl(raw: string): string | null {
   }
 }
 
-function SocialGlyph({ type }: { type: string }) {
-  const cls = 'w-4.5 h-4.5 fill-current';
+export function SocialGlyph({ type, className }: { type: string; className?: string }) {
+  const size = className ?? 'w-4.5 h-4.5';
+  const cls = `${size} fill-current`;
   const p = isPlatformId(type) ? type : 'other';
   switch (p) {
     case 'facebook':
@@ -92,7 +114,7 @@ function SocialGlyph({ type }: { type: string }) {
     case 'website':
       return (
         <svg
-          className="w-4.5 h-4.5 stroke-current"
+          className={`${size} stroke-current`}
           viewBox="0 0 24 24"
           aria-hidden
           fill="none"
@@ -107,7 +129,7 @@ function SocialGlyph({ type }: { type: string }) {
     default:
       return (
         <svg
-          className="w-4.5 h-4.5 stroke-current"
+          className={`${size} stroke-current`}
           viewBox="0 0 24 24"
           aria-hidden
           fill="none"

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { authorize } from '@/lib/adminAuth';
+import { authorize, userHasPermission } from '@/lib/adminAuth';
 import { prisma } from '@/lib/prisma';
 import {
   cvInclude,
@@ -16,28 +16,39 @@ async function parseMemberId(params: Ctx['params']): Promise<number | null> {
   return Number.isFinite(id) ? id : null;
 }
 
-export async function GET(req: NextRequest, { params }: Ctx) {
-  const auth = await authorize(req, 'aboutTeam.read');
-  if (auth.error) return auth.error;
-
-  const id = await parseMemberId(params);
-  if (id === null) return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
+async function memberCvAccess(req: NextRequest, id: number, permission: 'aboutTeam.read' | 'aboutTeam.update') {
+  const auth = await authorize(req);
+  if (auth.error || !auth.user) return { error: auth.error ?? NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) };
 
   const member = await prisma.aboutTeamMember.findUnique({
     where: { id },
     include: { cv: { include: cvInclude } },
   });
-  if (!member) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  if (!member) return { error: NextResponse.json({ error: 'Not found' }, { status: 404 }) };
 
-  return NextResponse.json({ cv: member.cv ? serializeAdminCv(member.cv) : null });
+  const ownsProfile = member.userId === auth.user.id;
+  if (!ownsProfile && !(await userHasPermission(auth.user.id, permission))) {
+    return { error: NextResponse.json({ error: 'Forbidden' }, { status: 403 }) };
+  }
+  return { member };
+}
+
+export async function GET(req: NextRequest, { params }: Ctx) {
+  const id = await parseMemberId(params);
+  if (id === null) return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
+
+  const access = await memberCvAccess(req, id, 'aboutTeam.read');
+  if (access.error || !access.member) return access.error ?? NextResponse.json({ error: 'Not found' }, { status: 404 });
+
+  return NextResponse.json({ cv: access.member.cv ? serializeAdminCv(access.member.cv) : null });
 }
 
 export async function PUT(req: NextRequest, { params }: Ctx) {
-  const auth = await authorize(req, 'aboutTeam.update');
-  if (auth.error) return auth.error;
-
   const id = await parseMemberId(params);
   if (id === null) return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
+
+  const access = await memberCvAccess(req, id, 'aboutTeam.update');
+  if (access.error) return access.error;
 
   const body = await req.json().catch(() => ({}));
   const parsed = parseCvUpsertBody(body);

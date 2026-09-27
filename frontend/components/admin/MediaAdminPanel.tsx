@@ -1,5 +1,15 @@
 'use client';
 
+/**
+ * Admin Media Library: upload, grid, delete, and preview (lightbox / Plyr).
+ *
+ * Preview URLs are normalized via `normalizePublicAssetUrlForBrowser` on load so
+ * Docker/internal hostnames resolve to `/uploads/...` and the Next.js rewrite proxies to the API.
+ *
+ * Extend: swap `MediaPreviewModal` for a different viewer; add audio in `mediaKinds.ts` + modal branch.
+ */
+
+import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import AdminTrashIcon from '@/components/admin/AdminTrashIcon';
 import AdminSwipeRow from '@/components/admin/AdminSwipeRow';
@@ -10,8 +20,19 @@ import AdminConfirmDialog from '@/components/admin/AdminConfirmDialog';
 import { getModalOriginFromElement, type ModalOriginPoint } from '@/components/admin/useAnimatedOriginModal';
 import { apiPath } from '@/lib/apiRoutes';
 import { normalizePublicAssetUrlForBrowser } from '@/lib/normalizePublicAssetUrl';
+import {
+  FILE_INPUT_ACCEPT,
+  isImageMime,
+  isLikelyUploadableFile,
+  isPdfMime,
+  isVideoMime,
+} from '@/components/admin/media/mediaKinds';
 
-// --- Sections (UI): Toolbar (search, upload) | Media grid | Delete confirm ---
+const MediaPreviewModal = dynamic(() => import('@/components/admin/media/MediaPreviewModal'), {
+  ssr: false,
+});
+
+// --- Sections (UI): Toolbar (search, upload) | Media grid | Preview modal | Delete confirm ---
 
 type MediaRow = {
   id: number;
@@ -22,9 +43,13 @@ type MediaRow = {
   createdAt: string;
 };
 
+function normalizeMediaRows(list: MediaRow[]): MediaRow[] {
+  return list.map((r) => ({ ...r, url: normalizePublicAssetUrlForBrowser(r.url) }));
+}
+
 export default function MediaAdminPanel() {
   const { can } = useAdminPermissions();
-  const { locale } = useLocale();
+  const { locale, t } = useLocale();
   const toast = useToast();
   const isVi = locale === 'vi-VN';
   const [rows, setRows] = useState<MediaRow[]>([]);
@@ -38,6 +63,8 @@ export default function MediaAdminPanel() {
   const [folderOptions, setFolderOptions] = useState<string[]>(['library']);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [previewItem, setPreviewItem] = useState<MediaRow | null>(null);
+  const [brokenThumbs, setBrokenThumbs] = useState<Set<number>>(() => new Set());
   const selectAllVisibleRef = useRef<HTMLInputElement>(null);
 
   const canDelete = can('media', 'delete');
@@ -51,7 +78,8 @@ export default function MediaAdminPanel() {
         throw new Error('Load failed');
       }
       const data = (await res.json()) as MediaRow[];
-      setRows(Array.isArray(data) ? data : []);
+      setRows(normalizeMediaRows(Array.isArray(data) ? data : []));
+      setBrokenThumbs(new Set());
     } catch {
       toast.error('Failed to load media');
     } finally {
@@ -132,15 +160,33 @@ export default function MediaAdminPanel() {
     if (!can('media', 'create')) return;
     const file = e.target.files?.[0];
     if (!file) return;
+    if (!isLikelyUploadableFile(file)) {
+      toast.error(t('admin.mediaUnsupportedUpload'));
+      e.target.value = '';
+      return;
+    }
     setUploading(true);
     try {
       const fd = new FormData();
       fd.append('file', file);
       fd.append('folder', folder);
       const res = await fetch(apiPath('admin/media'), { method: 'POST', credentials: 'include', body: fd });
-      if (!res.ok) throw new Error('Upload failed');
+      const j = (await res.json().catch(() => ({}))) as { error?: string; media?: MediaRow };
+      if (!res.ok) {
+        throw new Error(j.error || 'Upload failed');
+      }
       toast.success(isVi ? 'Đã tải lên' : 'Uploaded');
-      await refresh();
+      if (j.media) {
+        const normalized = normalizeMediaRows([j.media])[0];
+        if (normalized) {
+          setRows((prev) => {
+            const rest = prev.filter((r) => r.id !== normalized.id);
+            return [normalized, ...rest];
+          });
+        }
+      } else {
+        await refresh();
+      }
     } catch {
       toast.error('Upload failed');
     } finally {
@@ -157,6 +203,7 @@ export default function MediaAdminPanel() {
       if (!res.ok) throw new Error('Delete failed');
       toast.success(isVi ? 'Đã xóa' : 'Deleted');
       setDeleteTarget(null);
+      setPreviewItem((p) => (p?.id === id ? null : p));
       setSelectedIds((prev) => {
         const next = new Set(prev);
         next.delete(id);
@@ -181,6 +228,7 @@ export default function MediaAdminPanel() {
       toast.success(isVi ? `Đã xóa ${ids.length} tệp` : `Deleted ${ids.length} files`);
       setSelectedIds(new Set());
       setBulkDeleteOpen(false);
+      setPreviewItem(null);
       await refresh();
     } catch {
       toast.error('Delete failed');
@@ -220,7 +268,13 @@ export default function MediaAdminPanel() {
               </select>
               <label className="btn-admin-primary cursor-pointer">
                 {uploading ? (isVi ? 'Đang tải lên…' : 'Uploading…') : isVi ? 'Tải lên' : 'Upload'}
-                <input type="file" className="hidden" onChange={(e) => void upload(e)} disabled={uploading} />
+                <input
+                  type="file"
+                  className="hidden"
+                  accept={FILE_INPUT_ACCEPT}
+                  onChange={(e) => void upload(e)}
+                  disabled={uploading}
+                />
               </label>
             </>
           ) : null}
@@ -252,74 +306,149 @@ export default function MediaAdminPanel() {
       ) : null}
       {/* ==================== MEDIA GRID ==================== */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-        {filtered.map((m) => (
-          <div key={m.id} className="rounded-xl border border-white/10 bg-white/5 overflow-hidden flex flex-col relative min-h-0">
-            {canDelete ? (
-              <label
-                className="absolute left-2 top-2 z-30 hidden md:flex h-7 w-7 cursor-pointer items-center justify-center rounded-md bg-black/55 ring-1 ring-white/20"
-                onTouchStart={(e) => e.stopPropagation()}
-              >
-                <input
-                  type="checkbox"
-                  className="rounded border-white/40"
-                  checked={selectedIds.has(m.id)}
-                  onChange={() => toggleSelectRow(m.id)}
-                  aria-label={isVi ? 'Chọn' : 'Select'}
-                />
-              </label>
-            ) : null}
-            {canDelete ? (
-              <button
-                type="button"
-                className="absolute right-2 top-2 z-30 hidden md:flex h-7 w-7 cursor-pointer items-center justify-center rounded-md bg-black/55 ring-1 ring-white/20 text-red-300 hover:bg-black/70 hover:text-red-200"
-                aria-label={isVi ? 'Xóa' : 'Delete'}
-                onTouchStart={(e) => e.stopPropagation()}
-                onClick={(e) => {
-                  setDeleteDialogOrigin(getModalOriginFromElement(e.currentTarget));
+        {filtered.map((m) => {
+          const displayUrl = m.url;
+          return (
+            <div key={m.id} className="rounded-xl border border-white/10 bg-white/5 overflow-hidden flex flex-col relative min-h-0">
+              {canDelete ? (
+                <label
+                  className="absolute left-2 top-2 z-30 hidden md:flex h-7 w-7 cursor-pointer items-center justify-center rounded-md bg-black/55 ring-1 ring-white/20"
+                  onPointerDown={(e) => e.stopPropagation()}
+                >
+                  <input
+                    type="checkbox"
+                    className="rounded border-white/40"
+                    checked={selectedIds.has(m.id)}
+                    onChange={() => toggleSelectRow(m.id)}
+                    aria-label={isVi ? 'Chọn' : 'Select'}
+                  />
+                </label>
+              ) : null}
+              {canDelete ? (
+                <button
+                  type="button"
+                  className="absolute right-2 top-2 z-30 hidden md:flex h-7 w-7 cursor-pointer items-center justify-center rounded-md bg-black/55 ring-1 ring-white/20 text-red-300 hover:bg-black/70 hover:text-red-200"
+                  aria-label={isVi ? 'Xóa' : 'Delete'}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    setDeleteDialogOrigin(getModalOriginFromElement(e.currentTarget));
+                    setDeleteTarget(m);
+                  }}
+                >
+                  <AdminTrashIcon />
+                </button>
+              ) : null}
+              <AdminSwipeRow
+                className="flex min-h-0 flex-1 flex-col"
+                canDelete={canDelete}
+                onDelete={() => {
+                  setDeleteDialogOrigin(null);
                   setDeleteTarget(m);
                 }}
               >
-                <AdminTrashIcon />
-              </button>
-            ) : null}
-            <AdminSwipeRow
-              className="flex min-h-0 flex-1 flex-col"
-              canDelete={canDelete}
-              onDelete={() => {
-                setDeleteDialogOrigin(null);
-                setDeleteTarget(m);
-              }}
-            >
-              <div className="relative flex min-h-0 flex-1 flex-col">
-                {canDelete ? (
-                  <label
-                    className="absolute left-2 top-2 z-20 flex h-7 w-7 md:hidden cursor-pointer items-center justify-center rounded-md bg-black/55 ring-1 ring-white/20"
-                    onTouchStart={(e) => e.stopPropagation()}
-                  >
-                    <input
-                      type="checkbox"
-                      className="rounded border-white/40"
-                      checked={selectedIds.has(m.id)}
-                      onChange={() => toggleSelectRow(m.id)}
-                      aria-label={isVi ? 'Chọn' : 'Select'}
-                    />
-                  </label>
-                ) : null}
-                <div className="aspect-square bg-black/30 relative">
-                  {m.mimeType.startsWith('image/') ? (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img src={normalizePublicAssetUrlForBrowser(m.url)} alt="" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-white/50 text-xs p-2 text-center">{m.mimeType}</div>
-                  )}
+                <div className="relative flex min-h-0 flex-1 flex-col">
+                  {canDelete ? (
+                    <label
+                      className="absolute left-2 top-2 z-20 flex h-7 w-7 md:hidden cursor-pointer items-center justify-center rounded-md bg-black/55 ring-1 ring-white/20"
+                      onPointerDown={(e) => e.stopPropagation()}
+                    >
+                      <input
+                        type="checkbox"
+                        className="rounded border-white/40"
+                        checked={selectedIds.has(m.id)}
+                        onChange={() => toggleSelectRow(m.id)}
+                        aria-label={isVi ? 'Chọn' : 'Select'}
+                      />
+                    </label>
+                  ) : null}
+                  <div className="relative aspect-square bg-black/30">
+                    <button
+                      type="button"
+                      className="absolute inset-0 z-10 flex cursor-pointer items-center justify-center border-0 bg-transparent p-0 text-left outline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-400"
+                      aria-label={`${t('admin.mediaOpenPreview')}: ${m.filename}`}
+                      onClick={() => setPreviewItem(m)}
+                    >
+                      <span className="sr-only">
+                        {t('admin.mediaOpenPreview')}: {m.filename}
+                      </span>
+                    </button>
+                    <div className="pointer-events-none absolute inset-0 z-0">
+                      {isImageMime(m.mimeType) && !brokenThumbs.has(m.id) ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img
+                          src={displayUrl}
+                          alt=""
+                          className="h-full w-full object-cover"
+                          loading="lazy"
+                          decoding="async"
+                          onError={() =>
+                            setBrokenThumbs((prev) => {
+                              const next = new Set(prev);
+                              next.add(m.id);
+                              return next;
+                            })
+                          }
+                        />
+                      ) : null}
+                      {isImageMime(m.mimeType) && brokenThumbs.has(m.id) ? (
+                        <div className="flex h-full w-full items-center justify-center bg-black/40 px-2 text-center text-[10px] text-amber-200/90">
+                          {isVi ? 'Lỗi ảnh' : 'Image error'}
+                        </div>
+                      ) : null}
+                      {isVideoMime(m.mimeType) ? (
+                        <div className="relative h-full w-full">
+                          <video
+                            src={displayUrl}
+                            className="h-full w-full object-cover"
+                            muted
+                            playsInline
+                            preload="metadata"
+                            aria-hidden
+                          />
+                          <span
+                            className="absolute bottom-2 right-2 rounded bg-black/65 px-1.5 py-0.5 text-[10px] font-medium text-white"
+                            aria-hidden
+                          >
+                            ▶
+                          </span>
+                        </div>
+                      ) : null}
+                      {isPdfMime(m.mimeType) ? (
+                        <div className="flex h-full w-full flex-col items-center justify-center gap-1 bg-zinc-900/90 p-2 text-center">
+                          <span className="text-2xl" aria-hidden>
+                            PDF
+                          </span>
+                          <span className="text-[10px] text-white/60">PDF</span>
+                        </div>
+                      ) : null}
+                      {!isImageMime(m.mimeType) && !isVideoMime(m.mimeType) && !isPdfMime(m.mimeType) ? (
+                        <div className="flex h-full w-full items-center justify-center p-2 text-center text-[10px] text-white/50">
+                          {m.mimeType}
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                  <div className="p-2 text-xs text-white/70 flex-1 break-all">{m.filename}</div>
                 </div>
-                <div className="p-2 text-xs text-white/70 flex-1 break-all">{m.filename}</div>
-              </div>
-            </AdminSwipeRow>
-          </div>
-        ))}
+              </AdminSwipeRow>
+            </div>
+          );
+        })}
       </div>
       {!loading && filtered.length === 0 ? <p className="text-white/60">{isVi ? 'Không có tệp media.' : 'No media files.'}</p> : null}
+
+      {previewItem ? (
+        <MediaPreviewModal
+          item={{
+            id: previewItem.id,
+            url: previewItem.url,
+            filename: previewItem.filename,
+            mimeType: previewItem.mimeType,
+          }}
+          onClose={() => setPreviewItem(null)}
+          t={t}
+        />
+      ) : null}
 
       {/* ==================== DELETE MEDIA CONFIRMATION ==================== */}
       <AdminConfirmDialog

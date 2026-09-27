@@ -8,17 +8,30 @@ import { useLocale } from '@/components/providers/LocaleProvider';
 import { defaultAboutIntroPayload, toPublicIntro } from '@/lib/aboutIntroSetting';
 import { apiPath } from '@/lib/apiRoutes';
 import { richTextAsPlain } from '@/lib/richTextAdmin';
+import { inferSocialPlatform, SocialGlyph } from '@/components/CompanySocialLinks';
 
 type StatRow = { number: string; label: string };
+type TeamSocialLink = { label: string; url: string };
 type TeamRow = {
   id?: number;
   slug: string | null;
   hasCv: boolean;
+  socialLinks: TeamSocialLink[];
   name: string;
   role: string;
   emoji: string;
   bio: string;
 };
+
+function normalizeSocialLinks(raw: unknown): TeamSocialLink[] {
+  return safeArray<unknown>(raw).flatMap((item) => {
+    const s = item as Record<string, unknown>;
+    const label = String(s.label ?? '').trim();
+    const url = String(s.url ?? '').trim();
+    if (!label || !/^https?:\/\//i.test(url)) return [];
+    return [{ label, url }];
+  });
+}
 
 function normalizeStats(raw: unknown): StatRow[] {
   return safeArray<unknown>(raw).map((item) => {
@@ -35,6 +48,7 @@ function normalizeTeam(raw: unknown): TeamRow[] {
       id: typeof m.id === 'number' ? m.id : undefined,
       slug: slugRaw || null,
       hasCv: Boolean(m.hasCv),
+      socialLinks: normalizeSocialLinks(m.socialLinks),
       name: String(m.name ?? ''),
       role: String(m.role ?? ''),
       emoji: String(m.emoji ?? ''),
@@ -83,12 +97,12 @@ export default function AboutPage() {
   );
 
   const fallbackTeam: TeamRow[] = [
-    { slug: null, hasCv: false, name: 'John Anderson', role: 'CEO & Founder', emoji: '👨‍💼', bio: 'Visionary leader with 15+ years in digital innovation, driving our mission to create exceptional user experiences.' },
-    { slug: null, hasCv: false, name: 'Sarah Chen', role: 'Creative Director', emoji: '👩‍🎨', bio: 'Award-winning designer specializing in modern UI/UX, bringing artistic vision to every project.' },
-    { slug: null, hasCv: false, name: 'Michael Torres', role: 'Lead Developer', emoji: '👨‍💻', bio: 'Full-stack expert passionate about clean code and innovative web technologies.' },
-    { slug: null, hasCv: false, name: 'Emma Wilson', role: 'Senior Developer', emoji: '👩‍💻', bio: 'Frontend specialist with expertise in React and modern JavaScript frameworks.' },
-    { slug: null, hasCv: false, name: 'David Kim', role: 'UX Designer', emoji: '👨‍🎨', bio: 'User experience expert focused on creating intuitive and accessible digital products.' },
-    { slug: null, hasCv: false, name: 'Lisa Martinez', role: 'Project Manager', emoji: '👩‍💼', bio: 'Certified PMP with a track record of delivering complex projects on time and budget.' },
+    { slug: null, hasCv: false, socialLinks: [], name: 'John Anderson', role: 'CEO & Founder', emoji: '👨‍💼', bio: 'Visionary leader with 15+ years in digital innovation, driving our mission to create exceptional user experiences.' },
+    { slug: null, hasCv: false, socialLinks: [], name: 'Sarah Chen', role: 'Creative Director', emoji: '👩‍🎨', bio: 'Award-winning designer specializing in modern UI/UX, bringing artistic vision to every project.' },
+    { slug: null, hasCv: false, socialLinks: [], name: 'Michael Torres', role: 'Lead Developer', emoji: '👨‍💻', bio: 'Full-stack expert passionate about clean code and innovative web technologies.' },
+    { slug: null, hasCv: false, socialLinks: [], name: 'Emma Wilson', role: 'Senior Developer', emoji: '👩‍💻', bio: 'Frontend specialist with expertise in React and modern JavaScript frameworks.' },
+    { slug: null, hasCv: false, socialLinks: [], name: 'David Kim', role: 'UX Designer', emoji: '👨‍🎨', bio: 'User experience expert focused on creating intuitive and accessible digital products.' },
+    { slug: null, hasCv: false, socialLinks: [], name: 'Lisa Martinez', role: 'Project Manager', emoji: '👩‍💼', bio: 'Certified PMP with a track record of delivering complex projects on time and budget.' },
   ];
 
   const [stats, setStats] = useState<StatRow[]>(fallbackStats);
@@ -223,8 +237,22 @@ export default function AboutPage() {
                   <h3 className="text-fg font-semibold text-xl mb-1">{member.name}</h3>
                   <p className="text-(--brand-accent) text-sm mb-3">{member.role}</p>
                   <p className="text-fg-muted text-sm mb-4">{member.bio}</p>
-                  <div className="flex gap-3 justify-center text-xl">
-                    <span aria-hidden>📧</span>
+                  <div className="flex flex-wrap gap-3 justify-center items-center text-xl">
+                    {member.socialLinks.map((link) => (
+                      <a
+                        key={`${link.label}-${link.url}`}
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={link.label}
+                        title={link.label}
+                        className="inline-flex items-center justify-center text-fg hover:opacity-80"
+                        onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => e.stopPropagation()}
+                      >
+                        <SocialGlyph type={inferSocialPlatform(link.label, link.url)} className="w-5 h-5" />
+                      </a>
+                    ))}
                     {member.hasCv && member.slug ? (
                       <Link
                         href={`/team/${encodeURIComponent(member.slug)}/cv`}
@@ -244,7 +272,6 @@ export default function AboutPage() {
                         💼
                       </span>
                     )}
-                    <span aria-hidden>🎨</span>
                   </div>
                 </article>
               </div>

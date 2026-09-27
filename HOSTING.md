@@ -1,8 +1,8 @@
-# Local development and Docker (MySQL + API)
+# Local development and Docker (external PostgreSQL + API + frontend)
 
 ## Run locally (recommended)
 
-1. **Database** — configure `backend/.env` with `DATABASE_URL` (and run migrations / `prisma` as needed).
+1. **Database** — external PostgreSQL. Set `DATABASE_URL` (or `DB_*`) in `backend/.env`, then run migrations / `prisma db push` / `npm run seed` as needed.
 
 2. **Backend** — from repo root:
    ```bash
@@ -24,19 +24,30 @@
    `vuleitsolution@gmail.com` / `VULEITS@2025#` for full sysadmin access
    `demo@vuleits.com` / `demo` for limited manager/demo access
 
-## Docker: MySQL + API only
+5. **Uploads** — files are stored under the repo-root `uploads/` directory in development (when the backend runs from `backend/` inside this monorepo). In Docker, the same layout is `/app/uploads` (`UPLOADS_ROOT`). URLs stay `/uploads/...` in the browser; the backend serves them from disk.
+
+## Docker: frontend + backend only (external PostgreSQL)
+
+PostgreSQL is **not** started by Compose. Point `DATABASE_URL` at your existing server DB.
 
 From the **repository root**:
 
-```bash
-docker compose up -d --build
-```
+1. Copy `.env.docker.example` → `.env` and set at least:
+   - `JWT_SECRET`
+   - `DATABASE_URL=postgresql://...` (reachable from containers)
+   - public URL / CORS vars for your domain
+2. Ensure images exist (`IMAGE_TAG`) or build/push them.
+3. Start:
+   ```bash
+   docker compose pull
+   docker compose up -d
+   ```
 
-- MySQL is exposed on **`3306`** (override with `MYSQL_HOST_PORT`).
-- API is exposed on **`5001`** (override with `API_HOST_PORT`). Point `frontend/.env.local` **`BACKEND_PORT`** at this port when testing the UI against Docker.
-- After the API is up, run `npm run seed` from the repo root if you want the sample users/content in the local database.
+- API is exposed on **`5001`** (`BACKEND_PORT`).
+- Frontend is exposed on **`3001`** (`FRONTEND_PORT`).
+- Seed is skipped by default (`SKIP_DB_SEED=1`). Set `SKIP_DB_SEED=0` only when you intentionally want seed on start.
 
-Set `DATABASE_URL`, `JWT_SECRET`, etc. in a root `.env` file or export them before `docker compose` if you override defaults.
+On container start the backend entrypoint runs `prisma generate`, then `migrate deploy` (falls back to `db push` if migrate cannot baseline an existing DB).
 
 ## Production build
 

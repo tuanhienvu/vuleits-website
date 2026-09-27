@@ -222,10 +222,13 @@ export default function AboutTeamCvEditor({
   memberId,
   slug,
   isVi,
+  editable = false,
 }: {
   memberId: number;
   slug: string;
   isVi: boolean;
+  /** Owner of this profile can edit their CV without the team-admin update permission. */
+  editable?: boolean;
 }) {
   const { can } = useAdminPermissions();
   const toast = useToast();
@@ -235,7 +238,7 @@ export default function AboutTeamCvEditor({
   const [uploading, setUploading] = useState<'avatarUrl' | 'cvPdfUrl' | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const canUpdate = can('aboutTeam', 'update');
+  const canUpdate = editable || can('aboutTeam', 'update');
   const canDelete = can('aboutTeam', 'delete');
   const canUpload = canUpdate && can('media', 'create');
 

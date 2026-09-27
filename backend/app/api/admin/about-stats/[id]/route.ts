@@ -3,7 +3,23 @@ import { prisma } from '@/lib/prisma';
 import { authorize } from '@/lib/adminAuth';
 import { jsonObjectBody } from '@/lib/jsonBody';
 
-type AboutStatRow = { id: number; number: string; label: string; labelVi: string | null; order: number; isActive: number | boolean };
+function serializeStat(r: {
+  id: number;
+  number: string;
+  label: string;
+  labelVi: string | null;
+  order: number;
+  isActive: boolean;
+}) {
+  return {
+    id: r.id,
+    number: r.number,
+    label: r.label,
+    labelVi: r.labelVi,
+    order: r.order,
+    isActive: r.isActive,
+  };
+}
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = await authorize(req, 'aboutStats.read');
@@ -13,24 +29,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const id = Number(idParam);
   if (!Number.isFinite(id)) return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
 
-  const rows = await prisma.$queryRaw<AboutStatRow[]>`
-    SELECT id, number, label, label_vi as labelVi, \`order\` as \`order\`, isActive
-    FROM AboutStat
-    WHERE id = ${id}
-    LIMIT 1
-  `;
-
-  const stat = rows[0];
+  const stat = await prisma.aboutStat.findUnique({ where: { id } });
   if (!stat) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-  return NextResponse.json({
-    id: Number(stat.id),
-    number: stat.number,
-    label: stat.label,
-    labelVi: stat.labelVi,
-    order: Number(stat.order),
-    isActive: Boolean(stat.isActive),
-  });
+  return NextResponse.json(serializeStat(stat));
 }
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -54,48 +56,21 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   if (data.label !== undefined && !data.label) return NextResponse.json({ error: 'Label is required' }, { status: 400 });
   if (data.order !== undefined && !Number.isFinite(data.order)) return NextResponse.json({ error: 'Invalid order' }, { status: 400 });
 
-  const currentRows = await prisma.$queryRaw<AboutStatRow[]>`
-    SELECT id, number, label, label_vi as labelVi, \`order\` as \`order\`, isActive
-    FROM AboutStat
-    WHERE id = ${id}
-    LIMIT 1
-  `;
-  const current = currentRows[0];
+  const current = await prisma.aboutStat.findUnique({ where: { id } });
   if (!current) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-  const nextNumber = data.number ?? current.number;
-  const nextLabel = data.label ?? current.label;
-  const nextLabelVi = data.labelVi === undefined ? current.labelVi : data.labelVi;
-  const nextOrder = data.order ?? current.order;
-  const nextIsActive = data.isActive ?? Boolean(current.isActive);
-
-  await prisma.$executeRaw`
-    UPDATE AboutStat
-    SET number = ${nextNumber}, label = ${nextLabel}, label_vi = ${nextLabelVi}, \`order\` = ${nextOrder}, isActive = ${nextIsActive}, updatedAt = NOW()
-    WHERE id = ${id}
-  `;
-
-  const updatedRows = await prisma.$queryRaw<AboutStatRow[]>`
-    SELECT id, number, label, label_vi as labelVi, \`order\` as \`order\`, isActive
-    FROM AboutStat
-    WHERE id = ${id}
-    LIMIT 1
-  `;
-  const updated = updatedRows[0];
-
-  return NextResponse.json({
-    ok: true,
-    stat: updated
-      ? {
-          id: Number(updated.id),
-          number: updated.number,
-          label: updated.label,
-          labelVi: updated.labelVi,
-          order: Number(updated.order),
-          isActive: Boolean(updated.isActive),
-        }
-      : null,
+  const updated = await prisma.aboutStat.update({
+    where: { id },
+    data: {
+      number: data.number ?? current.number,
+      label: data.label ?? current.label,
+      labelVi: data.labelVi === undefined ? current.labelVi : data.labelVi,
+      order: data.order ?? current.order,
+      isActive: data.isActive ?? current.isActive,
+    },
   });
+
+  return NextResponse.json({ ok: true, stat: serializeStat(updated) });
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -106,7 +81,6 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   const id = Number(idParam);
   if (!Number.isFinite(id)) return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
 
-  await prisma.$executeRaw`DELETE FROM AboutStat WHERE id = ${id}`;
+  await prisma.aboutStat.delete({ where: { id } }).catch(() => null);
   return NextResponse.json({ ok: true });
 }
-

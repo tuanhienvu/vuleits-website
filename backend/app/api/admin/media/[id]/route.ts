@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import { prisma } from '@/lib/prisma';
 import { authorize } from '@/lib/adminAuth';
-import { removePublicUploadFile, UPLOADS_PUBLIC_BASE } from '@/lib/publicUploads';
+import { removePublicUploadFile, resolveUploadsRoot } from '@/lib/publicUploads';
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = await authorize(req, 'media.delete');
@@ -19,15 +19,9 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
   if (!media) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-  // Delete file under `public/uploads/{folder}/{filename}`
+  // Delete file under uploads root: `{UPLOADS_ROOT}/{folder}/{filename}`
   try {
-    const fsPath = path.join(
-      process.cwd(),
-      'public',
-      UPLOADS_PUBLIC_BASE.replace(/^\/+/, ''),
-      media.folder,
-      media.filename,
-    );
+    const fsPath = path.join(resolveUploadsRoot(), media.folder, media.filename);
     await removePublicUploadFile(fsPath);
   } catch {
     // If file removal fails, still delete DB row.

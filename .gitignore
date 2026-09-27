@@ -13,12 +13,20 @@
 # testing
 /coverage
 
-# next.js/build artifacts are committed for deployment snapshots
-# (requested by repository owner)
+# next.js build artifacts (generated)
+backend/.next/
+frontend/.next/
 
 # User uploads under public (keep only **/.gitkeep tracked)
 /public/uploads/**
 !/public/uploads/**/.gitkeep
+
+# User uploads at repo root (`UPLOADS_ROOT` default in monorepo / Docker)
+/uploads/**
+!/uploads/.gitkeep
+
+# Backend-only layout (`UPLOADS_ROOT` default when not in monorepo)
+/backend/uploads/**
 
 # Static HTML export (`output: 'export'`) — not used; ignore if present
 out/

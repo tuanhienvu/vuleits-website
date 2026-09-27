@@ -1,4 +1,5 @@
-# Stack: MySQL + Redis + API + Next frontend.
+# Stack: API (backend) + Next frontend only.
+# Database is external (e.g. managed PostgreSQL). Set DATABASE_URL in repo-root `.env`.
 # From repo root:
 #   - Pull from registry: docker compose pull && docker compose up -d
 #
@@ -6,8 +7,8 @@
 #   JWT_SECRET              — must be in project `.env` next to this file, OR exported, OR passed
 #                             as `docker compose --env-file /path/to.env` (same key). Without it,
 #                             compose fails before containers start: "Set JWT_SECRET in .env".
-#   MYSQL_PASSWORD          — must match DATABASE_URL user password below
-#   MYSQL_ROOT_PASSWORD     — MySQL root password
+#   DATABASE_URL            — PostgreSQL connection string used by the backend
+#                             (e.g. postgresql://user:pass@host:5432/vuleits_db)
 #
 # Public URL / CORS (must match what users type in the browser, including http vs https):
 #   NEXT_PUBLIC_SITE_URL    — e.g. https://example.com or http://203.0.113.10:3001
@@ -17,83 +18,26 @@
 #                              in FRONTEND_ORIGIN / NEXT_PUBLIC_SITE_URL; set explicitly if TLS stops at Nginx and
 #                              those vars are still http://.
 #
-# Stack images (see env IMAGE_TAG, default V1.0.0):
+# Stack images (see env IMAGE_TAG, default V1.0.5):
 #   tuanhienvu/vuleits-website-backend:${IMAGE_TAG}
 #   tuanhienvu/vuleits-website-frontend:${IMAGE_TAG}
-# Infra: official mysql:8.4 and redis:8-alpine (pull for latest patch releases).
 # Ports: frontend 3001, backend 5001 (host mapping via FRONTEND_PORT / BACKEND_PORT, defaults unchanged).
 #
 # TLS (Certbot + Nginx): terminate HTTPS on the host; proxy to 127.0.0.1:3001 (or Docker published port).
 # Set NEXT_PUBLIC_* / CORS / FRONTEND_ORIGIN to https://your-domain (not http://container).
 # If TLS stops at Nginx but env still says http://, set AUTH_COOKIE_SECURE=1. See deploy/nginx-ssl.example.conf.
 #
-# Default project network `proxy_network` is created by Compose (no manual docker network create).
-# To attach an external reverse proxy instead: docker-compose.override.yml with networks.default.external: true
+# Compose creates a default project network (name: `<project>_default`). To use a shared external
+# network (e.g. `proxy_network`), add docker-compose.override.yml with networks.default.external: true.
 #
-# `db-init` runs `docker/mysql-db-init.sh` (quoted passwords; supports special chars in MYSQL_* passwords).
-# If it fails: `docker logs mysql_db-init`
 # `env_file: .env` loads the repo-root `.env` into each app container. Values under `environment:`
 # still win when the same key is set both ways (e.g. DATABASE_URL, JWT_SECRET from compose).
+#
+# Image version: set `IMAGE_TAG=V1.0.5` in `.env` (optional; default in this file is V1.0.5 for backend/frontend).
 
 services:
-  mysql:
-    image: mysql:8.4
-    container_name: mysql_db
-    # labels:
-      # - "com.centurylinklabs.watchtower.enable=true"
-    restart: unless-stopped
-    environment:
-      MYSQL_DATABASE: vuleits_db
-      MYSQL_USER: vuleits
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-changeme}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootchangeme}
-    ports:
-      - "${MYSQL_PORT:-3306}:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$$MYSQL_ROOT_PASSWORD\" || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 40s
-
-  db-init:
-    image: mysql:8.4
-    container_name: mysql_db-init
-    restart: "no"
-    depends_on:
-      mysql:
-        condition: service_healthy
-    environment:
-      MYSQL_HOST: mysql
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-vuleits_db}
-      MYSQL_USER: ${MYSQL_USER:-vuleits}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-changeme}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootchangeme}
-    volumes:
-      - ./docker/mysql-db-init.sh:/mysql-db-init.sh:ro
-    command: ["/bin/sh", "/mysql-db-init.sh"]
-
-  redis:
-    image: redis:8-alpine
-    container_name: redis-cache
-    # labels:
-    #   - "com.centurylinklabs.watchtower.enable=true"
-    restart: unless-stopped
-    ports:
-      - "${REDIS_PORT:-6379}:6379"
-    volumes:
-      - redis_data:/data
-    command: redis-server --appendonly yes
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-
   backend:
-    image: tuanhienvu/vuleits-website-backend:${IMAGE_TAG:-V1.0.3}
+    image: tuanhienvu/vuleits-website-backend:${IMAGE_TAG:-V1.0.5}
     container_name: vuleits-website-backend
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
@@ -104,19 +48,21 @@ services:
     ports:
       - "${BACKEND_PORT:-5001}:5001"
     volumes:
-      - backend_uploads:/app/.next/standalone/backend/public/uploads
+      # Persistent user uploads (repo root `uploads/` in the container: `/app/uploads`)
+      - backend_uploads:/app/uploads
+      - backend_backups:/app/backups
     environment:
       NODE_ENV: production
       PORT: "5001"
       HOSTNAME: "0.0.0.0"
-      DATABASE_URL: mysql://vuleits:${MYSQL_PASSWORD_URLENCODED:-Vuleits%402026}@mysql:3306/vuleits_db
-      REDIS_URL: redis://redis:6379
+      # Prefer explicit compose value; falls back to DATABASE_URL from `.env` via env_file.
+      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL in .env (PostgreSQL)}
       JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
       TRUST_FORWARDED_FOR: "1"
       CORS_ORIGINS: ${CORS_ORIGINS:-https://vuleits.com,https://www.vuleits.com}
       FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-https://vuleits.com}
       NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-https://vuleits.com}
-      UPLOADS_ROOT: ${UPLOADS_ROOT:-/app/.next/standalone/backend/public/uploads}
+      UPLOADS_ROOT: ${UPLOADS_ROOT:-/app/uploads}
       # Omit or leave empty in .env to infer from FRONTEND_ORIGIN / NEXT_PUBLIC_SITE_URL; use 0/1 to override.
       AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-}
       # 1 = on first container start, clear content tables then load prisma/seed.db.snapshot.json (users/RBAC kept).
@@ -125,6 +71,12 @@ services:
       # Safety default: do not run seed automatically on every deploy/restart.
       # Set SKIP_DB_SEED=0 only when you intentionally want to run seed.
       SKIP_DB_SEED: ${SKIP_DB_SEED:-1}
+      # Encrypted DB exports stored here (dedicated volume; override with BACKUP_STORAGE_DIR).
+      BACKUP_STORAGE_DIR: ${BACKUP_STORAGE_DIR:-/app/backups}
+      # Optional: required for `POST /api/admin/system-maintenance/schedule/run-due` (host cron / external scheduler).
+      SYSTEM_MAINTENANCE_SCHEDULER_TOKEN: ${SYSTEM_MAINTENANCE_SCHEDULER_TOKEN:-}
+      # Optional Redis (leave unset for in-memory rate limits). Empty string disables Redis.
+      REDIS_URL: ${REDIS_URL:-}
     # Any HTTP response means Node is listening (GET / can be 5xx during startup).
     healthcheck:
       test:
@@ -138,16 +90,9 @@ services:
       timeout: 10s
       retries: 8
       start_period: 600s
-    depends_on:
-      mysql:
-        condition: service_healthy
-      db-init:
-        condition: service_completed_successfully
-      redis:
-        condition: service_healthy
 
   frontend:
-    image: tuanhienvu/vuleits-website-frontend:${IMAGE_TAG:-V1.0.3}
+    image: tuanhienvu/vuleits-website-frontend:${IMAGE_TAG:-V1.0.5}
     container_name: vuleits-website-frontend
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
@@ -169,10 +114,8 @@ services:
         condition: service_healthy
 
 volumes:
-  mysql_data:
-  redis_data:
   backend_uploads:
+  backend_backups:
 
 networks:
-  default:
-    name: proxy_network
+  default: {}

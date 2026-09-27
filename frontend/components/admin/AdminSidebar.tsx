@@ -175,13 +175,6 @@ const ADMIN_MENU_TEMPLATE: { groupId: number; labelKey: string; items: MenuTempl
         icon: '📈',
         path: '/admin/settings/seo-marketing',
       },
-      {
-        kind: 'page',
-        id: NAV.PAGE_SETTINGS_LOGS,
-        labelKey: 'admin.settingsNavLogs',
-        icon: '📋',
-        path: '/admin/settings/logs',
-      },
     ],
   },
   {
@@ -194,6 +187,13 @@ const ADMIN_MENU_TEMPLATE: { groupId: number; labelKey: string; items: MenuTempl
         labelKey: 'admin.systemMaintenance',
         icon: '🛠️',
         path: '/admin/system-maintenance',
+      },
+      {
+        kind: 'page',
+        id: NAV.PAGE_SETTINGS_LOGS,
+        labelKey: 'admin.settingsNavLogs',
+        icon: '📋',
+        path: '/admin/settings/logs',
       },
     ],
   },

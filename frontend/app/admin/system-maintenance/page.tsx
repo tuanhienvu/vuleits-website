@@ -6,8 +6,12 @@ import { useAdminPermissions } from '@/components/admin/AdminPermissionContext';
 import { apiPath } from '@/lib/apiRoutes';
 import { PasswordPreviewInput } from '@/components/ui/PasswordPreviewInput';
 import AdminTrashIcon from '@/components/admin/AdminTrashIcon';
+import AdminDownloadIcon from '@/components/admin/AdminDownloadIcon';
+import { useEscapeToClose } from '@/components/admin/useEscapeToClose';
 
-type BackupFile = { fileName: string; sizeBytes: number; modifiedAt: string };
+const RETENTION_PRESETS = [7, 15, 30, 90, 120] as const;
+
+type BackupFile = { fileName: string; sizeBytes: number; modifiedAt: string; createdAt?: string };
 type ScheduleMode = 'hourly' | 'daily' | 'weekly';
 type WeeklySlot = { dayOfWeek: number; time: string };
 type ScheduleRecord = {
@@ -20,6 +24,16 @@ type ScheduleRecord = {
   weeklySlots: WeeklySlot[];
   passphrase: string;
   enabled: boolean;
+  retentionDays: number;
+};
+
+type BackupLogRow = {
+  id: number;
+  createdAt: string;
+  trigger: string;
+  success: boolean;
+  message: string;
+  meta?: unknown;
 };
 
 type BackupConfig = {
@@ -68,7 +82,8 @@ export default function SystemMaintenancePage() {
   const [weeklySlots, setWeeklySlots] = useState<WeeklySlot[]>([]);
   const [weeklyDaysDraft, setWeeklyDaysDraft] = useState<number[]>([1]);
   const [weeklyTimeDraft, setWeeklyTimeDraft] = useState('12:00');
-  const [manualPassphrase, setManualPassphrase] = useState('');
+  const [backupModalOpen, setBackupModalOpen] = useState(false);
+  const [backupModalPassphrase, setBackupModalPassphrase] = useState('');
   const [files, setFiles] = useState<BackupFile[]>([]);
   const [restoreSource, setRestoreSource] = useState<'server' | 'local'>('server');
   const [restoreFile, setRestoreFile] = useState('');
@@ -77,12 +92,22 @@ export default function SystemMaintenancePage() {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
   const [selectedScheduleIds, setSelectedScheduleIds] = useState<string[]>([]);
+  const [backupLogs, setBackupLogs] = useState<BackupLogRow[]>([]);
+  const [draftRetentionDays, setDraftRetentionDays] = useState<number>(30);
   const uploadInputRef = useRef<HTMLInputElement>(null);
 
+  const closeBackupModal = useCallback(() => {
+    setBackupModalOpen(false);
+    setBackupModalPassphrase('');
+  }, []);
+
+  useEscapeToClose(backupModalOpen && !busy, closeBackupModal);
+
   const load = useCallback(async () => {
-    const [cfgRes, filesRes] = await Promise.all([
+    const [cfgRes, filesRes, logsRes] = await Promise.all([
       fetch(apiPath('admin/system-maintenance/config'), { credentials: 'include' }),
       fetch(apiPath('admin/system-maintenance/backups'), { credentials: 'include' }),
+      fetch(apiPath('admin/system-maintenance/logs?take=100'), { credentials: 'include' }),
     ]);
     if (cfgRes.ok) {
       const j = (await cfgRes.json()) as BackupConfig;
@@ -97,12 +122,24 @@ export default function SystemMaintenancePage() {
         hourlyTime: typeof j.hourlyTime === 'string' ? j.hourlyTime : '00:00',
         dailyTimes: Array.isArray(j.dailyTimes) ? j.dailyTimes : [],
         weeklySlots: Array.isArray(j.weeklySlots) ? j.weeklySlots : [],
-        schedules: Array.isArray(j.schedules) ? j.schedules : [],
+        schedules: Array.isArray(j.schedules)
+          ? j.schedules.map((s) => {
+              const rd = Number((s as ScheduleRecord).retentionDays);
+              const retentionDays = RETENTION_PRESETS.includes(rd as (typeof RETENTION_PRESETS)[number])
+                ? rd
+                : 30;
+              return { ...(s as ScheduleRecord), retentionDays };
+            })
+          : [],
         passphrase: typeof j.passphrase === 'string' ? j.passphrase : '',
         lastRunAt: j.lastRunAt ?? null,
       });
     }
     if (filesRes.ok) setFiles(((await filesRes.json()) as { files: BackupFile[] }).files || []);
+    if (logsRes.ok) {
+      const lj = (await logsRes.json()) as { logs: BackupLogRow[] };
+      setBackupLogs(lj.logs || []);
+    }
   }, []);
 
   useEffect(() => {
@@ -177,6 +214,20 @@ export default function SystemMaintenancePage() {
                 inputClassName="w-full px-3 py-2 rounded-lg bg-black/30 border border-white/20"
                 previewAriaLabel={t('admin.passwordPreviewAria')}
               />
+            </label>
+            <label className="text-sm flex items-center gap-3">
+              <span className="w-40 shrink-0">{t('admin.systemMaintenanceRetention')}</span>
+              <select
+                value={draftRetentionDays}
+                onChange={(e) => setDraftRetentionDays(Number(e.target.value))}
+                className="w-full px-3 py-2 rounded-lg bg-black/30 border border-white/20"
+              >
+                {RETENTION_PRESETS.map((d) => (
+                  <option key={d} value={d}>
+                    {t('admin.systemMaintenanceRetentionDays', { days: String(d) })}
+                  </option>
+                ))}
+              </select>
             </label>
           </div>
 
@@ -360,6 +411,7 @@ export default function SystemMaintenancePage() {
                 weeklySlots,
                 passphrase: draftPassphrase.trim(),
                 enabled: false,
+                retentionDays: draftRetentionDays,
               };
               setBusy(true);
               setMsg('');
@@ -384,28 +436,13 @@ export default function SystemMaintenancePage() {
             type="button"
             className="btn-admin-secondary w-full"
             disabled={busy || !can('maintenance', 'create')}
-            onClick={async () => {
-              setBusy(true);
+            onClick={() => {
               setMsg('');
-              try {
-                const res = await fetch(apiPath('admin/system-maintenance/backups'), {
-                  method: 'POST',
-                  credentials: 'include',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ passphrase: manualPassphrase }),
-                });
-                const body = (await res.json().catch(() => ({}))) as { error?: string };
-                if (!res.ok) throw new Error(body.error || t('admin.systemMaintenanceMsgBackupFailed'));
-                setMsg(t('admin.systemMaintenanceMsgBackupCreated'));
-                await load();
-              } catch (e) {
-                setMsg(e instanceof Error ? e.message : t('admin.systemMaintenanceMsgBackupFailed'));
-              } finally {
-                setBusy(false);
-              }
+              setBackupModalPassphrase('');
+              setBackupModalOpen(true);
             }}
           >
-            Creat backup file
+            {t('admin.systemMaintenanceCreateBackup')}
           </button>
         </div>
 
@@ -424,6 +461,7 @@ export default function SystemMaintenancePage() {
                 </th>
                 <th className="text-left py-2 px-3">Name</th>
                 <th className="text-left py-2 px-3">Description</th>
+                <th className="text-left py-2 px-3">{t('admin.systemMaintenanceRetention')}</th>
                 <th className="text-left py-2 px-3">Schedule detail</th>
                 <th className="text-left py-2 px-3">Encrypt passphrase</th>
                 <th className="text-left py-2 px-3">Actions</th>
@@ -445,6 +483,37 @@ export default function SystemMaintenancePage() {
                   </td>
                   <td className="py-2 px-3">{s.name}</td>
                   <td className="py-2 px-3 text-white/75">{s.description || '-'}</td>
+                  <td className="py-2 px-3">
+                    <select
+                      value={s.retentionDays ?? 30}
+                      onChange={async (e) => {
+                        const retentionDays = Number(e.target.value);
+                        const next = cfg.schedules.map((x) =>
+                          x.id === s.id ? { ...x, retentionDays } : x,
+                        );
+                        setBusy(true);
+                        setMsg('');
+                        try {
+                          await persistSchedules(next);
+                        } catch (err) {
+                          setMsg(
+                            err instanceof Error ? err.message : t('admin.systemMaintenanceMsgSaveFailed'),
+                          );
+                        } finally {
+                          setBusy(false);
+                        }
+                      }}
+                      className="w-full min-w-[8rem] px-2 py-1 rounded-lg bg-black/30 border border-white/20 text-xs"
+                      disabled={busy || !can('maintenance', 'update')}
+                      aria-label={t('admin.systemMaintenanceRetention')}
+                    >
+                      {RETENTION_PRESETS.map((d) => (
+                        <option key={d} value={d}>
+                          {t('admin.systemMaintenanceRetentionDays', { days: String(d) })}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
                   <td className="py-2 px-3 text-xs">{formatScheduleDetail(s)}</td>
                   <td className="py-2 px-3">{s.passphrase ? '********' : '-'}</td>
                   <td className="py-2 px-3">
@@ -514,7 +583,7 @@ export default function SystemMaintenancePage() {
               ))}
               {cfg.schedules.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-4 px-3 text-white/45">
+                  <td colSpan={7} className="py-4 px-3 text-white/45">
                     No schedules yet.
                   </td>
                 </tr>
@@ -672,6 +741,45 @@ export default function SystemMaintenancePage() {
       {msg ? <div className="text-sm text-cyan-200">{msg}</div> : null}
 
       <section className="rounded-xl border border-white/10 p-4 bg-white/5 space-y-3">
+        <h2 className="text-lg font-semibold mb-2">{t('admin.systemMaintenanceBackupLogs')}</h2>
+        <div className="overflow-x-auto max-h-72 overflow-y-auto rounded-lg border border-white/10">
+          <table className="w-full text-sm">
+            <thead className="text-white/60 sticky top-0 bg-white/10">
+              <tr>
+                <th className="text-left py-2 px-2">{t('admin.systemMaintenanceLogTime')}</th>
+                <th className="text-left py-2 px-2">{t('admin.systemMaintenanceLogTrigger')}</th>
+                <th className="text-left py-2 px-2">{t('admin.systemMaintenanceLogStatus')}</th>
+                <th className="text-left py-2 px-2">{t('admin.systemMaintenanceLogMessage')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {backupLogs.map((row) => (
+                <tr key={row.id} className="border-t border-white/10 align-top">
+                  <td className="py-2 px-2 whitespace-nowrap text-xs">
+                    {new Date(row.createdAt).toLocaleString()}
+                  </td>
+                  <td className="py-2 px-2 text-xs">{row.trigger}</td>
+                  <td className="py-2 px-2">
+                    <span
+                      className={
+                        row.success ? 'text-emerald-300/90 text-xs' : 'text-rose-300/90 text-xs'
+                      }
+                    >
+                      {row.success ? t('admin.systemMaintenanceLogOk') : t('admin.systemMaintenanceLogFail')}
+                    </span>
+                  </td>
+                  <td className="py-2 px-2 text-xs text-white/80 break-all">{row.message}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {backupLogs.length === 0 ? (
+          <p className="text-sm text-white/45">{t('admin.systemMaintenanceLogEmpty')}</p>
+        ) : null}
+      </section>
+
+      <section className="rounded-xl border border-white/10 p-4 bg-white/5 space-y-3">
         <h2 className="text-lg font-semibold mb-2">{t('admin.systemMaintenanceBackupFiles')}</h2>
         <div className="rounded-lg border border-white/10 p-3 bg-black/20 space-y-2">
           <h3 className="text-sm font-semibold text-white/90">{t('admin.systemMaintenanceUploadBackup')}</h3>
@@ -725,6 +833,7 @@ export default function SystemMaintenancePage() {
               <tr>
                 <th className="text-left py-2">{t('admin.systemMaintenanceFile')}</th>
                 <th className="text-left py-2">{t('admin.systemMaintenanceSize')}</th>
+                <th className="text-left py-2">{t('admin.systemMaintenanceCreated')}</th>
                 <th className="text-left py-2">{t('admin.systemMaintenanceModified')}</th>
                 <th className="text-left py-2">{t('admin.systemMaintenanceAction')}</th>
               </tr>
@@ -734,14 +843,67 @@ export default function SystemMaintenancePage() {
                 <tr key={f.fileName} className="border-t border-white/10">
                   <td className="py-2">{f.fileName}</td>
                   <td>{Math.round((f.sizeBytes / 1024) * 10) / 10} KB</td>
+                  <td>{new Date(f.createdAt || f.modifiedAt).toLocaleString()}</td>
                   <td>{new Date(f.modifiedAt).toLocaleString()}</td>
                   <td>
-                    <a
-                      href={apiPath(`admin/system-maintenance/backups/${encodeURIComponent(f.fileName)}`)}
-                      className="text-cyan-300 hover:text-cyan-200"
-                    >
-                      {t('admin.systemMaintenanceDownload')}
-                    </a>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <a
+                        href={apiPath(`admin/system-maintenance/backups/${encodeURIComponent(f.fileName)}`)}
+                        className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-cyan-300/40 bg-cyan-500/10 text-cyan-200 hover:bg-cyan-500/25 hover:text-cyan-100"
+                        title={t('admin.systemMaintenanceDownload')}
+                        aria-label={t('admin.systemMaintenanceDownload')}
+                        download={f.fileName}
+                      >
+                        <AdminDownloadIcon />
+                      </a>
+                      {can('maintenance', 'delete') ? (
+                        <button
+                          type="button"
+                          className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-rose-300/40 bg-rose-500/10 text-rose-200 hover:bg-rose-500/25 disabled:opacity-40"
+                          disabled={busy}
+                          onClick={async () => {
+                            if (
+                              !window.confirm(
+                                t('admin.systemMaintenanceDeleteBackupConfirm', {
+                                  fileName: f.fileName,
+                                }),
+                              )
+                            )
+                              return;
+                            setBusy(true);
+                            setMsg('');
+                            try {
+                              const res = await fetch(
+                                apiPath(
+                                  `admin/system-maintenance/backups/${encodeURIComponent(f.fileName)}`,
+                                ),
+                                { method: 'DELETE', credentials: 'include' },
+                              );
+                              const body = (await res.json().catch(() => ({}))) as { error?: string };
+                              if (!res.ok) {
+                                throw new Error(
+                                  body.error || t('admin.systemMaintenanceMsgBackupDeleteFailed'),
+                                );
+                              }
+                              setMsg(t('admin.systemMaintenanceMsgBackupDeleted'));
+                              await load();
+                            } catch (e) {
+                              setMsg(
+                                e instanceof Error
+                                  ? e.message
+                                  : t('admin.systemMaintenanceMsgBackupDeleteFailed'),
+                              );
+                            } finally {
+                              setBusy(false);
+                            }
+                          }}
+                          title={t('admin.systemMaintenanceDeleteBackup')}
+                          aria-label={t('admin.systemMaintenanceDeleteBackup')}
+                        >
+                          <AdminTrashIcon />
+                        </button>
+                      ) : null}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -749,6 +911,85 @@ export default function SystemMaintenancePage() {
           </table>
         </div>
       </section>
+
+      {backupModalOpen ? (
+        <div className="fixed inset-0 z-60 flex items-center justify-center px-2 sm:px-4">
+          <div
+            className="absolute inset-0 bg-black/65"
+            aria-hidden
+            onClick={() => !busy && closeBackupModal()}
+          />
+          <div
+            className="relative w-full max-w-md max-h-[92vh] rounded-2xl border border-white/15 bg-[#16161f] shadow-2xl overflow-hidden"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="backup-modal-title"
+          >
+            <div className="px-4 sm:px-6 py-4 border-b border-white/10 bg-white/5">
+              <h2 id="backup-modal-title" className="text-lg font-bold text-white">
+                {t('admin.systemMaintenanceCreateBackup')}
+              </h2>
+            </div>
+            <div className="px-4 sm:px-6 py-4 sm:py-5 space-y-3">
+              <label className="block">
+                <span className="text-white/70 text-sm">{t('admin.systemMaintenancePassphrase')}</span>
+                <PasswordPreviewInput
+                  autoComplete="new-password"
+                  value={backupModalPassphrase}
+                  onChange={(e) => setBackupModalPassphrase(e.target.value)}
+                  className="mt-1"
+                  inputClassName="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
+                  previewAriaLabel={t('admin.passwordPreviewAria')}
+                  disabled={busy}
+                />
+              </label>
+            </div>
+            <div className="sticky bottom-0 left-0 right-0 flex justify-end gap-2 px-4 sm:px-6 py-3 border-t border-white/10 bg-[#16161f]/95 backdrop-blur">
+              <button
+                type="button"
+                className="btn-admin-secondary"
+                disabled={busy}
+                onClick={() => closeBackupModal()}
+              >
+                {t('admin.cancel')}
+              </button>
+              <button
+                type="button"
+                className="btn-admin-primary"
+                disabled={busy}
+                onClick={async () => {
+                  const passphrase = backupModalPassphrase.trim();
+                  if (!passphrase) {
+                    setMsg(t('admin.systemMaintenanceMsgPassphraseRequired'));
+                    return;
+                  }
+                  setBusy(true);
+                  setMsg('');
+                  try {
+                    const res = await fetch(apiPath('admin/system-maintenance/backups'), {
+                      method: 'POST',
+                      credentials: 'include',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ passphrase }),
+                    });
+                    const body = (await res.json().catch(() => ({}))) as { error?: string };
+                    if (!res.ok) throw new Error(body.error || t('admin.systemMaintenanceMsgBackupFailed'));
+                    closeBackupModal();
+                    setMsg(t('admin.systemMaintenanceMsgBackupCreated'));
+                    await load();
+                  } catch (e) {
+                    setMsg(e instanceof Error ? e.message : t('admin.systemMaintenanceMsgBackupFailed'));
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              >
+                {busy ? '…' : t('admin.systemMaintenanceBackupConfirmButton')}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

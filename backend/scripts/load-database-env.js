@@ -5,20 +5,20 @@ const fs = require('fs');
 const path = require('path');
 
 function loadDatabaseEnv() {
-  if (process.env.DATABASE_URL) return;
+  if (process.env.DATABASE_URL && /^(postgresql|postgres):\/\//i.test(process.env.DATABASE_URL)) return;
 
   const backendEnv = path.join(__dirname, '..', '.env');
   if (fs.existsSync(backendEnv)) {
     require('dotenv').config({ path: backendEnv });
   }
 
-  if (process.env.DATABASE_URL) return;
+  if (process.env.DATABASE_URL && /^(postgresql|postgres):\/\//i.test(process.env.DATABASE_URL)) return;
 
   const { DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD } = process.env;
   if (DB_HOST && DB_PORT && DB_NAME && DB_USER && DB_PASSWORD) {
     const user = encodeURIComponent(DB_USER);
     const password = encodeURIComponent(DB_PASSWORD);
-    process.env.DATABASE_URL = `mysql://${user}:${password}@${DB_HOST}:${DB_PORT}/${DB_NAME}`;
+    process.env.DATABASE_URL = `postgresql://${user}:${password}@${DB_HOST}:${DB_PORT}/${DB_NAME}`;
     return;
   }
 

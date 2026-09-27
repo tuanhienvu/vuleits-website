@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 # Monorepo frontend (Next.js). Build from repository root:
-#   docker build -f docker/Dockerfile.frontend -t tuanhienvu/vuleits-website-frontend:V1.0.0 .
+#   docker build -f docker/Dockerfile.frontend -t tuanhienvu/vuleits-website-frontend:V1.0.5 .
 #
 # Build arg BACKEND_INTERNAL_URL is baked into next.config rewrites.
 # Default should target the internal Docker service so frontend->backend traffic stays inside the Docker network.
@@ -10,7 +10,7 @@ FROM node:20-bookworm-slim AS deps
 RUN apt-get update -y && apt-get install -y --no-install-recommends openssl ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-ENV DATABASE_URL="mysql://dummy:dummy@127.0.0.1:3306/dummy"
+ENV DATABASE_URL="postgresql://dummy:dummy@127.0.0.1:5432/dummy"
 COPY package.json package-lock.json ./
 COPY frontend/package.json frontend/package.json
 COPY backend/package.json backend/package.json
@@ -22,14 +22,14 @@ RUN npm ci
 FROM deps AS builder
 WORKDIR /app
 COPY frontend ./frontend
-ENV DATABASE_URL="mysql://dummy:dummy@127.0.0.1:3306/dummy"
+ENV DATABASE_URL="postgresql://dummy:dummy@127.0.0.1:5432/dummy"
 ENV NODE_ENV=production
 ARG BACKEND_INTERNAL_URL=http://backend:5001
 ENV BACKEND_INTERNAL_URL=${BACKEND_INTERNAL_URL}
 RUN npm run build --workspace @vuleits/frontend
 
 FROM node:20-bookworm-slim AS runner
-ARG IMAGE_VERSION=V1.0.0
+ARG IMAGE_VERSION=V1.0.5
 LABEL org.opencontainers.image.title="vuleits-website-frontend" \
   org.opencontainers.image.version="${IMAGE_VERSION}"
 WORKDIR /app

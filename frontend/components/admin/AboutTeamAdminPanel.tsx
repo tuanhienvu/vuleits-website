@@ -34,6 +34,16 @@ type Row = {
   bioVi?: string;
   order: number;
   isActive: boolean;
+  userId: number | null;
+  accountEmail: string | null;
+};
+
+type AccountOption = {
+  id: number;
+  email: string;
+  displayName: string | null;
+  teamMemberId: number | null;
+  teamMemberName: string | null;
 };
 
 function decodeHtmlEntities(input: string): string {
@@ -76,7 +86,9 @@ export default function AboutTeamAdminPanel() {
     bioVi: '',
     order: 0,
     isActive: true,
+    userId: null as number | null,
   });
+  const [accounts, setAccounts] = useState<AccountOption[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const selectAllRef = useRef<HTMLInputElement>(null);
@@ -165,11 +177,26 @@ export default function AboutTeamAdminPanel() {
     }
   };
 
+  const canAssignAccount = can('aboutTeam', 'update') || can('aboutTeam', 'create');
+  useEffect(() => {
+    if (!canAssignAccount) return;
+    let cancelled = false;
+    (async () => {
+      const res = await fetch(apiPath('admin/about-team/accounts'), { credentials: 'include' });
+      if (!res.ok || cancelled) return;
+      const data = (await res.json()) as AccountOption[];
+      if (!cancelled && Array.isArray(data)) setAccounts(data);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [canAssignAccount]);
+
   const openCreate = (triggerEl?: HTMLElement | null) => {
     modal.openFromElement(triggerEl);
     setEditingId(null);
     setActiveTab('basic');
-    setForm({ emoji: '👤', name: '', nameVi: '', role: '', roleVi: '', bio: '', bioVi: '', order: rows.length, isActive: true });
+    setForm({ emoji: '👤', name: '', nameVi: '', role: '', roleVi: '', bio: '', bioVi: '', order: rows.length, isActive: true, userId: null });
   };
 
   const openEdit = (r: Row, triggerEl?: HTMLElement | null) => {
@@ -186,6 +213,7 @@ export default function AboutTeamAdminPanel() {
       bioVi: normalizeRichTextForEditor(r.bioVi ?? ''),
       order: r.order,
       isActive: r.isActive,
+      userId: r.userId,
     });
   };
 
@@ -203,6 +231,7 @@ export default function AboutTeamAdminPanel() {
         bioVi: form.bioVi.trim(),
         order: Number(form.order) || 0,
         isActive: form.isActive,
+        userId: form.userId,
       };
       if (!payload.emoji || !payload.name || !payload.nameVi || !payload.role || !payload.roleVi || !form.bio.trim() || !form.bioVi.trim()) {
         toast.error(isVi ? 'Vui lòng nhập đủ EN và VI cho tất cả trường.' : 'Please fill in both EN and VI for all fields.');
@@ -217,12 +246,13 @@ export default function AboutTeamAdminPanel() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) throw new Error('Save failed');
+      const saved = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) throw new Error(saved.error || 'Save failed');
       toast.success(editingId == null ? 'Created' : 'Updated');
       await modal.closeAnimated();
       await refresh();
-    } catch {
-      toast.error('Save failed');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Save failed');
     } finally {
       setSaving(false);
     }
@@ -650,6 +680,31 @@ export default function AboutTeamAdminPanel() {
                     </div>
                   </div>
                 </div>
+                <label className="block sm:col-span-2">
+                  <span className="text-white/70 text-sm">{isVi ? 'Tài khoản tự cập nhật CV' : 'Login that can update this CV'}</span>
+                  <select
+                    className="mt-1 w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                    value={form.userId ?? ''}
+                    onChange={(e) => setForm((f) => ({ ...f, userId: e.target.value ? Number(e.target.value) : null }))}
+                    disabled={!canUpdate}
+                  >
+                    <option value="">{isVi ? 'Chưa gắn tài khoản' : 'Not linked'}</option>
+                    {accounts.map((account) => {
+                      const takenElsewhere = account.teamMemberId != null && account.teamMemberId !== editingId;
+                      const label = account.displayName ? `${account.displayName} (${account.email})` : account.email;
+                      return (
+                        <option key={account.id} value={account.id} disabled={takenElsewhere}>
+                          {takenElsewhere ? `${label} — ${account.teamMemberName}` : label}
+                        </option>
+                      );
+                    })}
+                  </select>
+                  <span className="mt-1 block text-xs text-white/50">
+                    {isVi
+                      ? 'Người này vào Hồ sơ để sửa CV và liên kết mạng xã hội của chính mình.'
+                      : 'This person edits their own CV and social links from My Profile.'}
+                  </span>
+                </label>
                 <label className="block">
                   <span className="text-white/70 text-sm">Order</span>
                   <input

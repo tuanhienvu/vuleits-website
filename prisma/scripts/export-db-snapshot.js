@@ -19,7 +19,7 @@ if (!process.env.DATABASE_URL) {
   if (DB_HOST && DB_PORT && DB_NAME && DB_USER && DB_PASSWORD) {
     const user = encodeURIComponent(DB_USER);
     const password = encodeURIComponent(DB_PASSWORD);
-    process.env.DATABASE_URL = `mysql://${user}:${password}@${DB_HOST}:${DB_PORT}/${DB_NAME}`;
+    process.env.DATABASE_URL = `postgresql://${user}:${password}@${DB_HOST}:${DB_PORT}/${DB_NAME}`;
   }
 }
 

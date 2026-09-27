@@ -6,8 +6,11 @@ import { ensureUniqueMemberSlug } from '@/lib/teamMemberCv';
 
 const memberCvSelect = { select: { id: true, isPublished: true } } as const;
 
+const memberAccountSelect = { select: { id: true, email: true, displayName: true } } as const;
+
 type MemberWithCv = AboutTeamMember & {
   cv: Pick<AboutTeamMemberCV, 'id' | 'isPublished'> | null;
+  user: { id: number; email: string; displayName: string | null } | null;
 };
 
 function serializeAdminMember(r: MemberWithCv) {
@@ -24,7 +27,24 @@ function serializeAdminMember(r: MemberWithCv) {
     isActive: r.isActive,
     slug: r.slug ?? '',
     hasCv: Boolean(r.cv),
+    userId: r.userId,
+    accountEmail: r.user?.email ?? null,
+    accountName: r.user?.displayName ?? null,
   };
+}
+
+async function resolveOwnerUserId(raw: unknown, memberId: number): Promise<{ userId: number | null } | { error: string; status: number }> {
+  if (raw == null || raw === '') return { userId: null };
+  const userId = Number(raw);
+  if (!Number.isFinite(userId)) return { error: 'Invalid account', status: 400 };
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { id: true } });
+  if (!user) return { error: 'Account not found', status: 400 };
+  const taken = await prisma.aboutTeamMember.findFirst({
+    where: { userId, NOT: { id: memberId } },
+    select: { name: true },
+  });
+  if (taken) return { error: `This login is already linked to ${taken.name}`, status: 409 };
+  return { userId };
 }
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -37,7 +57,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   const member = await prisma.aboutTeamMember.findUnique({
     where: { id },
-    include: { cv: memberCvSelect },
+    include: { cv: memberCvSelect, user: memberAccountSelect },
   });
   if (!member) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
@@ -72,6 +92,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   if (!nextBio) return NextResponse.json({ error: 'Bio is required' }, { status: 400 });
   if (!Number.isFinite(nextOrder)) return NextResponse.json({ error: 'Invalid order' }, { status: 400 });
 
+  const owner = body.userId !== undefined ? await resolveOwnerUserId(body.userId, id) : { userId: current.userId };
+  if ('error' in owner) return NextResponse.json({ error: owner.error }, { status: owner.status });
+
   let nextSlug = current.slug;
   if (body.slug !== undefined) {
     const slugRaw = String(body.slug ?? '').trim();
@@ -93,8 +116,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       order: nextOrder,
       isActive: nextIsActive,
       slug: nextSlug,
+      userId: owner.userId,
     },
-    include: { cv: memberCvSelect },
+    include: { cv: memberCvSelect, user: memberAccountSelect },
   });
 
   return NextResponse.json({

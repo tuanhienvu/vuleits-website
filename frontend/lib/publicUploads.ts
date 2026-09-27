@@ -1,8 +1,9 @@
+import { existsSync, readFileSync } from 'fs';
 import { mkdir, unlink, writeFile } from 'fs/promises';
 import path from 'path';
 import { randomBytes } from 'crypto';
 
-/** Web path prefix (served from `public/uploads`). */
+/** URL prefix for uploaded files (proxied to the API in production). */
 export const UPLOADS_PUBLIC_BASE = '/uploads';
 
 /** Default cap for generic uploads (images, PDF, short video). */
@@ -21,7 +22,7 @@ const MIME_TO_EXT: Record<string, string> = {
 const SEGMENT = /^[a-z0-9][a-z0-9_-]{0,62}$/i;
 
 /**
- * Normalizes a relative subpath under `public/uploads` (e.g. `company`, `library`, `news/2025`).
+ * Normalizes a relative subpath under the uploads root (e.g. `company`, `library`, `news/2025`).
  * Rejects `..`, empty segments, and invalid characters. Creates no directories by itself.
  */
 export function normalizeUploadSubfolder(input: string | null | undefined, fallback = 'general'): string {
@@ -61,8 +62,27 @@ export type SavedPublicUpload = {
   folder: string;
 };
 
+function resolveUploadsRoot(): string {
+  const override = process.env.UPLOADS_ROOT?.trim();
+  if (override) return override;
+
+  const cwd = process.cwd();
+  const parentPkg = path.join(cwd, '..', 'package.json');
+  if (existsSync(parentPkg)) {
+    try {
+      const raw = readFileSync(parentPkg, 'utf8');
+      if (raw.includes('workspaces')) {
+        return path.join(cwd, '..', 'uploads');
+      }
+    } catch {
+      // ignore
+    }
+  }
+  return path.join(cwd, 'uploads');
+}
+
 /**
- * Writes a file under `public/uploads/{folder}/` (mkdir -p). Returns public URL and absolute path.
+ * Writes a file under `{uploadsRoot}/{folder}/` (mkdir -p). Returns public URL and absolute path.
  */
 export async function savePublicUpload(params: {
   subfolder: string;
@@ -82,7 +102,7 @@ export async function savePublicUpload(params: {
   }
 
   const filename = `${Date.now()}-${randomBytes(5).toString('hex')}.${ext}`;
-  const root = path.join(process.cwd(), 'public', 'uploads');
+  const root = resolveUploadsRoot();
   const dir = path.join(root, ...folder.split('/'));
   await mkdir(dir, { recursive: true });
   const fsPath = path.join(dir, filename);

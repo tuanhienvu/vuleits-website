@@ -12,6 +12,19 @@ const dotenv = require('dotenv');
 const backendRoot = path.join(__dirname, '..');
 dotenv.config({ path: path.join(backendRoot, '.env') });
 
+// Standalone builds may still contain an old mysql:// URL builder; always prefer PostgreSQL.
+(function ensurePostgresDatabaseUrl() {
+  const existing = process.env.DATABASE_URL;
+  if (existing && /^(postgresql|postgres):\/\//i.test(existing)) return;
+
+  const { DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD } = process.env;
+  if (!DB_HOST || !DB_PORT || !DB_NAME || !DB_USER || !DB_PASSWORD) return;
+
+  const user = encodeURIComponent(DB_USER);
+  const password = encodeURIComponent(DB_PASSWORD);
+  process.env.DATABASE_URL = `postgresql://${user}:${password}@${DB_HOST}:${DB_PORT}/${DB_NAME}`;
+})();
+
 const DEFAULT_PORT = 5001;
 const MAX_TRIES = 200;
 

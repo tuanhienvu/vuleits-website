@@ -28,8 +28,10 @@ Check:
 ## 2) Prepare Project for Deploy
 
 1. Ensure compose uses image tags (avoid local build on server if not needed):
-   - `image: your-registry/your-app:TAG`
-2. Ensure required env vars are defined in root `.env`.
+   - This repo: `tuanhienvu/vuleits-website-backend:${IMAGE_TAG}` and `tuanhienvu/vuleits-website-frontend:${IMAGE_TAG}` (default tag in `docker-compose.yaml` is **`V1.0.5`** unless overridden).
+2. Ensure required env vars are defined in root `.env` next to `docker-compose.yaml`.
+   - Copy from **`.env.example`** / **`.env.docker.example`** at the repo root; set **`IMAGE_TAG=V1.0.5`** (or the tag you built/pushed) plus **`JWT_SECRET`**, **`DATABASE_URL`** (external PostgreSQL), CORS/site URLs, etc.
+   - Compose starts **frontend + backend only**. PostgreSQL must already exist and be reachable from the containers.
 3. Ensure service ports are correct and not conflicting.
 4. If compose declares external network, create it first:
    - `docker network create <network_name> || true`
@@ -38,15 +40,27 @@ Check:
 
 ## 3) Build and Push Images (from local/CI)
 
-Example:
-- `docker build -f docker/Dockerfile.backend -t <registry>/<backend-image>:<tag> .`
-- `docker build -f docker/Dockerfile.frontend -t <registry>/<frontend-image>:<tag> .`
-- `docker push <registry>/<backend-image>:<tag>`
-- `docker push <registry>/<frontend-image>:<tag>`
+**This repository (from repo root, Docker running, `docker login` if pushing to Docker Hub):**
+
+```bash
+npm run docker:backend    # builds tuanhienvu/vuleits-website-backend:V1.0.5
+npm run docker:frontend   # builds tuanhienvu/vuleits-website-frontend:V1.0.5
+npm run docker:tag:latest:backend
+npm run docker:tag:latest:frontend
+npm run docker:push:backend
+npm run docker:push:frontend
+npm run docker:push:latest:backend
+npm run docker:push:latest:frontend
+```
+
+Equivalent manual commands:
+
+- `docker build -f docker/Dockerfile.backend --build-arg IMAGE_VERSION=V1.0.5 -t tuanhienvu/vuleits-website-backend:V1.0.5 .`
+- `docker build -f docker/Dockerfile.frontend --build-arg IMAGE_VERSION=V1.0.5 -t tuanhienvu/vuleits-website-frontend:V1.0.5 .`
 
 Best practice:
-- Keep one immutable tag per release (`v1.0.1`, `2026-04-27-1`)
-- Avoid reusing the same tag in production when possible
+- Keep one immutable tag per release (this project uses tags like **`V1.0.5`**).
+- Pin production with **`IMAGE_TAG=V1.0.5`** in server `.env`; avoid changing a tag’s digest after release.
 
 ---
 
@@ -134,15 +148,12 @@ Expected:
 
 ## 9) Common Issues and Fixes
 
-### A) `service "db-init" didn't complete successfully: exit 1`
-Likely DB auth mismatch or stale DB volume.
-- Check logs:
-  - `docker compose logs db-init --tail=200`
-  - `docker compose logs mysql --tail=200`
-- If safe to reset data:
-  - `docker compose down -v`
-  - `docker compose up -d`
-- For normal release updates, do **NOT** use `down -v` because it removes DB volumes.
+### A) Backend cannot connect to PostgreSQL / schema apply fails
+Compose no longer starts MySQL. The DB must already exist.
+- Confirm `.env` has a reachable `DATABASE_URL` (`postgresql://...`).
+- From the server: `docker compose logs backend --tail=200`
+- Ensure Postgres allows connections from the Docker bridge / host IP (pg_hba / firewall).
+- Do **not** use `docker compose down -v` unless you intend to wipe upload/backup volumes (DB is external and unaffected).
 - Safe update path:
   - `docker compose pull`
   - `docker compose up -d`
@@ -173,20 +184,38 @@ Likely DB auth mismatch or stale DB volume.
 ## 10) Release Update Workflow
 
 For each new release:
-1. Build and push new image tags
-2. Update `IMAGE_TAG` (or image tag) on server
+1. Build and push new image tags (see §3; e.g. **`V1.0.5`**).
+2. On the server, edit project **`.env`** and set **`IMAGE_TAG=V1.0.5`** (match the tag you pushed).
 3. Run:
-   - `docker compose pull`
-   - `docker compose up -d`
+   - `docker compose -f docker-compose.yaml pull`  
+   - `docker compose -f docker-compose.yaml up -d`  
+   (From the folder that contains `docker-compose.yaml` and `.env`.)
+
+   Linux helper (stops stack, prunes old app images, pulls, starts): `bash docker/redeploy-linux.sh`
+
 4. Validate:
    - `docker compose ps`
    - health/log checks
    - external URL smoke test
 
+Database upgrades (keep existing data):
+- The backend entrypoint runs **`prisma migrate deploy`** when `prisma/migrations` exists (never `migrate reset` / no `--accept-data-loss`).
+- **`SKIP_DB_SEED` defaults to `1`**, so normal redeploys do not re-run full seed or clear content tables.
+
+If the database was originally created with **`prisma db push`** only (no `_prisma_migrations` history), run **once** on the server **before** or **after** pulling an image that includes migrations, to mark the baseline migration as already applied without executing its SQL:
+
+`docker exec -it vuleits-website-backend npx prisma migrate resolve --applied 20260210120000_init_schema --schema=prisma/schema.prisma`
+
+Use this only when the live schema already matches that baseline (typical when upgrading from db-push workflows). Fresh installs skip this and apply migrations normally.
+
+Optional (from your laptop against a non-production DB): apply pending migrations without starting Docker:
+
+- `npm run db:migrate:deploy` (uses `backend/.env` / `DATABASE_URL`)
+
 Watchtower note:
 - Watchtower follows the tag your running container uses.
 - If you want automatic "newest" behavior, run containers with `IMAGE_TAG=latest` and push updated `latest` tags each release.
-- If you run `IMAGE_TAG=V1.0.2`, Watchtower only tracks that fixed tag digest.
+- If you run `IMAGE_TAG=V1.0.5`, Watchtower only tracks that fixed tag digest.
 
 ---
 
@@ -234,10 +263,16 @@ New admin section:
 
 User must have:
 - `maintenance.read` (to see page/sidebar)
-- `maintenance.create` (create backup)
+- `maintenance.create` (create backup, upload backup)
 - `maintenance.update` (save config / restore)
+- `maintenance.delete` (delete a backup file from the server list)
 
-If missing in DB, re-seed once:
+If missing in DB, run on the server (ensures full permission catalog including maintenance CRUD):
+
+- `docker exec -it vuleits-website-backend npm run db:ensure-admin-permissions`
+
+Or re-seed once (broader side effects):
+
 - `docker exec -it vuleits-website-backend npm run seed`
 
 ### 13.2 What backup does
@@ -252,32 +287,34 @@ Admins can **download** backup files from the list on the same page for off-serv
 
 ### 13.3 Schedule backup
 
-The page stores:
-- **Named cron presets** in a table (each row: name, description, 6-field cron). Use **Save schedule** to add a row.
-- Exactly **one** row is selected as active (the schedule the app uses for timing). If no presets exist, the **interval (hours)** value is used instead of cron.
-- enabled/disabled flag and passphrase (for scheduled and manual backup rules as before)
+The admin page stores **calendar schedules** (hourly / daily / weekly) in `siteSettings` (key `admin.systemMaintenance.config`). Exactly **one** schedule can be **enabled** at a time; that row supplies the passphrase and **retention** (how many days of `.enc` backups to keep on disk).
 
-Cron format: `second minute hour day-of-month month day-of-week` (Quartz-style).
+**Important:** Next.js does **not** keep an in-memory cron. Something **outside** the Node process must call the run-due endpoint regularly (e.g. every 60 seconds), or scheduled backups will never run.
 
-Examples (server local time / TZ as configured on the host running Node):
+**Docker Compose (recommended):** enable the `backup-scheduler` service in `docker-compose.yaml`. It loops with `curl` against the **backend** URL (internal):
 
-- Every hour at minute 0: `0 0 * * * *`
-- Daily at 4:30 AM: `0 30 4 * * *`
-- Noon every Monday: `0 0 12 * * 1` (Monday = 1, Sunday = 0)
-- 8:00 and 20:00 daily: `0 0 8,20 * * *`
+- `POST http://backend:5001/api/admin/system-maintenance/schedule/run-due`
+- Header: `Authorization: Bearer <SYSTEM_MAINTENANCE_SCHEDULER_TOKEN>`
 
-Your external job should still call the endpoint often enough (e.g. every minute) so the app can detect when a cron slot has passed.
+Set in `.env` (same token the backend accepts; compose passes it into both **backend** and **backup-scheduler**):
 
-Scheduled execution endpoint:
-- `POST /api/admin/system-maintenance/schedule/run-due`
-- Requires header:
-  - `Authorization: Bearer <SYSTEM_MAINTENANCE_SCHEDULER_TOKEN>`
-
-Set env on server:
 - `SYSTEM_MAINTENANCE_SCHEDULER_TOKEN=<strong-random-token>`
 
-Example cron (every 15 minutes):
+If the token is unset, the scheduler container sleeps and logs a warning.
+
+**Local dev (single backend process, no Compose scheduler):** optionally set in **`backend/.env`**:
+
+- `SYSTEM_MAINTENANCE_INTERNAL_POLL_SECONDS=60`
+
+That enables an in-process poll that runs the same logic as `schedule/run-due`. Do **not** rely on this for multi-instance production; use **`backup-scheduler`** or host cron there instead.
+
+**Backup files on disk:** the backend stores encrypted exports under `BACKUP_STORAGE_DIR` (default in compose: `/app/backups`, volume `backend_backups`). Without that volume, backups would be lost on container recreate.
+
+**Host cron (alternative):** call the **public** API URL on an interval, e.g. every 15 minutes:
+
 - `*/15 * * * * curl -sS -X POST -H "Authorization: Bearer <TOKEN>" https://your-domain.com/api/admin/system-maintenance/schedule/run-due >/dev/null 2>&1`
+
+Legacy configs may still use a 6-field cron string or **interval (hours)** if calendar validation fails; the external caller should still poll often enough for the app to detect due times.
 
 ### 13.4 Encryption passphrase (stored)
 

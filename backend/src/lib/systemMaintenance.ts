@@ -1,10 +1,12 @@
 import { createCipheriv, createDecipheriv, randomBytes, randomUUID, scryptSync } from 'crypto';
 import { existsSync } from 'fs';
-import { mkdir, readdir, readFile, rm, stat, writeFile } from 'fs/promises';
+import { mkdir, readdir, readFile, rm, stat, unlink, writeFile } from 'fs/promises';
 import path from 'path';
 import { gzipSync, gunzipSync } from 'zlib';
 import { CronExpressionParser } from 'cron-parser';
+import type { Prisma } from '@prisma/client';
 import { prisma } from './prisma';
+import { resolveUploadsRoot } from './publicUploads';
 
 export const MAINTENANCE_SETTING_KEY = 'admin.systemMaintenance.config';
 const ALGO = 'aes-256-gcm';
@@ -53,7 +55,28 @@ export type BackupScheduleRecord = {
   weeklySlots: WeeklyScheduleSlot[];
   passphrase: string;
   enabled: boolean;
+  /** Auto-delete backup files older than this many days (preset values only). */
+  retentionDays: number;
 };
+
+export const BACKUP_RETENTION_PRESETS = [7, 15, 30, 90, 120] as const;
+
+export function clampRetentionDays(raw: unknown): number {
+  const n = Number(raw);
+  const allowed = BACKUP_RETENTION_PRESETS;
+  if (Number.isFinite(n) && (allowed as readonly number[]).includes(n)) return n;
+  if (!Number.isFinite(n)) return 30;
+  let best = 30;
+  let bestDist = Infinity;
+  for (const d of allowed) {
+    const dist = Math.abs(d - n);
+    if (dist < bestDist) {
+      bestDist = dist;
+      best = d;
+    }
+  }
+  return best;
+}
 
 export type BackupConfig = {
   enabled: boolean;
@@ -84,13 +107,7 @@ type BackupPayload = {
 function resolveBackupDir() {
   const override = process.env.BACKUP_STORAGE_DIR?.trim();
   if (override) return override;
-  const uploads = process.env.UPLOADS_ROOT?.trim();
-  if (uploads) return path.join(uploads, 'system-maintenance');
-  const cwd = process.cwd();
-  if (existsSync(path.join(cwd, '.next', 'standalone', 'backend', 'server.js'))) {
-    return path.join(cwd, '.next', 'standalone', 'backend', 'public', 'uploads', 'system-maintenance');
-  }
-  return path.join(cwd, 'public', 'uploads', 'system-maintenance');
+  return path.join(resolveUploadsRoot(), 'system-maintenance');
 }
 
 function deriveKey(passphrase: string, salt: Buffer) {
@@ -153,7 +170,7 @@ function normalizeWeeklySlots(values: unknown): WeeklyScheduleSlot[] {
   return out;
 }
 
-function normalizeScheduleRecord(raw: unknown): BackupScheduleRecord | null {
+function normalizeScheduleRecord(raw: unknown, retentionFallback?: number): BackupScheduleRecord | null {
   if (!raw || typeof raw !== 'object') return null;
   const o = raw as Partial<BackupScheduleRecord>;
   const mode: ScheduleMode =
@@ -164,6 +181,17 @@ function normalizeScheduleRecord(raw: unknown): BackupScheduleRecord | null {
       : '00:00';
   const dailyTimes = normalizeUniqueTimes(o.dailyTimes);
   const weeklySlots = normalizeWeeklySlots(o.weeklySlots);
+  const hasExplicitRetention =
+    raw &&
+    typeof raw === 'object' &&
+    'retentionDays' in (raw as object) &&
+    (raw as { retentionDays?: unknown }).retentionDays !== undefined &&
+    (raw as { retentionDays?: unknown }).retentionDays !== null;
+  const retentionDays = hasExplicitRetention
+    ? clampRetentionDays(o.retentionDays)
+    : retentionFallback !== undefined
+      ? clampRetentionDays(retentionFallback)
+      : 30;
   return {
     id: typeof o.id === 'string' && o.id ? o.id.slice(0, 80) : randomUUID(),
     name: typeof o.name === 'string' && o.name.trim() ? o.name.trim().slice(0, 120) : 'Schedule',
@@ -174,6 +202,7 @@ function normalizeScheduleRecord(raw: unknown): BackupScheduleRecord | null {
     weeklySlots,
     passphrase: typeof o.passphrase === 'string' ? o.passphrase : '',
     enabled: Boolean(o.enabled),
+    retentionDays,
   };
 }
 
@@ -275,8 +304,11 @@ function isCalendarScheduleDue(cfg: BackupConfig, now: Date): boolean {
 /** Whether a scheduled backup should run now (calendar schedule; legacy fallbacks supported). */
 export function isBackupScheduleDue(cfg: BackupConfig, now = new Date()): boolean {
   if (!cfg.enabled) return false;
-  const valid = validateCalendarScheduleConfig(cfg);
-  if (valid.ok) return isCalendarScheduleDue(cfg, now);
+  if (cfg.schedules.length > 0) {
+    const valid = validateCalendarScheduleConfig(cfg);
+    if (!valid.ok) return false;
+    return isCalendarScheduleDue(cfg, now);
+  }
   const legacyCron = (cfg.scheduleCron || '').trim();
   if (legacyCron) {
     // Backward compatibility for old saved configs.
@@ -296,6 +328,12 @@ export function isBackupScheduleDue(cfg: BackupConfig, now = new Date()): boolea
 }
 
 export async function loadBackupConfig(): Promise<BackupConfig> {
+  const retentionById = new Map(
+    (await prisma.backupSchedule.findMany({ select: { id: true, retentionDays: true } })).map((r) => [
+      r.id,
+      r.retentionDays,
+    ]),
+  );
   const row = await prisma.siteSetting.findUnique({ where: { key: MAINTENANCE_SETTING_KEY } });
   const fallback: BackupConfig = {
     enabled: false,
@@ -328,7 +366,14 @@ export async function loadBackupConfig(): Promise<BackupConfig> {
     const weeklySlots = normalizeWeeklySlots(parsed.weeklySlots);
     const schedules = Array.isArray(parsed.schedules)
       ? parsed.schedules
-          .map(normalizeScheduleRecord)
+          .map((raw) => {
+            const tentativeId =
+              raw && typeof raw === 'object' && typeof (raw as { id?: string }).id === 'string'
+                ? (raw as { id: string }).id.slice(0, 80)
+                : null;
+            const fb = tentativeId ? retentionById.get(tentativeId) : undefined;
+            return normalizeScheduleRecord(raw, fb);
+          })
           .filter((x): x is BackupScheduleRecord => Boolean(x))
       : [];
     // keep single active schedule
@@ -356,11 +401,70 @@ export async function loadBackupConfig(): Promise<BackupConfig> {
 }
 
 export async function saveBackupConfig(cfg: BackupConfig) {
-  await prisma.siteSetting.upsert({
-    where: { key: MAINTENANCE_SETTING_KEY },
-    create: { key: MAINTENANCE_SETTING_KEY, value: JSON.stringify(cfg) },
-    update: { value: JSON.stringify(cfg) },
+  await prisma.$transaction(async (tx) => {
+    await tx.siteSetting.upsert({
+      where: { key: MAINTENANCE_SETTING_KEY },
+      create: { key: MAINTENANCE_SETTING_KEY, value: JSON.stringify(cfg) },
+      update: { value: JSON.stringify(cfg) },
+    });
+    const ids = cfg.schedules.map((s) => s.id);
+    if (ids.length === 0) {
+      await tx.backupSchedule.deleteMany();
+    } else {
+      await tx.backupSchedule.deleteMany({ where: { id: { notIn: ids } } });
+      for (const s of cfg.schedules) {
+        const rd = clampRetentionDays(s.retentionDays);
+        await tx.backupSchedule.upsert({
+          where: { id: s.id },
+          create: { id: s.id, retentionDays: rd },
+          update: { retentionDays: rd },
+        });
+      }
+    }
   });
+}
+
+export async function appendBackupLog(entry: {
+  trigger: string;
+  success: boolean;
+  message: string;
+  meta?: Prisma.InputJsonValue;
+}) {
+  try {
+    await prisma.backupLog.create({
+      data: {
+        trigger: entry.trigger.slice(0, 32),
+        success: entry.success,
+        message: entry.message.slice(0, 2000),
+        meta: entry.meta,
+      },
+    });
+  } catch (e) {
+    console.error('[backup-log]', e);
+  }
+}
+
+/** Delete encrypted backup files older than `retentionDays` (by filesystem mtime). */
+export async function cleanupExpiredBackups(retentionDays: number): Promise<{
+  deleted: string[];
+  deletedCount: number;
+}> {
+  const maxAgeMs = Math.max(1, clampRetentionDays(retentionDays)) * 24 * 60 * 60 * 1000;
+  const dir = resolveBackupDir();
+  await mkdir(dir, { recursive: true });
+  const names = await readdir(dir);
+  const deleted: string[] = [];
+  const now = Date.now();
+  for (const f of names) {
+    if (!f.endsWith('.enc')) continue;
+    const full = path.join(dir, f);
+    const st = await stat(full);
+    if (now - st.mtimeMs > maxAgeMs) {
+      await rm(full, { force: true });
+      deleted.push(f);
+    }
+  }
+  return { deleted, deletedCount: deleted.length };
 }
 
 async function exportTables(): Promise<BackupTables> {
@@ -415,6 +519,74 @@ export async function createEncryptedBackup(passphrase: string, reason = 'manual
   return { fileName, fullPath, sizeBytes: enc.length, exportedAt: payload.exportedAt };
 }
 
+export type ScheduledBackupDueOutcome =
+  | { ok: true; skipped: string }
+  | {
+      ok: true;
+      backup: Awaited<ReturnType<typeof createEncryptedBackup>>;
+      cleanup: { deleted: string[]; deletedCount: number };
+    }
+  | { ok: false; error: string };
+
+/**
+ * One scheduler iteration: retention cleanup + encrypted backup when the calendar (or legacy rule) says due.
+ * Used by `POST .../schedule/run-due` and optionally by the in-process poller (see `instrumentation.ts`).
+ */
+export async function runScheduledBackupDueTick(): Promise<ScheduledBackupDueOutcome> {
+  const cfg = await loadBackupConfig();
+  const active = cfg.schedules.find((x) => x.enabled);
+  const passphrase = (active?.passphrase?.trim() || cfg.passphrase?.trim()) ?? '';
+  if (!cfg.enabled || !passphrase) {
+    return { ok: true, skipped: 'disabled-or-missing-passphrase' };
+  }
+  const now = new Date();
+  if (!isBackupScheduleDue(cfg, now)) {
+    return { ok: true, skipped: 'not-due' };
+  }
+
+  const retention = clampRetentionDays(active?.retentionDays ?? 30);
+  let cleanupResult: { deleted: string[]; deletedCount: number };
+  try {
+    cleanupResult = await cleanupExpiredBackups(retention);
+    await appendBackupLog({
+      trigger: 'cleanup',
+      success: true,
+      message: `Retention cleanup: removed ${cleanupResult.deletedCount} file(s) older than ${retention} day(s)`,
+      meta: {
+        retentionDays: retention,
+        deletedCount: cleanupResult.deletedCount,
+        deletedSample: cleanupResult.deleted.slice(0, 50),
+      },
+    });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    await appendBackupLog({ trigger: 'cleanup', success: false, message: msg });
+    return { ok: false, error: msg };
+  }
+
+  try {
+    const backup = await createEncryptedBackup(passphrase, 'scheduled');
+    cfg.lastRunAt = new Date().toISOString();
+    await saveBackupConfig(cfg);
+    await appendBackupLog({
+      trigger: 'scheduled',
+      success: true,
+      message: `Backup created: ${backup.fileName}`,
+      meta: { fileName: backup.fileName, sizeBytes: backup.sizeBytes, cleanupDeleted: cleanupResult.deletedCount },
+    });
+    return { ok: true, backup, cleanup: cleanupResult };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    await appendBackupLog({
+      trigger: 'scheduled',
+      success: false,
+      message: msg,
+      meta: { cleanupDeleted: cleanupResult.deletedCount },
+    });
+    return { ok: false, error: msg };
+  }
+}
+
 function safeBackupFileName(name: string) {
   if (!/^[a-zA-Z0-9._-]+$/.test(name)) throw new Error('Invalid backup file name.');
   return name;
@@ -424,10 +596,22 @@ export async function listBackups() {
   const dir = resolveBackupDir();
   await mkdir(dir, { recursive: true });
   const files = await readdir(dir);
-  const rows: Array<{ fileName: string; sizeBytes: number; modifiedAt: string }> = [];
+  const rows: Array<{
+    fileName: string;
+    sizeBytes: number;
+    modifiedAt: string;
+    createdAt: string;
+  }> = [];
   for (const f of files.filter((x) => x.endsWith('.enc'))) {
     const st = await stat(path.join(dir, f));
-    rows.push({ fileName: f, sizeBytes: st.size, modifiedAt: st.mtime.toISOString() });
+    const createdAt =
+      st.birthtimeMs && st.birthtimeMs > 0 ? st.birthtime.toISOString() : st.mtime.toISOString();
+    rows.push({
+      fileName: f,
+      sizeBytes: st.size,
+      modifiedAt: st.mtime.toISOString(),
+      createdAt,
+    });
   }
   rows.sort((a, b) => (a.modifiedAt < b.modifiedAt ? 1 : -1));
   return rows;
@@ -437,6 +621,19 @@ export async function readBackupFileBuffer(fileName: string) {
   const safe = safeBackupFileName(fileName);
   const full = path.join(resolveBackupDir(), safe);
   return readFile(full);
+}
+
+export async function deleteBackupFile(fileName: string) {
+  const safe = safeBackupFileName(fileName);
+  if (!safe.endsWith('.enc')) throw new Error('Invalid backup file.');
+  const full = path.join(resolveBackupDir(), safe);
+  try {
+    await unlink(full);
+  } catch (e) {
+    const code = (e as NodeJS.ErrnoException)?.code;
+    if (code === 'ENOENT') throw new Error('Backup file not found.');
+    throw e;
+  }
 }
 
 export async function restoreFromEncryptedBuffer(enc: Buffer, passphrase: string) {

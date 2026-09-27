@@ -143,7 +143,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error:
-            'Database error (schema or connection). On Docker, check backend logs: ensure MySQL is healthy, DATABASE_URL matches MYSQL_PASSWORD, and prisma db push / seed completed.',
+            'Database error (schema or connection). On Docker, check backend logs: ensure PostgreSQL is healthy, DATABASE_URL matches DB_PASSWORD, and prisma db push / seed completed.',
         },
         { status: 503 },
       );
@@ -154,7 +154,7 @@ export async function POST(request: Request) {
         event: { category: 'database', action: 'connect', outcome: 'failure' },
         error: { type: 'PrismaClientInitializationError' },
       });
-      return NextResponse.json({ error: 'Database unavailable. Check MySQL is running and DATABASE_URL in .env.' }, { status: 503 });
+      return NextResponse.json({ error: 'Database unavailable. Check PostgreSQL is running and DATABASE_URL in .env.' }, { status: 503 });
     }
     if (e instanceof Error && e.message.includes('Missing JWT_SECRET')) {
       reqLog.error('authentication.jwt_secret_missing', {
