@@ -14,7 +14,7 @@ if (!process.env.DATABASE_URL) {
   if (DB_HOST && DB_PORT && DB_NAME && DB_USER && DB_PASSWORD) {
     const user = encodeURIComponent(DB_USER);
     const password = encodeURIComponent(DB_PASSWORD);
-    process.env.DATABASE_URL = `postgresql://${user}:${password}@${DB_HOST}:${DB_PORT}/${DB_NAME}`;
+    process.env.DATABASE_URL = `postgresql://${user}:${password}@${DB_HOST}:${DB_PORT}/${DB_NAME}?schema=public`;
   }
 }
 
@@ -1456,6 +1456,15 @@ async function main() {
   // Keep removing any leftovers so a later seed does not bring them back.
   const inboxSeedEmailSuffix = '@seed-inbox.vuleits.local';
   try {
+    // Keep PostgreSQL sequence aligned with current max id to avoid duplicate-id collisions
+    // when previous imports inserted explicit ids.
+    await prisma.$executeRawUnsafe(`
+      SELECT setval(
+        pg_get_serial_sequence('"Contact"', 'id'),
+        COALESCE((SELECT MAX("id") FROM "Contact"), 0) + 1,
+        false
+      )
+    `);
     const removed = await prisma.contact.deleteMany({
       where: { email: { endsWith: inboxSeedEmailSuffix } },
     });
@@ -1648,6 +1657,115 @@ async function main() {
     }
   } catch (e) {
     console.warn('Snapshot content seed skipped:', e?.message || e);
+  }
+
+  // Hospitality inventory seed (idempotent)
+  try {
+    const rooms = [
+      {
+        name: 'Botanical Forest Villa',
+        slug: 'botanical-forest-villa',
+        type: 'VILLA',
+        shortDesc: 'Private wellness villa with botanical courtyard and warm wood interiors.',
+        details:
+          'A calming villa designed for long-stay wellness retreats, including an open-air lounge, private plunge pool, and optional spa sessions.',
+        nightPriceUsd: 320,
+        maxGuests: 4,
+        totalUnits: 3,
+        amenities: ['Private Pool', 'Garden View', 'Breakfast Included', 'Spa Access', 'In-villa Yoga'],
+        coverImageUrl: 'https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=1400&q=80',
+        galleryImageUrls: [
+          'https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=1400&q=80',
+          'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1400&q=80',
+          'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1400&q=80',
+          'https://images.unsplash.com/photo-1617104551722-3b2d51366456?auto=format&fit=crop&w=1400&q=80',
+          'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&w=1400&q=80',
+        ],
+      },
+      {
+        name: 'Urban Wellness Hotel Suite',
+        slug: 'urban-wellness-hotel-suite',
+        type: 'HOTEL',
+        shortDesc: 'A serene suite for restorative stays and mindful workcation.',
+        details:
+          'Includes a meditation nook, ergonomic workspace, and in-room aromatherapy setup with botanical tea service.',
+        nightPriceUsd: 340,
+        maxGuests: 2,
+        totalUnits: 10,
+        amenities: ['Sauna', 'Yoga Mat', 'Air Purifier', 'Healthy Mini Bar', 'City View'],
+        coverImageUrl: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1400&q=80',
+        galleryImageUrls: [
+          'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1400&q=80',
+          'https://images.unsplash.com/photo-1566669437685-56c1d0f1f35f?auto=format&fit=crop&w=1400&q=80',
+          'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=1400&q=80',
+          'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=1400&q=80',
+          'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1400&q=80',
+        ],
+      },
+      {
+        name: 'Ocean Wellness Resort',
+        slug: 'ocean-wellness-resort',
+        type: 'RESORT',
+        shortDesc: 'Premium ocean-facing retreat for family and couple getaways.',
+        details:
+          'Panoramic terrace, premium bedding, concierge service, and curated wellness activities with sunrise breathing classes.',
+        nightPriceUsd: 420,
+        maxGuests: 5,
+        totalUnits: 5,
+        amenities: ['Ocean View', 'Concierge', 'Sunrise Deck', 'Airport Pickup', 'Saltwater Pool'],
+        coverImageUrl: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1400&q=80',
+        galleryImageUrls: [
+          'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1400&q=80',
+          'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1400&q=80',
+          'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=1400&q=80',
+          'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1400&q=80',
+          'https://images.unsplash.com/photo-1455587734955-081b22074882?auto=format&fit=crop&w=1400&q=80',
+        ],
+      },
+      {
+        name: 'Green Garden Homestay',
+        slug: 'green-garden-homestay',
+        type: 'HOMESTAY',
+        shortDesc: 'Community-style homestay immersed in local culture and wellness routines.',
+        details:
+          'Slow-living homestay with herbal garden, home-cooked healthy meals, and guided mindfulness activities.',
+        nightPriceUsd: 185,
+        maxGuests: 3,
+        totalUnits: 6,
+        amenities: ['Garden Patio', 'Local Breakfast', 'Community Kitchen', 'Bike Rental', 'Mindful Walk Tours'],
+        coverImageUrl: 'https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1400&q=80',
+        galleryImageUrls: [
+          'https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1400&q=80',
+          'https://images.unsplash.com/photo-1496417263034-38ec4f0b665a?auto=format&fit=crop&w=1400&q=80',
+          'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1400&q=80',
+          'https://images.unsplash.com/photo-1430285561322-7808604715df?auto=format&fit=crop&w=1400&q=80',
+          'https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1400&q=80',
+        ],
+      },
+    ];
+
+    for (const room of rooms) {
+      await prisma.hospitalityRoom.upsert({
+        where: { slug: room.slug },
+        create: room,
+        update: {
+          name: room.name,
+          type: room.type,
+          shortDesc: room.shortDesc,
+          details: room.details,
+          nightPriceUsd: room.nightPriceUsd,
+          maxGuests: room.maxGuests,
+          totalUnits: room.totalUnits,
+          amenities: room.amenities,
+          coverImageUrl: room.coverImageUrl,
+          galleryImageUrls: room.galleryImageUrls,
+          isActive: true,
+        },
+      });
+    }
+    console.log('Seeded hospitality rooms (4 types with galleries).');
+  } catch (e) {
+    console.warn('Hospitality room seed skipped:', e?.message || e);
   }
 
   console.log('Seeding completed.');

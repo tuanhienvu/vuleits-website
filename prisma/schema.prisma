@@ -523,6 +523,124 @@ model ServiceItem {
   @@index([isActive, order])
 }
 
+enum HospitalityRoomType {
+  HOTEL
+  VILLA
+  RESORT
+  HOMESTAY
+}
+
+enum HospitalityBookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  PENDING_PAYMENT
+  PAID
+}
+
+enum HospitalityPaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+model HospitalityRoom {
+  id             Int                  @id @default(autoincrement())
+  name           String               @db.VarChar(160)
+  slug           String               @unique @db.VarChar(180)
+  type           HospitalityRoomType
+  shortDesc      String               @map("short_desc") @db.VarChar(500)
+  details        String               @db.Text
+  nightPriceUsd  Decimal              @map("night_price_usd") @db.Decimal(10, 2)
+  maxGuests      Int                  @default(2) @map("max_guests")
+  totalUnits     Int                  @default(1) @map("total_units")
+  amenities      Json                 @default("[]")
+  coverImageUrl  String?              @map("cover_image_url") @db.VarChar(2000)
+  galleryImageUrls Json               @default("[]") @map("gallery_image_urls")
+  isActive       Boolean              @default(true) @map("is_active")
+  createdAt      DateTime             @default(now()) @map("created_at")
+  updatedAt      DateTime             @updatedAt @map("updated_at")
+  bookings       HospitalityBooking[]
+  ratePeriods    HospitalityRatePeriod[]
+  blockedDates   HospitalityBlockedDate[]
+
+  @@index([type, isActive])
+  @@map("hospitality_rooms")
+}
+
+model HospitalityRatePeriod {
+  id          Int             @id @default(autoincrement())
+  roomId       Int            @map("room_id")
+  startDate    DateTime       @map("start_date")
+  endDate      DateTime       @map("end_date")
+  nightlyUsd   Decimal        @map("nightly_usd") @db.Decimal(10, 2)
+  note         String?        @db.VarChar(250)
+  isActive     Boolean        @default(true) @map("is_active")
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+  room         HospitalityRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@index([roomId, startDate, endDate, isActive])
+  @@map("hospitality_rate_periods")
+}
+
+model HospitalityBlockedDate {
+  id          Int             @id @default(autoincrement())
+  roomId       Int            @map("room_id")
+  blockedDate  DateTime       @map("blocked_date")
+  reason       String?        @db.VarChar(250)
+  createdAt    DateTime       @default(now()) @map("created_at")
+  room         HospitalityRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@unique([roomId, blockedDate])
+  @@index([roomId, blockedDate])
+  @@map("hospitality_blocked_dates")
+}
+
+model HospitalityBooking {
+  id                Int                       @id @default(autoincrement())
+  bookingRef        String                    @unique @map("booking_ref") @db.VarChar(36)
+  roomId            Int                       @map("room_id")
+  guestName         String                    @map("guest_name") @db.VarChar(160)
+  guestEmail        String                    @map("guest_email") @db.VarChar(220)
+  guestPhone        String?                   @map("guest_phone") @db.VarChar(50)
+  checkInDate       DateTime                  @map("check_in_date")
+  checkOutDate      DateTime                  @map("check_out_date")
+  guests            Int                       @default(1)
+  nights            Int                       @default(1)
+  amountUsd         Decimal                   @map("amount_usd") @db.Decimal(10, 2)
+  status            HospitalityBookingStatus  @default(PENDING)
+  customerNote      String?                   @map("customer_note") @db.Text
+  createdAt         DateTime                  @default(now()) @map("created_at")
+  updatedAt         DateTime                  @updatedAt @map("updated_at")
+  room              HospitalityRoom           @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  payments          HospitalityPayment[]
+
+  @@index([guestEmail, createdAt])
+  @@index([roomId, checkInDate, checkOutDate])
+  @@index([status])
+  @@map("hospitality_bookings")
+}
+
+model HospitalityPayment {
+  id                Int                       @id @default(autoincrement())
+  bookingId         Int                       @map("booking_id")
+  paymentRef        String                    @unique @map("payment_ref") @db.VarChar(36)
+  provider          String                    @db.VarChar(80)
+  amountUsd         Decimal                   @map("amount_usd") @db.Decimal(10, 2)
+  currency          String                    @default("USD") @db.VarChar(12)
+  status            HospitalityPaymentStatus  @default(PENDING)
+  providerTxnId     String?                   @map("provider_txn_id") @db.VarChar(120)
+  paidAt            DateTime?                 @map("paid_at")
+  createdAt         DateTime                  @default(now()) @map("created_at")
+  updatedAt         DateTime                  @updatedAt @map("updated_at")
+  booking           HospitalityBooking        @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId, status])
+  @@map("hospitality_payments")
+}
+
 // -------------------- Backup / maintenance --------------------
 /// Retention for automated backup cleanup; `id` matches calendar schedule id in SiteSetting JSON.
 model BackupSchedule {
